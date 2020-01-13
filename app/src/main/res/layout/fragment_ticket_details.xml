@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ticket.TicketDetailsFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:fitsSystemWindows="true"
+            android:scrollbars="none">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/tvUserNameData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:text="User Name"
+                    android:textColor="@color/black"
+                    android:textSize="28sp" />
+
+                <TextView
+                    android:id="@+id/tvTaskDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvUserNameData"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:text="Task Details"
+                    android:textColor="@color/black"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/tvPickUpData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvTaskDetails"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginTop="20dp"
+                    android:autoLink="web"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:linksClickable="true"
+                    android:text="Pickup Location"
+                    android:textColor="@color/link"
+                    android:textColorLink="@color/link"
+                    android:textSize="25sp"
+                    tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@+id/tvDropOffData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvPickUpData"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginTop="20dp"
+                    android:autoLink="web"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:linksClickable="true"
+                    android:text="Drop Off Location"
+                    android:textColor="@color/link"
+                    android:textColorLink="@color/link"
+                    android:textSize="25sp"
+                    tools:ignore="HardcodedText" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvStops"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvDropOffData"
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal" />
+
+
+
+            </RelativeLayout>
+        </ScrollView>
+
+
+    </RelativeLayout>
+
+</FrameLayout>

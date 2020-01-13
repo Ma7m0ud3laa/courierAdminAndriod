@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    tools:context=".ticket.NewTicketFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true"
+        android:scrollbars="none"
+        android:layout_marginBottom="30dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:background="@color/colorSecondary"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/ic_back"
+                android:layout_marginBottom="30dp"/>
+
+            <EditText
+                android:id="@+id/etTaskName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Task Name"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etTaskDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Description"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etUserName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="User Name"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etMobile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Mobile"
+                android:imeOptions="actionNext"
+                android:inputType="phone"
+                android:selectAllOnFocus="true" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="Ticket Status" />
+
+                <Spinner
+                    android:id="@+id/sStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
+                    android:imeOptions="actionNext"
+
+                    android:selectAllOnFocus="true"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="Ticket Priority" />
+
+                <Spinner
+                    android:id="@+id/sPriority"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
+                    android:imeOptions="actionNext"
+
+                    android:selectAllOnFocus="true"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etClientName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Client Name"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:selectAllOnFocus="true" />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                android:id="@+id/cbNeedCourier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Need Courier"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Notes"
+                android:imeOptions="actionNext"
+                android:inputType="textMultiLine"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etDiscount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Discount"
+                android:imeOptions="actionNext"
+                android:inputType="number"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/etPaid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:hint="Paid"
+                android:imeOptions="actionNext"
+                android:selectAllOnFocus="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="30dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+
+                <EditText
+                    android:id="@+id/etLatitude"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:hint="Latitude" />
+
+                <EditText
+                    android:id="@+id/etLongitude"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:hint="Longitude" />
+
+                <ImageButton
+                    android:id="@+id/btnLocation"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/button_bg"
+                    android:src="@drawable/ic_location"
+                    android:layout_marginTop="30dp"
+                    />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

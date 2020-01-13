@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:checkableBehavior="none">
+
+
+        <item
+            android:id="@+id/navTickets"
+            android:icon="@drawable/ic_assignment_black_24dp"
+            android:title="@string/tickets" />
+
+        <item
+            android:id="@+id/navCall"
+            android:icon="@drawable/ic_call_black_24dp"
+            android:title="@string/call_courier" />
+
+        <item
+            android:id="@+id/navCompletedTasks"
+            android:icon="@drawable/ic_event_available_black_24dp"
+            android:title="@string/completed_tasks" />
+
+        <item
+            android:id="@+id/navWallet"
+            android:icon="@drawable/ic_work_black_24dp"
+            android:title="@string/wallet" />
+        <item
+            android:id="@+id/navScheduleTasks"
+            android:icon="@drawable/ic_watch_later_black_24dp"
+            android:title="@string/schedule_tasks" />
+        <item
+            android:id="@+id/navSyncData"
+            android:icon="@drawable/ic_sync_black_24dp"
+            android:title="Sync Data" />
+        <item
+            android:id="@+id/navLogout"
+            android:icon="@drawable/ic_power_settings_new_black_24dp"
+            android:title="@string/log_out" />
+    </group>
+</menu>

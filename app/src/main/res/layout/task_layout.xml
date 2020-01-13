@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="15dp"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+
+        <ImageView
+            android:id="@+id/ivProductImage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder" />
+        <!--</android.support.v7.widget.CardView>-->
+
+        <TextView
+            android:id="@+id/tvUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_toEndOf="@+id/ivProductImage"
+            android:ellipsize="end"
+            android:gravity="left|start"
+            android:maxLength="14"
+            android:maxLines="1"
+            android:text="User Name"
+            android:textColor="@color/colorApp"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/tvUserName"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLength="14"
+            android:maxLines="1"
+            android:text="NEW"
+            android:textColor="@color/colorApp"
+            android:textSize="11sp"
+            android:textStyle="bold|italic" />
+
+        <TextView
+            android:id="@+id/tvTaskDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/tvUserName"
+            android:layout_below="@+id/tvUserName"
+            android:layout_marginTop="4dp"
+            android:text="Buy this Bag"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+        <TextView
+            android:id="@+id/tvPickupLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/tvTaskDetails"
+            android:layout_below="@+id/tvTaskDetails"
+            android:layout_marginTop="4dp"
+            android:text="FROM: Galleria 40, cairo egypt"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+        <TextView
+            android:id="@+id/tvDropOffLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/tvTaskDetails"
+            android:layout_below="@+id/tvPickupLocation"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="20dp"
+            android:text="TO:25 a2 st.Maddi, cairo egypt"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+
+
+    </RelativeLayout>
+
+
+</androidx.cardview.widget.CardView>

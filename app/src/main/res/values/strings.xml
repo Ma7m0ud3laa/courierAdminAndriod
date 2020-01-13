@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">Agent</string>
+    <string name="notification">Notification</string>
+    <string name="direction">Direction</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Notification HERE</string>
+
+    <string name="courier_power_by_kadabra">Powered by kadabra</string>
+    <string name="no_results">No Data Available.</string>
+    <string name="error_login_server_error">Error Occurred.</string>
+    <string name="error_login_server_unknown_error">Unknown Error.</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="error_user_name">User name can\'t be empty</string>
+    <string name="error_email">Enter a valid email.</string>
+
+    <string name="error_password">Password can\'t be empty</string>
+    <string name="error_email_password_incorrect">Password or Email is incorrect Kindly check them again.</string>
+    <string name="skip_now">Skip now</string>
+    <string name="email">Email</string>
+    <string name="code">Code</string>
+    <string name="missing">Missing</string>
+    <string name="required">Required</string>
+    <string name="welcome_back">Welcome Back!</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_email_not_registered">The email is not registered</string>
+    <string name="success">Success</string>
+    <string name="error_network">Network Error.</string>
+    <string name="log_in">Log in</string>
+    <string name="crash_error">Sorry!, Something went wrong, we will fixing it soon.</string>
+    <string name="restart">Restart</string>
+    <string name="loading">Loading...</string>
+    <string name="end_task">End Task</string>
+    <string name="exit">Are you sue you an to exit?</string>
+    <string name="tickets">Tickets</string>
+    <string name="call_courier">Call Courier</string>
+    <string name="completed_tasks">Completed Tasks</string>
+    <string name="wallet">Wallet</string>
+    <string name="schedule_tasks">Schedule Tasks</string>
+    <string name="log_out">Log out</string>
+    <string name="filter">Filter</string>
+    <string name="user_name_email">USER NAME/EMAIL</string>
+    <string name="password">PASSWORD</string>
+    <string name="remember_me">REMEMBER ME</string>
+    <string name="don_t_have_an_account">Don\'t have an Account</string>
+    <string name="sign_up">SIGN UP</string>
+</resources>
+

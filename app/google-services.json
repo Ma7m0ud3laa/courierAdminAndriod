@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "754569028289",
+    "firebase_url": "https://agent-d2cc9.firebaseio.com",
+    "project_id": "agent-d2cc9",
+    "storage_bucket": "agent-d2cc9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:754569028289:android:a3321a07c5cbb87cc76a40",
+        "android_client_info": {
+          "package_name": "com.twoam.agent"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8TjBH1lS5c9eet6QJdup4zWx9XUoji5s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
