@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:layout_marginBottom="15dp"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+
+        <ImageView
+            android:id="@+id/ivProductImage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder" />
+        <!--</android.support.v7.widget.CardView>-->
+
+        <TextView
+            android:id="@+id/tvTicketName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_toEndOf="@+id/ivProductImage"
+            android:ellipsize="end"
+            android:gravity="left|start"
+            android:maxLength="14"
+            android:maxLines="1"
+            android:text="@string/kadabra"
+            android:textColor="@color/colorApp"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="@string/status"
+            android:textColor="@color/colorApp"
+            android:textSize="11sp"
+            android:textStyle="bold|italic" />
+
+        <TextView
+            android:id="@+id/tvTicketDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvTicketName"
+            android:layout_alignStart="@+id/tvTicketName"
+            android:layout_marginTop="4dp"
+            android:text="@string/no_details_available"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvPriority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvTicketDescription"
+            android:layout_alignStart="@+id/tvTicketDescription"
+            android:layout_marginTop="4dp"
+            android:text="@string/priority"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvPriority"
+            android:layout_alignStart="@+id/tvTicketDescription"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/le"
+            android:textColor="@color/colorWelcome"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvTotalTasks"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignBaseline="@+id/tvPrice"
+            android:layout_below="@+id/tvPrice"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/rounded_textview"
+            android:clickable="true"
+            android:fontFamily="Poppins-Medium"
+            android:gravity="center"
+            android:letterSpacing="0"
+            android:text="0"
+            android:textColor="@color/error"
+            android:textSize="12sp" />
+
+    </RelativeLayout>
+
+
+</androidx.cardview.widget.CardView>

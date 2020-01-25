@@ -2,10 +2,6 @@
     <string name="app_name">Agent</string>
     <string name="notification">Notification</string>
     <string name="direction">Direction</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Notification HERE</string>
-
     <string name="courier_power_by_kadabra">Powered by kadabra</string>
     <string name="no_results">No Data Available.</string>
     <string name="error_login_server_error">Error Occurred.</string>
@@ -14,7 +10,8 @@
     <string name="no_internet">No internet connection</string>
     <string name="error_user_name">User name can\'t be empty</string>
     <string name="error_email">Enter a valid email.</string>
-
+    <string name="error_incorrect_user_name">Incorrect User Name.</string>
+    <string name="error_incorrect_password">Incorrect Password.</string>
     <string name="error_password">Password can\'t be empty</string>
     <string name="error_email_password_incorrect">Password or Email is incorrect Kindly check them again.</string>
     <string name="skip_now">Skip now</string>
@@ -45,5 +42,44 @@
     <string name="remember_me">REMEMBER ME</string>
     <string name="don_t_have_an_account">Don\'t have an Account</string>
     <string name="sign_up">SIGN UP</string>
+    <string name="add_stop">Add Stop</string>
+    <string name="kadabra">Kadabra</string>
+    <string name="priority">Priority</string>
+    <string name="price">Price</string>
+    <string name="le">LE</string>
+    <string name="details">Details</string>
+    <string name="status">Status</string>
+    <string name="no_details_available">No details available.</string>
+    <string name="to">To:</string>
+    <string name="from">From:</string>
+    <string name="pickup">PickUp:</string>
+    <string name="drop_off">Drop Off:</string>
+
+
+    <string name="no_stop">No location determined.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="amount">Amount</string>
+    <string name="update">Update</string>
+    <string name="no_tasks_available">No Tasks Available</string>
+    <string name="tasks">Tasks</string>
+    <string name="no_ticket_available">No Ticket Available</string>
+    <string name="add_new">Add+</string>
+
+    <string name="select_status">Select Status ...</string>
+    <string name="select_ticket">Select Ticket ...</string>
+    <string name="select_task">Select Task ...</string>
+    <string name="select_courier">Select Courier ...</string>
+    <string name="stops">Stops</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="delete">Delete</string>
+    <string name="stop_name">Stop Name</string>
+    <string name="task_details">Task Details</string>
+        <string name="new_task">New Task</string>
+
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+
 </resources>
 

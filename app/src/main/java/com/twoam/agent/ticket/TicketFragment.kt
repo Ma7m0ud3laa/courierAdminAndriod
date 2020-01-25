@@ -2,21 +2,25 @@ package com.twoam.agent.ticket
 
 import android.content.Context
 import android.os.Bundle
-
-import androidx.fragment.app.Fragment
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.twoam.Networking.INetworkCallBack
+import com.twoam.Networking.NetworkManager
 import com.twoam.agent.R
 import com.twoam.agent.adapter.TicketAdapter
+import com.twoam.agent.api.ApiResponse
+import com.twoam.agent.api.ApiServices
 import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.model.DropOffLocation
-import com.twoam.agent.model.PickUpLocation
-import com.twoam.agent.model.Stop
+import com.twoam.agent.model.Courier
 import com.twoam.agent.model.Ticket
+import com.twoam.agent.utilities.Alert
+import com.twoam.agent.utilities.AppConstants
 import com.twoam.agent.utilities.AppController
 import com.twoam.cartello.Utilities.Base.BaseFragment
 
@@ -27,8 +31,13 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var ticket: Ticket = Ticket()
-    private var rvTasks: RecyclerView? = null
+    private var ticketList = ArrayList<Ticket>()
+    private var rvTickets: RecyclerView? = null
     private var listener: IBottomSheetCallback? = null
+    private var sRefresh: SwipeRefreshLayout? = null
+    private var ivNoInternet: ImageView? = null
+    private var tvEmptyData: TextView? = null
+//    private var avi: AVLoadingIndicatorView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,12 +51,17 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        var view = inflater.inflate(R.layout.fragment_ticket, container, false)
-        init(view)
-        return view
+
+        return inflater.inflate(R.layout.fragment_ticket, container, false)
+
+
+//        return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        init(view)
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -90,153 +104,109 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     }
 
     private fun init(view: View) {
-        rvTasks = view.findViewById(R.id.rvTasks)
-        getTickets()
+//        avi = view.findViewById(R.id.avi)
+        rvTickets = view.findViewById(R.id.rvTickets)
+        sRefresh = view.findViewById(R.id.sRefresh)
+        ivNoInternet = view.findViewById(R.id.ivNoInternet)
+        tvEmptyData = view.findViewById(R.id.tvEmptyData)
+        sRefresh?.setOnRefreshListener {
+            loadTickets()
+            getAllCouriers()
+        }
+
+        if (AppConstants.GetALLTicket.count() > 0 && AppConstants.ALL_COURIERS.count() > 0) {
+            prepareTicketData(AppConstants.GetALLTicket)
+        } else {
+            loadTickets()
+            getAllCouriers()
+        }
 
     }
 
-    private fun getTickets() {
-        var stopList = ArrayList<Stop>()
-        stopList.add(
-            Stop(
-                "1",
-                "City Stars",
-                "Blue Bag",
-                PickUpLocation("1", "City Stars", 30.073239, 31.346265)
-            )
-        )
-        stopList.add(
-            Stop(
-                "2",
-                "City Mall",
-                "Blue Bag",
-                PickUpLocation("1", "City Mall", 30.073239, 31.346265)
-            )
-        )
-        stopList.add(
-            Stop(
-                "3",
-                "City Grand",
-                "Blue Bag",
-                PickUpLocation("1", "City Grand", 30.073239, 31.346265)
-            )
-        )
-        stopList.add(
-            Stop(
-                "4",
-                "City DD",
-                "Blue Bag",
-                PickUpLocation("1", "City DD", 30.073239, 31.346265)
-            )
-        )
 
-        var ticketList = ArrayList<Ticket>()
+    private fun loadTickets() {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            ivNoInternet!!.visibility = View.INVISIBLE
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getAllTickets()
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
+                    override fun onFailed(error: String) {
+                        sRefresh!!.isRefreshing = false
+                        Alert.hideProgress()
+                        Alert.showMessage(context!!, getString(R.string.error_login_server_error))
+                    }
 
+                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            sRefresh!!.isRefreshing = false
+                            tvEmptyData!!.visibility = View.INVISIBLE
+                            ticketList = response.ResponseObj!!
+                            AppConstants.GetALLTicket = ticketList
+                            if (ticketList.size > 0) {
+                                prepareTicketData(ticketList)
+                                Alert.hideProgress()
+                            } else {//no taskModel
+                                tvEmptyData!!.visibility = View.VISIBLE
+                                Alert.hideProgress()
+                            }
 
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Buy this bag from city stars.",
-                "NEW",
-                PickUpLocation("1", "City Stars", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Ask about this item price.",
-                "NEW",
-                PickUpLocation("1", "Town down", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Reserve flight ticket to usa.",
-                "NEW",
-                PickUpLocation("1", "eagle reservation agency.", 1.02154, 1.02454),
-                DropOffLocation("1", "tahrir", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Buy this bag from city stars.",
-                "NEW",
-                PickUpLocation("1", "City Stars", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Ask about this item price.",
-                "NEW",
-                PickUpLocation("1", "Town down", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Reserve flight ticket to usa.",
-                "NEW",
-                PickUpLocation("1", "eagle reservation agency.", 1.02154, 1.02454),
-                DropOffLocation("1", "tahrir", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Buy this bag from city stars.",
-                "NEW",
-                PickUpLocation("1", "City Stars", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Ask about this item price.",
-                "NEW",
-                PickUpLocation("1", "Town down", 1.02154, 1.02454),
-                DropOffLocation("1", "Maddi", 1.02154, 1.02454),
-                stopList
-            )
-        )
-        ticketList.add(
-            Ticket(
-                "Kadabra",
-                "New Task",
-                "Reserve flight ticket to usa.",
-                "NEW",
-                PickUpLocation("1", "eagle reservation agency.", 1.02154, 1.02454),
-                DropOffLocation("1", "tahrir", 1.02154, 1.02454),
-                stopList
-            )
-        )
+                        } else {
+                            sRefresh!!.isRefreshing = false
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            ivNoInternet!!.visibility = View.VISIBLE
+            sRefresh!!.isRefreshing = false
+            Alert.hideProgress()
+            Alert.showMessage(context!!, getString(R.string.no_internet))
+        }
 
 
-        var adapter = TicketAdapter(context!!, ticketList,listener!!)
-        rvTasks?.adapter = adapter
-        rvTasks?.layoutManager =
-            GridLayoutManager(AppController.getContext(), 1, GridLayoutManager.VERTICAL, false)
+    }
+
+    private fun prepareTicketData(ticketList: ArrayList<Ticket>) {
+        var adapter = TicketAdapter(context!!, ticketList, listener!!)
+        rvTickets!!.adapter = adapter
+        rvTickets?.layoutManager =
+            GridLayoutManager(
+                AppController.getContext(),
+                1,
+                GridLayoutManager.VERTICAL,
+                false
+            )
+    }
+
+    private fun getAllCouriers() {
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getAllCouriers()
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Courier>>> {
+                    override fun onFailed(error: String) {
+                    }
+
+                    override fun onSuccess(response: ApiResponse<ArrayList<Courier>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            AppConstants.ALL_COURIERS = response.ResponseObj!!
+
+                        }
+
+                    }
+                })
+
+        } else {
+        }
     }
 }// Required empty public constructor

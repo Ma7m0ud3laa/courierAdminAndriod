@@ -52,7 +52,7 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:padding="16dp"
-            android:visibility="gone"
+            android:visibility="visible"
             app:srcCompat="@drawable/ic_close_black_24dp" />
 
         <View

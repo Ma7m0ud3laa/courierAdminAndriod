@@ -1,8 +1,6 @@
 package com.twoam.agent.ticket
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 
 import androidx.fragment.app.Fragment
@@ -10,41 +8,38 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import com.twoam.agent.R
 import com.twoam.agent.adapter.StopAdapter
+import com.twoam.agent.adapter.TaskAdapter
 import com.twoam.agent.callback.IBottomSheetCallback
 import com.twoam.agent.model.Stop
+import com.twoam.agent.model.Task
+import com.twoam.agent.model.Ticket
 import com.twoam.agent.utilities.AppConstants
 import com.twoam.agent.utilities.AppController
 import com.twoam.cartello.Utilities.Base.BaseFragment
 
 
-/**
- * A simple [Fragment] subclass.
- * Activities that contain this fragment must implement the
- * [TicketDetailsFragment.OnFragmentInteractionListener] interface
- * to handle interaction events.
- * Use the [TicketDetailsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListener {
 
-    // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
-    private  var tvUserNameData: TextView?=null
-    private  var tvTaskDetails: TextView?=null
-    private var tvPickUpData: TextView?=null
-    private var tvDropOffData: TextView?=null
-    private var rvStops: RecyclerView?=null
-    lateinit var currentView: View
-
-
+    private var tvTicketName: TextView? = null
+    private var tvTicketDetails: TextView? = null
+    private var tvStatus: TextView? = null
+    private var tvPriority: TextView? = null
+    private var tvPrice: TextView? = null
+    private var tvAddTask: TextView? = null
+    private var rvTasks: RecyclerView? = null
+    private var currentView: View? = null
+    private var ivBack: ImageView? = null
     private var listener: IBottomSheetCallback? = null
+    private var ticket = Ticket()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,10 +55,9 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        init()
         currentView = inflater.inflate(R.layout.fragment_ticket_details, container, false)
-
-        if (AppConstants.currentSelectedTicket != null) {
+        init()
+        if (!ticket.TicketId.isNullOrEmpty()) {
             loadTicketDetails()
         }
         return currentView
@@ -72,8 +66,12 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            R.id.tvPickUpData, R.id.tvDropOffData -> {
-                listener!!.onBottomSheetSelectedItem(4)
+
+            R.id.tvAddTask -> {// add task to the current ticket
+                listener!!.onBottomSheetSelectedItem(7)
+            }
+            R.id.ivBack -> {
+                listener!!.onBottomSheetSelectedItem(0)
             }
         }
 
@@ -82,14 +80,21 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
 
     private fun init() {
 
-        tvUserNameData = currentView!!.findViewById(R.id.tvUserNameData)
-        tvTaskDetails = currentView!!.findViewById(R.id.tvTaskDetails)
-        tvPickUpData = currentView!!.findViewById(R.id.tvPickUpData)
-        tvDropOffData = currentView!!.findViewById(R.id.tvDropOffData)
-        rvStops = currentView!!.findViewById(R.id.rvStops)
+        tvTicketName = currentView!!.findViewById(R.id.tvTicketName)
+        tvTicketDetails = currentView!!.findViewById(R.id.tvTicketDetails)
+        tvStatus = currentView!!.findViewById(R.id.tvStatus)
+        tvPriority = currentView!!.findViewById(R.id.tvPriority)
+        tvPrice = currentView!!.findViewById(R.id.tvPrice)
+        tvAddTask = currentView!!.findViewById(R.id.tvAddTask)
+        ivBack = currentView!!.findViewById(R.id.ivBack)
+        rvTasks = currentView!!.findViewById(R.id.rvTasks)
 
-        tvPickUpData!!.setOnClickListener(this)
-        tvDropOffData!!.setOnClickListener(this)
+        tvAddTask!!.setOnClickListener(this)
+        ivBack!!.setOnClickListener(this)
+
+
+
+        ticket = AppConstants.CurrentSelectedTicket
     }
 
     override fun onAttach(context: Context) {
@@ -111,25 +116,54 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
     }
 
     override fun onBottomSheetSelectedItem(index: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (index == 6)//go to task details view
+            listener!!.onBottomSheetSelectedItem(6)
     }
 
     private fun loadTicketDetails() {
-        var task = AppConstants.currentSelectedTicket
-        tvUserNameData!!.text = task.userName
-        tvTaskDetails!!.text = task.description
-        tvPickUpData!!.text =task.pickUpLocation.name
-//            task.pickUpLocation.lat.toString() + "," + task.pickUpLocation.lon.toString()
-        tvDropOffData!!.text =task.dropOffLocation.name
-//            task.dropOffLocation.lat.toString() + "," + task.dropOffLocation.lon.toString()
-        loadTaskStops(task.stopList!!)
+
+        var ticket = AppConstants.CurrentSelectedTicket
+        tvTicketName!!.text = ticket.TicketName
+
+        if (!ticket.TicketDescription.isNullOrEmpty())
+            tvTicketDetails!!.text = ticket.TicketDescription
+
+        tvStatus!!.text = ticket.Status
+        tvPriority!!.text = ticket.Priority
+
+        if (ticket.price!! > 0)
+            tvPrice!!.text = ticket.price.toString()
+        else
+            tvPrice!!.text = "0 " + context!!.getString(R.string.le)
+
+
+
+        when (ticket.Status) {
+            AppConstants.TaskStatus.NEW.status -> {
+                tvStatus!!.setTextColor(context!!.getColor(R.color.link))
+            }
+            AppConstants.TaskStatus.IN_PROGRESS.status -> {
+                tvStatus!!.setTextColor(context!!.getColor(R.color.crimson))
+            }
+            AppConstants.TaskStatus.POST_PONDED.status -> {
+                tvStatus!!.setTextColor(context!!.getColor(R.color.greenYellow))
+            }
+            AppConstants.TaskStatus.COMPLETED.status -> {
+                tvStatus!!.setTextColor(context!!.getColor(R.color.green))
+            }
+
+        }
+
+        loadTicketTasks(ticket.taskModel!!)
     }
 
-    private fun loadTaskStops(stopList: ArrayList<Stop>) {
 
-        var adapter = StopAdapter(parentFragment!!.context!!, stopList)
-        rvStops!!.adapter = adapter
-        rvStops!!.layoutManager =
+
+    private fun loadTicketTasks(taskList: ArrayList<Task>) {
+
+        var adapter = TaskAdapter(context!!, taskList, this)
+        rvTasks!!.adapter = adapter
+        rvTasks!!.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
 
     }

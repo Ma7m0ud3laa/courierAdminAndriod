@@ -3,6 +3,7 @@ package com.twoam.agent.callback
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
@@ -24,27 +25,52 @@ import com.twoam.agent.utilities.AppConstants
  */
 class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
 
-    //Bottom Sheet Callback
-    private val mBottomSheetBehaviorCallback = object : BottomSheetBehavior.BottomSheetCallback() {
 
-        override fun onStateChanged(bottomSheet: View, newState: Int) {
-            if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-                dismiss()
+    private var closeButton: ImageView? = null
+    private var listener: IBottomSheetCallback? = null
+    //Bottom Sheet Callback
+    private val mBottomSheetBehaviorCallback =
+        object : BottomSheetBehavior.BottomSheetCallback(), IBottomSheetCallback {
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    dismiss()
+                }
+
             }
 
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                //check the slide offset and change the visibility of close button
+                if (slideOffset > 0.5) {
+                    closeButton!!.visibility = View.VISIBLE
+                } else {
+                    closeButton!!.visibility = View.GONE
+                }
+            }
+
+            override fun onBottomSheetClosed(isClosed: Boolean) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onBottomSheetSelectedItem(index: Int) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
         }
 
-        override fun onSlide(bottomSheet: View, slideOffset: Float) {
-            //check the slide offset and change the visibility of close button
-            if (slideOffset > 0.5) {
-                closeButton!!.visibility = View.VISIBLE
-            } else {
-                closeButton!!.visibility = View.GONE
-            }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is IBottomSheetCallback) {
+            listener = context
+        } else {
+            throw ClassCastException("$context must implement IBottomSheetCallback.onBottomSheetSelectedItem")
         }
     }
 
-    private var closeButton: ImageView? = null
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+    }
+
 
     @SuppressLint("RestrictedApi")
     override fun setupDialog(dialog: Dialog, style: Int) {
@@ -61,15 +87,27 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
                 R.id.navLogout -> {
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
-                        .setMessage(getString(com.twoam.agent.R.string.exit))
+                        .setMessage(getString(R.string.exit))
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(AppConstants.OK) { dialog, which ->
                             logOut()
                         }
-                        .setNegativeButton(AppConstants.CANCEL) { dialog, which ->  }
+                        .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
                         .show()
+
                 }
+                R.id.navCall -> {
+                    val intent = Intent(Intent.ACTION_DIAL)
+                    startActivity(intent)
+                    dismiss()
+                }
+                R.id.navTickets -> {
+                    listener!!.onBottomSheetSelectedItem(11)
+                    dismiss()
+                }
+
             }
+            dismiss()
             false
         }
         closeButton = contentView.findViewById(R.id.close_image_view)
@@ -87,11 +125,12 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
             behavior.setBottomSheetCallback(mBottomSheetBehaviorCallback)
         }
     }
+
     private fun logOut() {
         UserSessionManager.getInstance(context!!).setUserData(null)
         UserSessionManager.getInstance(context!!).setIsLogined(false)
         context?.startActivity(Intent(context, LoginActivity::class.java))
-
+        dismiss()
     }
 
     companion object {

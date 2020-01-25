@@ -1,38 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/lTicket"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ticket.TicketFragment">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+    <!--    <ScrollView-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent"-->
+    <!--        android:layout_marginBottom="30dp"-->
+    <!--        android:fillViewport="true"-->
+    <!--        android:fitsSystemWindows="true"-->
+    <!--        android:scrollbars="none">-->
 
-        <androidx.core.widget.NestedScrollView
+    <!--        <RelativeLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="match_parent">-->
+
+    <!--            <RelativeLayout-->
+    <!--                android:id="@+id/rlParent"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="70dp"-->
+    <!--                android:background="@color/colorSecondary"-->
+    <!--                android:padding="10dp">-->
+
+    <!--                <ImageView-->
+    <!--                    android:id="@+id/btnBack"-->
+    <!--                    android:layout_width="24dp"-->
+    <!--                    android:layout_height="24dp"-->
+    <!--                    android:layout_marginStart="24dp"-->
+    <!--                    android:layout_marginTop="12dp"-->
+    <!--                    app:srcCompat="@drawable/ic_back"-->
+    <!--                    android:background="?android:attr/selectableItemBackgroundBorderless"/>-->
+    <!--                    />-->
+
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tvTickets"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_alignParentTop="true"-->
+    <!--                    android:layout_centerHorizontal="true"-->
+    <!--                    android:layout_marginLeft="95.5dp"-->
+    <!--                    android:layout_marginTop="12dp"-->
+    <!--                    android:layout_marginRight="128.5dp"-->
+    <!--                    android:text="@string/tickets"-->
+    <!--                    android:textAllCaps="false"-->
+    <!--                    android:textColor="@color/colorLabel"-->
+    <!--                    android:textSize="18sp" />-->
+
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tvTotalTasks"-->
+    <!--                    android:layout_width="28dp"-->
+    <!--                    android:layout_height="28dp"-->
+    <!--                    android:layout_marginTop="12dp"-->
+    <!--                    android:layout_alignParentEnd="true"-->
+    <!--                    android:layout_alignParentRight="true"-->
+    <!--                    android:background="@drawable/rounded_textview"-->
+    <!--                    android:clickable="true"-->
+    <!--                    android:fontFamily="Poppins-Medium"-->
+    <!--                    android:gravity="center"-->
+    <!--                    android:letterSpacing="0"-->
+    <!--                    android:text="0"-->
+    <!--                    android:textColor="@color/navy"-->
+    <!--                    android:textSize="12sp" />-->
+
+
+    <!--            </RelativeLayout>-->
+
+    <!--            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout-->
+    <!--                android:id="@+id/sRefresh"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:layout_below="@+id/rlParent">-->
+
+    <!--                <androidx.recyclerview.widget.RecyclerView-->
+    <!--                    android:id="@+id/rvTickets"-->
+    <!--                    android:layout_width="match_parent"-->
+    <!--                    android:layout_height="match_parent"-->
+    <!--                    android:layout_marginTop="20dp" />-->
+    <!--            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>-->
+
+
+    <!--            <ImageView-->
+    <!--                android:id="@+id/ivNoInternet"-->
+    <!--                android:layout_width="100dp"-->
+    <!--                android:layout_height="100dp"-->
+    <!--                android:layout_centerInParent="true"-->
+    <!--                android:gravity="center"-->
+    <!--                android:src="@drawable/ic_no_internet"-->
+    <!--                android:visibility="gone" />-->
+
+    <!--            <TextView-->
+    <!--                android:id="@+id/tvEmptyData"-->
+    <!--                android:layout_width="match_parent"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:layout_centerInParent="true"-->
+    <!--                android:gravity="center"-->
+    <!--                android:text="No Ticket Available"-->
+    <!--                android:textColor="@color/colorLabel"-->
+    <!--                android:textSize="17sp"-->
+    <!--                android:textStyle="bold"-->
+    <!--                android:visibility="gone" />-->
+    <!--        </RelativeLayout>-->
+    <!--    </ScrollView>-->
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/sRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <LinearLayout
+            <androidx.core.widget.NestedScrollView
+
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_height="match_parent">
 
-
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvTasks"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginTop="20dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTickets"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="20dp" />
 
+                    <ImageView
+                        android:id="@+id/ivNoInternet"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_centerInParent="true"
+                        android:elevation="1dp"
+                        android:gravity="center"
+                        android:src="@drawable/ic_no_internet"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvEmptyData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:elevation="1dp"
+                        android:gravity="center"
+                        android:text="No Ticket Available"
+                        android:textColor="@color/colorLabel"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </RelativeLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
 </FrameLayout>

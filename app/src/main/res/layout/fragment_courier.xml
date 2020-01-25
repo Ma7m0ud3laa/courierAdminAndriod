@@ -5,21 +5,53 @@
     android:layout_height="match_parent"
     tools:context=".courier.CourierFragment">
 
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <fragment
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
+        <ImageView
+            android:id="@+id/ivSearchMarker"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_centerInParent="true"
+            android:elevation="1dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher"
+            android:visibility="invisible" />
+
+        <Button
+            android:id="@+id/btnConfirmLocation"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="100dp"
+            android:background="@drawable/rounded_button"
+            android:elevation="1dp"
+            android:text="Confirm Location"
+            android:textAllCaps="false"
+            android:textColor="@color/colorSecondary"
+            android:visibility="invisible" />
 
-<!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-<!--            android:id="@+id/fab"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="bottom|end"-->
-<!--            android:layout_marginRight="8dp"-->
-<!--            android:layout_marginBottom="112dp"-->
-<!--            android:src="@android:drawable/ic_menu_search" />-->
+
+
+
+    </RelativeLayout>
+
+    <!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+    <!--            android:id="@+id/fab"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_gravity="bottom|end"-->
+    <!--            android:layout_marginRight="8dp"-->
+    <!--            android:layout_marginBottom="112dp"-->
+    <!--            android:src="@android:drawable/ic_menu_search" />-->
 
 </FrameLayout>

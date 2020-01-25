@@ -5,16 +5,14 @@ package com.twoam.agent.api
  */
 class ApiResponse<T> {
 
-    var data: T?
-    var success: Boolean = false
-    var message: String = ""
-    var code: Int = 0
+    var ResponseObj: T?
+    var Message: String = ""
+    var Status: Int = 0
 
-    constructor(data: T?, code: Int, sucess: Boolean, messaage: String) {
-        this.data = data
-        this.success = success
-        this.message = message
-        this.code = code
+    constructor(ResponseObj: T?, status: Int, messaage: String) {
+        this.ResponseObj = ResponseObj
+        this.Message = messaage
+        this.Status = status
 
     }
 }

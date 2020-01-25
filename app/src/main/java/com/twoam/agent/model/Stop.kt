@@ -1,26 +1,37 @@
 package com.twoam.agent.model
 
-
-
-/**
- * Created by Mokhtar on 1/8/2020.
- */
 class Stop {
-
     var id: String = ""
-    var name: String = ""
-    var description: String = ""
-    var pickUpLocation: PickUpLocation = PickUpLocation()
+    var StopName: String = ""
+    var Latitude: Double? = null
+    var Longitude: Double? = null
+    var StopTypeID: Int = 0 //1 pickup 2 dropoff 3 stop "default"
+    var StopType = ""
+    var CreationDate = ""
+    var taskId = ""
+    var addedBy = ""
+    var address = ""
+    var city = ""
+    var state = ""
+    var country = ""
+    var postalCode = ""
+    var knownName = ""
+
 
     constructor()
-    constructor(id: String,name:String,description: String,pickUpLocation: PickUpLocation)
-    {
-        this.id=id
-        this.name=name
-        this.description=description
-        this.pickUpLocation=pickUpLocation
-
+    constructor(
+        taskId: String, addedBy: String,
+        stopName: String, latitude: Double
+        , longitude: Double, stopTypeId: Int, stopType: String, creationDate: String
+    ) {
+        this.taskId = taskId
+        this.addedBy = addedBy
+        this.StopName = stopName
+        this.Latitude = latitude
+        this.Longitude = longitude
+        this.StopTypeID = stopTypeId
+        this.StopType = stopType
+        this.CreationDate = creationDate
 
     }
-
 }

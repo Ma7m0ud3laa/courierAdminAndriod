@@ -1,7 +1,6 @@
 package com.twoam.agent.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,7 +27,7 @@ class StopAdapter(private val context: Context, private val stopList: ArrayList<
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StopAdapter.MyViewHolder {
 
-        val view = inflater.inflate(R.layout.task_layout, parent, false)
+        val view = inflater.inflate(R.layout.stop_layout, parent, false)
         return MyViewHolder(view)
 
     }
@@ -36,9 +35,8 @@ class StopAdapter(private val context: Context, private val stopList: ArrayList<
     override fun onBindViewHolder(holder: StopAdapter.MyViewHolder, position: Int) {
         stop = stopList[position]
 
-        holder.tvUserName.text = stop.name
-        holder.tvStopDetails.text = stop.description
-        holder.tvPickupLocation.text = stop.pickUpLocation.name
+        holder.tvStopName.text = stop.StopName
+        holder.tvStopType.text = stop.StopType
 
     }
 
@@ -53,9 +51,9 @@ class StopAdapter(private val context: Context, private val stopList: ArrayList<
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        var tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
-        var tvStopDetails: TextView = itemView.findViewById(R.id.tvTaskDetails)
-        var tvPickupLocation: TextView = itemView.findViewById(R.id.tvPickupLocation)
+        var tvStopName: TextView = itemView.findViewById(R.id.tvStopName)
+        var tvStopType: TextView = itemView.findViewById(R.id.tvStopType)
+       
 
 
         init {

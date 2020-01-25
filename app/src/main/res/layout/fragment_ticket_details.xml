@@ -3,89 +3,147 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ticket.TicketDetailsFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <RelativeLayout
+            android:id="@+id/rlParent"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@color/colorSecondary"
+            android:padding="10dp">
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                app:srcCompat="@drawable/ic_back"
+                android:background="?android:attr/selectableItemBackgroundBorderless"/>/>
+            <TextView
+                android:id="@+id/tvTaskDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="95.5dp"
+                android:layout_marginRight="128.5dp"
+                android:layout_marginTop="12dp"
+                android:text="Ticket Details"
+                android:textAllCaps="false"
+                android:textColor="@color/colorLabel"
+                android:textSize="18sp" />
+
+        </RelativeLayout>
 
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
             android:fitsSystemWindows="true"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:layout_below="@+id/rlParent">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:id="@+id/tvUserNameData"
+                    android:id="@+id/tvTicketName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
                     android:gravity="center"
-                    android:text="User Name"
+                    android:text="@string/kadabra"
                     android:textColor="@color/black"
                     android:textSize="28sp" />
 
                 <TextView
-                    android:id="@+id/tvTaskDetails"
+                    android:id="@+id/tvTicketDetails"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvUserNameData"
+                    android:layout_below="@+id/tvTicketName"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
                     android:gravity="center"
-                    android:text="Task Details"
+                    android:text="@string/details"
                     android:textColor="@color/black"
                     android:textSize="25sp" />
 
                 <TextView
-                    android:id="@+id/tvPickUpData"
+                    android:id="@+id/tvStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvTaskDetails"
-                    android:layout_marginLeft="2dp"
+                    android:layout_below="@+id/tvTicketDetails"
+                    android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
-                    android:autoLink="web"
-                    android:clickable="true"
                     android:gravity="center"
-                    android:linksClickable="true"
-                    android:text="Pickup Location"
-                    android:textColor="@color/link"
-                    android:textColorLink="@color/link"
-                    android:textSize="25sp"
-                    tools:ignore="HardcodedText" />
+                    android:text="@string/status"
+                    android:textColor="@color/black"
+                    android:textSize="25sp" />
 
                 <TextView
-                    android:id="@+id/tvDropOffData"
+                    android:id="@+id/tvPriority"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvPickUpData"
+                    android:layout_below="@+id/tvStatus"
                     android:layout_marginLeft="2dp"
                     android:layout_marginTop="20dp"
-                    android:autoLink="web"
-                    android:clickable="true"
                     android:gravity="center"
-                    android:linksClickable="true"
-                    android:text="Drop Off Location"
-                    android:textColor="@color/link"
-                    android:textColorLink="@color/link"
-                    android:textSize="25sp"
-                    tools:ignore="HardcodedText" />
+                    android:text="@string/priority"
+                    android:textColor="@color/black"
+                    android:textSize="25sp" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvStops"
+                <TextView
+                    android:id="@+id/tvPrice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvDropOffData"
+                    android:layout_below="@+id/tvPriority"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:linksClickable="true"
+                    android:text="@string/price"
+                    android:textColor="@color/black"
+                    android:textSize="25sp" />
+                <TextView
+                    android:id="@+id/tvTasks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tvPrice"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="Poppins-Regular"
+                    android:text="@string/tasks"
+                    android:textColor="@color/title_color"
+                    android:textSize="18sp" />
+                <TextView
+                    android:id="@+id/tvAddTask"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/tvTasks"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:textColor="@color/colorApp"
+                    android:text="@string/add_new"
+                    android:textSize="18sp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvTasks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvAddTask"
                     android:layout_marginTop="20dp"
                     android:orientation="horizontal" />
-
 
 
             </RelativeLayout>

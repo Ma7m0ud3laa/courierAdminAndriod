@@ -3,7 +3,7 @@ package com.reach.plus.admin.util
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import com.twoam.agent.model.User
+import com.twoam.agent.model.Admin
 import com.twoam.agent.utilities.AppConstants
 
 
@@ -58,18 +58,18 @@ class UserSessionManager(val context: Context) {
     }
 
 
-    fun setUserData(userModel: User?) {
+    fun setUserData(adminModel: Admin?) {
         val gson = Gson()
-        val json = gson.toJson(userModel)
+        val json = gson.toJson(adminModel)
         editor.putString(USER_OBJECT, json)
         editor.commit()
     }
 
-    fun getUserData(): User? {
+    fun getUserData(): Admin? {
         val gson = Gson()
         val json = sharedPreferences.getString(USER_OBJECT, "")
-        var userModel: User? = gson.fromJson<Any>(json, User::class.java) as User?
-        return userModel
+        var adminModel: Admin? = gson.fromJson<Any>(json, Admin::class.java) as Admin?
+        return adminModel
     }
 
     fun logout() {

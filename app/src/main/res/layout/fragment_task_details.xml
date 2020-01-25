@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".task.TaskDetailsFragment">
+
+   <ScrollView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:fillViewport="true"
+       android:fitsSystemWindows="true"
+       android:scrollbars="none"
+       android:layout_marginBottom="30dp"
+       >
+       <RelativeLayout
+
+           xmlns:tools="http://schemas.android.com/tools"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent">
+
+           <RelativeLayout
+               android:id="@+id/rlParent"
+               android:layout_width="match_parent"
+               android:layout_height="70dp"
+               android:background="@color/colorSecondary"
+               android:padding="10dp">
+
+               <ImageView
+                   android:id="@+id/btnBack"
+                   android:layout_width="24dp"
+                   android:layout_height="24dp"
+                   android:layout_marginStart="24dp"
+                   android:layout_marginTop="12dp"
+                   android:background="?android:attr/selectableItemBackgroundBorderless"
+                   app:srcCompat="@drawable/ic_back" />/>
+
+               <TextView
+                   android:id="@+id/tvTaskDetails"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_alignParentTop="true"
+                   android:layout_centerHorizontal="true"
+                   android:layout_marginLeft="95.5dp"
+                   android:layout_marginTop="12dp"
+                   android:layout_marginRight="128.5dp"
+                   android:text="@string/edit_task"
+                   android:textAllCaps="false"
+                   android:textColor="@color/colorLabel"
+                   android:textSize="18sp" />
+               <TextView
+                   android:id="@+id/tvDelete"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_alignParentEnd="true"
+                   android:layout_marginEnd="24dp"
+                   android:layout_marginTop="12dp"
+                   android:clickable="true"
+                   android:fontFamily="ArialMT"
+                   android:gravity="center"
+                   android:text="@string/delete"
+                   android:textColor="@color/error"
+                   android:textSize="15sp"
+                   android:background="?android:attr/selectableItemBackgroundBorderless"/>
+
+           </RelativeLayout>
+
+           <ScrollView
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:layout_below="@+id/rlParent"
+               android:fillViewport="true"
+               android:fitsSystemWindows="true"
+               android:scrollbars="none">
+
+               <RelativeLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent">
+
+                   <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                       android:id="@+id/refresh"
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content">
+
+                       <RelativeLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="match_parent">
+
+                           <TextView
+                               android:id="@+id/tvTask"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_centerHorizontal="true"
+                               android:layout_marginTop="30dp"
+                               android:gravity="center"
+                               android:text="@string/kadabra"
+                               android:textColor="@color/colorPrimary"
+                               android:textSize="30sp" />
+
+                           <TextView
+                               android:id="@+id/tvTaskAmount"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_below="@+id/tvTask"
+                               android:layout_centerHorizontal="true"
+                               android:layout_marginTop="30dp"
+                               android:gravity="center"
+                               android:text="@string/amount"
+                               android:textColor="@color/black"
+                               android:textSize="20sp" />
+
+                           <TextView
+                               android:id="@+id/tvPickUp"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_below="@+id/tvTaskAmount"
+                               android:layout_marginLeft="2dp"
+                               android:layout_marginTop="20dp"
+                               android:autoLink="web"
+                               android:clickable="true"
+                               android:gravity="center"
+                               android:linksClickable="true"
+                               android:text="@string/pickup"
+                               android:textColor="@color/link"
+                               android:textColorLink="@color/link"
+                               android:textSize="25sp"
+                               tools:ignore="HardcodedText" />
+
+                           <TextView
+                               android:id="@+id/tvDropOff"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_below="@+id/tvPickUp"
+                               android:layout_marginLeft="2dp"
+                               android:layout_marginTop="20dp"
+                               android:autoLink="web"
+                               android:clickable="true"
+                               android:gravity="center"
+                               android:linksClickable="true"
+                               android:text="@string/drop_off"
+                               android:textColor="@color/link"
+                               android:textColorLink="@color/link"
+                               android:textSize="25sp"
+                               tools:ignore="HardcodedText" />
+
+                           <androidx.recyclerview.widget.RecyclerView
+                               android:id="@+id/rvStops"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_below="@+id/tvDropOff"
+                               android:layout_centerHorizontal="true"
+                               android:layout_marginLeft="100dp"
+                               android:layout_marginTop="20dp"
+                               android:layout_marginRight="100dp"
+                               android:scrollbars="none" />
+
+
+                           <Button
+                               android:id="@+id/btnUpdateTask"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginStart="24dp"
+                               android:layout_marginTop="20dp"
+                               android:layout_marginEnd="24dp"
+                               android:layout_marginBottom="30dp"
+                               android:layout_alignParentBottom="true"
+                               android:background="@drawable/rounded_button"
+                               android:text="@string/update"
+                               android:textColor="@color/colorSecondary" />
+
+                       </RelativeLayout>
+                   </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+               </RelativeLayout>
+           </ScrollView>
+
+
+       </RelativeLayout>
+   </ScrollView>
+
+</FrameLayout>

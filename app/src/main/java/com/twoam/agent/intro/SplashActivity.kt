@@ -7,15 +7,27 @@ import androidx.appcompat.app.AppCompatActivity
 
 import android.os.Bundle
 import android.os.Handler
+import android.view.View
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import com.reach.plus.admin.util.UserSessionManager
+import com.twoam.Networking.INetworkCallBack
+import com.twoam.Networking.NetworkManager
 import com.twoam.agent.ticket.TicketActivity
 
 import com.twoam.agent.R
+import com.twoam.agent.adapter.TicketAdapter
+import com.twoam.agent.api.ApiResponse
+import com.twoam.agent.api.ApiServices
 import com.twoam.agent.exception.CrashActivity
 import com.twoam.agent.exception.CrashHandeller
 import com.twoam.agent.login.LoginActivity
+import com.twoam.agent.model.Ticket
+import com.twoam.agent.utilities.Alert
+import com.twoam.agent.utilities.AppConstants
+import com.twoam.agent.utilities.AppController
 import kotlinx.android.synthetic.main.activity_splash.*
+import kotlinx.android.synthetic.main.fragment_ticket.*
 
 class SplashActivity : AppCompatActivity() {
 
@@ -61,6 +73,8 @@ class SplashActivity : AppCompatActivity() {
             if (UserSessionManager.getInstance(this).getUserData() == null) {
                 startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
             } else {
+                AppConstants.CurrentLoginAdmin =
+                    UserSessionManager.getInstance(this).getUserData()!!
                 startActivity(Intent(this@SplashActivity, TicketActivity::class.java))
             }
 
@@ -84,8 +98,9 @@ class SplashActivity : AppCompatActivity() {
             )
             return
         } else {
-//            callHandler()
+
         }
     }
+
     //endregion
 }

@@ -17,6 +17,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,11 +35,15 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.twoam.agent.R
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.model.Stop
 import com.twoam.agent.utilities.AppConstants
 import com.twoam.cartello.Utilities.Base.BaseFragment
 import kotlinx.android.synthetic.main.activity_ticket.*
 import kotlinx.android.synthetic.main.fragment_courier.view.*
 import java.io.IOException
+import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -59,14 +65,25 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     //region Members
     private lateinit var currentView: View
     private lateinit var map: GoogleMap
+    private lateinit var ivSearchMarker: ImageView
+    private lateinit var btnConfirmLocation: Button
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var lastLocation: Location
+    private var lastLocation: Location? = null
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private var locationUpdateState = false
     private var param1: String? = null
     private var param2: String? = null
     private var listener: IBottomSheetCallback? = null
+    var searchMode = false
+    private var currentMarker: Marker? = null
+    private var stop: Stop = Stop()
+    var address = ""
+    var city = ""
+    var geoCoder: Geocoder? = null
+    var addresList: List<Address>? = null
+    private lateinit var selectedLatLng: LatLng
+
 
     //endregion
 
@@ -75,23 +92,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         private const val REQUEST_CHECK_SETTINGS = 2
         private const val PLACE_PICKER_REQUEST = 3
 
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment CourierFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            CourierFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+
     }
 
     //region Events
@@ -110,111 +111,99 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val rootView = inflater.inflate(R.layout.fragment_courier, container, false)
+        currentView = inflater.inflate(R.layout.fragment_courier, container, false)
+        return currentView!!
+    }
 
-//        val mapFragment =
-//            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?  //use SuppoprtMapFragment for using in fragment instead of activity  MapFragment = activity   SupportMapFragment = fragment
-
-//        mapFragment!!.getMapAsync { mMap ->
-//            mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-//
-//            mMap.clear() //clear old markers
-
-//            val googlePlex = CameraPosition.builder()
-//                .target(LatLng(37.4219999, -122.0862462))
-//                .zoom(10f)
-//                .bearing(0f)
-//                .tilt(45f)
-//                .build()
-//
-//            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex), 10000, null)
-//
-//            mMap.addMarker(
-//                MarkerOptions()
-//                    .position(LatLng(37.4219999, -122.0862462))
-//                    .title("Mohammed anwar")
-//                    .icon(
-//                        BitmapDescriptorFactory.fromBitmap(
-//                            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-//                        )
-//                    )
-//            )
-//
-//            mMap.addMarker(
-//                MarkerOptions()
-//                    .position(LatLng(37.4629101, -122.2449094))
-//                    .title("Ahmed sayed")
-//                    .icon(
-//                        BitmapDescriptorFactory.fromBitmap(
-//                            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-//                        )
-//                    )
-//            )
-//
-//            mMap.addMarker(
-//                MarkerOptions()
-//                    .position(LatLng(37.3092293, -122.1136845))
-//                    .title("Wa2il alsayed")
-//                    .icon(
-//                        BitmapDescriptorFactory.fromBitmap(
-//                            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-//                        )
-//                    )
-//            )
-//        }
-
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         init()
-        return rootView
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        val googlePlex = CameraPosition.builder()
-            .target(LatLng(37.4219999, -122.0862462))
-            .zoom(10f)
-            .bearing(0f)
-            .tilt(45f)
-            .build()
+        if (searchMode) {
 
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex), 10000, null)
+            map.clear()
 
-        map.addMarker(
-            MarkerOptions()
-                .position(LatLng(37.4219999, -122.0862462))
-                .title("Mohammed anwar")
-                .icon(
-                    BitmapDescriptorFactory.fromBitmap(
-                        BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-                    )
+            btnConfirmLocation.visibility = View.VISIBLE
+            ivSearchMarker.visibility = View.VISIBLE
+
+
+            //set the map in  the current position
+            if (lastLocation == null) {
+                val googlePlex = CameraPosition.builder()
+                    .target(LatLng(30.0163243, 30.9990016))
+                    .zoom(12f)
+                    .bearing(0f)
+                    .tilt(45f)
+                    .build()
+
+                map.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(googlePlex),
+                    1000,
+                    null
                 )
-        )
 
-        map.addMarker(
-            MarkerOptions()
-                .position(LatLng(37.4629101, -122.2449094))
-                .title("Ahmed sayed")
-                .icon(
-                    BitmapDescriptorFactory.fromBitmap(
-                        BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-                    )
+                selectedLatLng = map.cameraPosition.target
+
+            } else {
+                val googlePlex = CameraPosition.builder()
+                    .target(LatLng(lastLocation!!.latitude, lastLocation!!.longitude))
+                    .zoom(12f)
+                    .bearing(0f)
+                    .tilt(45f)
+                    .build()
+
+                map.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(googlePlex),
+                    1000,
+                    null
                 )
-        )
 
-        map.addMarker(
-            MarkerOptions()
-                .position(LatLng(37.3092293, -122.1136845))
-                .title("Wa2il alsayed")
-                .icon(
-                    BitmapDescriptorFactory.fromBitmap(
-                        BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-                    )
+                selectedLatLng = map.cameraPosition.target
+            }
+
+            map.setOnCameraIdleListener {
+
+                //update the current location on camera view change
+                selectedLatLng = map.cameraPosition.target
+            }
+
+        }
+        // show all couriers on map for tracking
+        else {
+            val googlePlex = CameraPosition.builder()
+                .target(LatLng(30.0163243, 30.9990016))
+                .zoom(12f)
+                .bearing(0f)
+                .tilt(45f)
+                .build()
+
+
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex), 1000, null)
+            //couriers points
+            AppConstants.ALL_COURIERS.forEach {
+                var latlng = LatLng(30.0163243, 30.9990016)
+             var latlngNew=  getRandomLocation(latlng, 13254)
+                map.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(latlngNew.latitude, latlngNew.longitude))
+                        .title(it.CourierName)
+                        .icon(
+                            BitmapDescriptorFactory.fromBitmap(
+                                BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+                            )
+                        )
                 )
-        )
+            }
 
+
+        }
 
     }
+
 
     override fun onMarkerClick(p0: Marker?): Boolean {
         return false
@@ -296,10 +285,26 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         listener = null
     }
 
-    //endregion
 
     //region Helper Function
     private fun init() {
+        ivSearchMarker = currentView.findViewById(R.id.ivSearchMarker)
+        btnConfirmLocation = currentView.findViewById(R.id.btnConfirmLocation)
+        if (searchMode) {
+            btnConfirmLocation.visibility = View.VISIBLE
+            ivSearchMarker.visibility = View.VISIBLE
+        } else {
+            btnConfirmLocation.visibility = View.GONE
+            ivSearchMarker.visibility = View.GONE
+        }
+        btnConfirmLocation.setOnClickListener {
+
+            searchMode = false
+
+            getFullLocationData(selectedLatLng.latitude, selectedLatLng.longitude)
+
+        }
+
 //        fab.setOnClickListener {
 //            loadPlacePicker()
 //        }
@@ -375,12 +380,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         map.isMyLocationEnabled = true
         map.mapType = GoogleMap.MAP_TYPE_TERRAIN //more map details
         fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
-            // Got last known location. In some rare situations this can be null.
-//                if (location != null) {
-//                    lastLocation = location
-//                    val currentLatLng = LatLng(location.latitude, location.longitude)
-//                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
-//                }
 
             // Got last known location. In some rare situations this can be null.
             if (location != null) {
@@ -513,6 +512,81 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         } catch (e: GooglePlayServicesNotAvailableException) {
             e.printStackTrace()
         }
+    }
+
+    private fun getFullLocationData(lat: Double, lng: Double): Stop {
+        geoCoder = Geocoder(context!!, Locale.getDefault())
+        try {
+            addresList = geoCoder!!.getFromLocation(lat, lng, 1)
+            address = addresList!![0].getAddressLine(0)
+            city = addresList!![0].locality?.toString() ?: ""
+            stop.Latitude = lat
+            stop.Longitude = lng
+            stop.city = city
+            stop.country = addresList!![0].countryName?.toString() ?: ""
+            stop.address = address
+            stop.state = addresList!![0].adminArea?.toString() ?: ""
+            stop.postalCode = addresList!![0].postalCode?.toString() ?: ""
+            stop.knownName = addresList!![0].featureName?.toString() ?: ""
+
+            if (stop.knownName.isNotEmpty() && stop.city.isNullOrEmpty())
+                stop.StopName = stop.knownName
+            else if (stop.knownName.isNullOrEmpty() && stop.city.isNullOrEmpty() && stop.address.isNotEmpty())
+                stop.StopName = stop.address
+
+            AppConstants.CurrentTempStop = stop
+            btnConfirmLocation.visibility = View.GONE
+            ivSearchMarker.visibility = View.GONE
+            listener!!.onBottomSheetSelectedItem(9) //got to task new fragment with stop data
+
+        } catch (ex: Exception) {
+            print(ex.message)
+        }
+
+
+        return stop
+    }
+
+    fun getRandomLocation(point: LatLng, radius: Int): LatLng {
+
+        val randomPoints = java.util.ArrayList<LatLng>()
+        val randomDistances = java.util.ArrayList<Float>()
+        val myLocation = Location("")
+        myLocation.latitude = point.latitude
+        myLocation.longitude = point.longitude
+
+        //This is to generate 10 random points
+        for (i in 0..9) {
+            val x0 = point.latitude
+            val y0 = point.longitude
+
+            val random = Random()
+
+            // Convert radius from meters to degrees
+            val radiusInDegrees = (radius / 111320f).toDouble()
+
+            val u = random.nextDouble()
+            val v = random.nextDouble()
+            val w = radiusInDegrees * Math.sqrt(u)
+            val t = 2.0 * Math.PI * v
+            val x = w * Math.cos(t)
+            val y = w * Math.sin(t)
+
+            // Adjust the x-coordinate for the shrinking of the east-west distances
+            val new_x = x / Math.cos(Math.toRadians(y0))
+
+            val foundLatitude = new_x + x0
+            val foundLongitude = y + y0
+            val randomLatLng = LatLng(foundLatitude, foundLongitude)
+            randomPoints.add(randomLatLng)
+            val l1 = Location("")
+            l1.latitude = randomLatLng.latitude
+            l1.longitude = randomLatLng.longitude
+            randomDistances.add(l1.distanceTo(myLocation))
+        }
+        //Get nearest point to the centre
+        val indexOfNearestPointToCentre = randomDistances.indexOf(Collections.min(randomDistances))
+        return randomPoints[indexOfNearestPointToCentre]
     }
     //endregion
 }

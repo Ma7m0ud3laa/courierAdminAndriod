@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".notification.NotificationFragment">
 
     <ScrollView
@@ -15,8 +16,7 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
+            android:layout_height="70dp"
             android:background="@color/colorSecondary"
             android:padding="10dp">
 
@@ -25,9 +25,9 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:src="@drawable/ic_back"
-                android:layout_marginBottom="30dp"/>
+                android:layout_marginTop="12dp"
+                app:srcCompat="@drawable/ic_back"
+                android:background="?android:attr/selectableItemBackgroundBorderless"/>/>
             <TextView
                 android:id="@+id/tvNotification"
                 android:layout_width="wrap_content"
