@@ -20,14 +20,14 @@
     <!--            android:layout_height="match_parent">-->
 
     <!--            <RelativeLayout-->
-    <!--                android:id="@+id/rlParent"-->
+    <!--                android:StopID="@+StopID/rlParent"-->
     <!--                android:layout_width="match_parent"-->
     <!--                android:layout_height="70dp"-->
     <!--                android:background="@color/colorSecondary"-->
     <!--                android:padding="10dp">-->
 
     <!--                <ImageView-->
-    <!--                    android:id="@+id/btnBack"-->
+    <!--                    android:StopID="@+StopID/btnBack"-->
     <!--                    android:layout_width="24dp"-->
     <!--                    android:layout_height="24dp"-->
     <!--                    android:layout_marginStart="24dp"-->
@@ -37,7 +37,7 @@
     <!--                    />-->
 
     <!--                <TextView-->
-    <!--                    android:id="@+id/tvTickets"-->
+    <!--                    android:StopID="@+StopID/tvTickets"-->
     <!--                    android:layout_width="wrap_content"-->
     <!--                    android:layout_height="wrap_content"-->
     <!--                    android:layout_alignParentTop="true"-->
@@ -51,7 +51,7 @@
     <!--                    android:textSize="18sp" />-->
 
     <!--                <TextView-->
-    <!--                    android:id="@+id/tvTotalTasks"-->
+    <!--                    android:StopID="@+StopID/tvTotalTasks"-->
     <!--                    android:layout_width="28dp"-->
     <!--                    android:layout_height="28dp"-->
     <!--                    android:layout_marginTop="12dp"-->
@@ -70,13 +70,13 @@
     <!--            </RelativeLayout>-->
 
     <!--            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout-->
-    <!--                android:id="@+id/sRefresh"-->
+    <!--                android:StopID="@+StopID/sRefresh"-->
     <!--                android:layout_width="match_parent"-->
     <!--                android:layout_height="wrap_content"-->
-    <!--                android:layout_below="@+id/rlParent">-->
+    <!--                android:layout_below="@+StopID/rlParent">-->
 
     <!--                <androidx.recyclerview.widget.RecyclerView-->
-    <!--                    android:id="@+id/rvTickets"-->
+    <!--                    android:StopID="@+StopID/rvTickets"-->
     <!--                    android:layout_width="match_parent"-->
     <!--                    android:layout_height="match_parent"-->
     <!--                    android:layout_marginTop="20dp" />-->
@@ -84,7 +84,7 @@
 
 
     <!--            <ImageView-->
-    <!--                android:id="@+id/ivNoInternet"-->
+    <!--                android:StopID="@+StopID/ivNoInternet"-->
     <!--                android:layout_width="100dp"-->
     <!--                android:layout_height="100dp"-->
     <!--                android:layout_centerInParent="true"-->
@@ -93,7 +93,7 @@
     <!--                android:visibility="gone" />-->
 
     <!--            <TextView-->
-    <!--                android:id="@+id/tvEmptyData"-->
+    <!--                android:StopID="@+StopID/tvEmptyData"-->
     <!--                android:layout_width="match_parent"-->
     <!--                android:layout_height="wrap_content"-->
     <!--                android:layout_centerInParent="true"-->

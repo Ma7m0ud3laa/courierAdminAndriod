@@ -14,7 +14,7 @@ import com.twoam.agent.model.Admin
 import com.twoam.agent.ticket.TicketActivity
 import com.twoam.agent.utilities.Alert
 import com.twoam.agent.utilities.AppConstants
-import kotlinx.android.synthetic.main.activity_login1.*
+import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -110,7 +110,7 @@ class LoginActivity : AppCompatActivity() {
     //region Events
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login1)
+        setContentView(R.layout.activity_login)
         init()
     }
 

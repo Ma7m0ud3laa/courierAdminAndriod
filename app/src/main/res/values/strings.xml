@@ -29,7 +29,9 @@
     <string name="restart">Restart</string>
     <string name="loading">Loading...</string>
     <string name="end_task">End Task</string>
-    <string name="exit">Are you sue you an to exit?</string>
+    <string name="exit">Are you sure you want to exit?</string>
+    <string name="message_delete">Are you sure you want to delete </string>
+
     <string name="tickets">Tickets</string>
     <string name="call_courier">Call Courier</string>
     <string name="completed_tasks">Completed Tasks</string>
@@ -60,8 +62,8 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="amount">Amount</string>
     <string name="update">Update</string>
+
     <string name="no_tasks_available">No Tasks Available</string>
     <string name="tasks">Tasks</string>
     <string name="no_ticket_available">No Ticket Available</string>
@@ -80,6 +82,9 @@
 
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
+    <string name="save">Save</string>
+    <string name="task_name">Task Name</string>
+    <string name="amount">Amount</string>
 
 </resources>
 

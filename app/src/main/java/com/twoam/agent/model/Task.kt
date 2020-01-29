@@ -5,7 +5,7 @@ class Task {
     var TicketId: String = ""
     var Task: String = ""
     var TaskDescription: String = ""
-    var CourierId: Int = 0
+    var CourierID: Int ? = null
     var CourierName: String = ""
     var Amount = 0.0
     var title: String? = null
@@ -32,7 +32,7 @@ class Task {
         this.AddedBy = addedBy
         this.TicketId = ticketId
         this.TaskId = taskId
-        this.CourierId=courierId
+        this.CourierID = courierId
         this.stopsmodel = stopList
     }
 

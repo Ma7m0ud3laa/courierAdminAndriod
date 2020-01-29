@@ -3,6 +3,7 @@ package com.twoam.agent.api
 
 import com.twoam.agent.model.*
 import com.twoam.agent.utilities.AppConstants
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -26,24 +27,36 @@ interface ApiServices {
     @GET(AppConstants.URL_GET_ALL_TICKETS)
     fun getAllTickets()
             : Call<ApiResponse<ArrayList<Ticket>>>
-    @FormUrlEncoded
+
+    @POST(AppConstants.URL_GET_TICKET_BY_ID)
+    fun getTicketById(
+        @Query("ticketId") ticketId: String
+    )
+            : Call<ApiResponse<Ticket>>
+
+
     @POST(AppConstants.URL_ADD_TASK)
     fun addTask(
-        @Field("TaskName") taskName: String,
-        @Field("Amount") amount: Double,
-        @Field("AddedBy") addedBy: String,
-        @Field("TicketID") ticketID: String,
-        @Field("CourierId") courierId: Int
+        @Body tasModel: TaskModel
     )
             : Call<ApiResponse<ArrayList<Task>>>
 
+
+    @POST(AppConstants.URL_EDIT_TASK)
+    fun editTask(
+        @Body tasModel: TaskModel
+    )
+            : Call<ApiResponse<ArrayList<Task>>>
+
+
     @POST(AppConstants.URL_REASSIGN_TASK_TO_COURIER)
-    fun reAssignTaskToCourier(@Query("taskId") taskId: String, @Query("CourierId") courierId: String)
+    fun reAssignTaskToCourier(@Query("TaskId") taskId: String, @Query("CourierID") courierId: String)
             : Call<ApiResponse<Boolean>>
 
     @GET(AppConstants.URL_GET_ALL_COURIERS)
     fun getAllCouriers()
             : Call<ApiResponse<ArrayList<Courier>>>
+
     @FormUrlEncoded
     @POST(AppConstants.URL_ADD_TASK_STOP)
     fun addTaskStop(
@@ -59,20 +72,25 @@ interface ApiServices {
     )
             : Call<ApiResponse<ArrayList<Stop>>>
 
+
     @POST(AppConstants.URL_GET_ALL_TASK_STOPS)
-    fun getAllTaskStops(@Query("taskId") taskId: String)
+    fun getAllTaskStops(@Query("TaskId") taskId: String)
             : Call<ApiResponse<ArrayList<Stop>>>
 
 
     @POST(AppConstants.URL_REMOVE_TASK)
-    fun removeTask(@Query("taskId") taskId: String,
-                   @Query("AdminId") adminId: String)
+    fun removeTask(
+        @Query("TaskId") taskId: String,
+        @Query("AdminId") adminId: String
+    )
             : Call<ApiResponse<ArrayList<Task>>>
 
 
     @POST(AppConstants.URL_REMOVE_STOP)
-    fun removeStop(@Query("stopId") stopId: String,
-                   @Query("AdminId") adminId: String)
+    fun removeStop(
+        @Query("stopId") stopId: String,
+        @Query("AdminId") adminId: String
+    )
             : Call<ApiResponse<ArrayList<Stop>>>
 
 

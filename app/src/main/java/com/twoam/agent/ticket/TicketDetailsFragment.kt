@@ -1,10 +1,8 @@
 package com.twoam.agent.ticket
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
-
-import androidx.fragment.app.Fragment
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,20 +10,25 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
+import com.twoam.Networking.INetworkCallBack
+import com.twoam.Networking.NetworkManager
 import com.twoam.agent.R
-import com.twoam.agent.adapter.StopAdapter
 import com.twoam.agent.adapter.TaskAdapter
+import com.twoam.agent.api.ApiResponse
+import com.twoam.agent.api.ApiServices
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.callback.ITaskCallback
 import com.twoam.agent.model.Stop
 import com.twoam.agent.model.Task
 import com.twoam.agent.model.Ticket
+import com.twoam.agent.utilities.Alert
 import com.twoam.agent.utilities.AppConstants
 import com.twoam.agent.utilities.AppController
 import com.twoam.cartello.Utilities.Base.BaseFragment
 
 
-class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListener {
+class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
+    View.OnClickListener {
 
     private var mParam1: String? = null
     private var mParam2: String? = null
@@ -39,7 +42,9 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
     private var currentView: View? = null
     private var ivBack: ImageView? = null
     private var listener: IBottomSheetCallback? = null
+    private var taskListener: ITaskCallback? = null
     private var ticket = Ticket()
+    var editMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +62,7 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
         // Inflate the layout for this fragment
         currentView = inflater.inflate(R.layout.fragment_ticket_details, container, false)
         init()
+
         if (!ticket.TicketId.isNullOrEmpty()) {
             loadTicketDetails()
         }
@@ -101,6 +107,9 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
         super.onAttach(context)
         if (context is IBottomSheetCallback) {
             listener = context
+        }
+        if (context is ITaskCallback) {
+            taskListener = context
         } else {
             throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
@@ -118,6 +127,25 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
     override fun onBottomSheetSelectedItem(index: Int) {
         if (index == 6)//go to task details view
             listener!!.onBottomSheetSelectedItem(6)
+    }
+
+    override fun onTaskDelete(task: Task?) {
+        if (!task!!.TaskId.isNullOrEmpty()) {
+            AlertDialog.Builder(context)
+                .setTitle(AppConstants.WARNING)
+                .setMessage(getString(R.string.message_delete) + " " + task.Task + " ?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(AppConstants.OK) { dialog, which ->
+                    deleteTask(task)
+                }
+                .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                .show()
+
+        }
+    }
+
+    override fun onStopDelete(stop: Stop?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     private fun loadTicketDetails() {
@@ -158,14 +186,109 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, View.OnClick
     }
 
 
-
     private fun loadTicketTasks(taskList: ArrayList<Task>) {
 
-        var adapter = TaskAdapter(context!!, taskList, this)
+        var adapter = TaskAdapter(context!!, taskList, this, this)
         rvTasks!!.adapter = adapter
         rvTasks!!.layoutManager =
-            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.VERTICAL, false)
+        adapter.notifyDataSetChanged()
+    }
 
+    private fun deleteTask(task: Task) {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Task>>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            context!!.getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Alert.hideProgress()
+                            var tasks = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTicket.taskModel = tasks
+                            loadTicketTasks(tasks)
+
+                        } else if (response.Status == AppConstants.STATUS_FAILED) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(context!!, context!!.getString(R.string.no_internet))
+        }
+    }
+
+
+    private fun getTicketById(id: String): Ticket {
+        ticket = Ticket()
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getTicketById(id)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<Ticket>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            context!!.getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<Ticket>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Alert.hideProgress()
+                            ticket = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTicket = ticket
+
+
+                        } else if (response.Status == AppConstants.STATUS_FAILED) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(context!!, context!!.getString(R.string.no_internet))
+        }
+
+        return ticket
     }
 
     companion object {

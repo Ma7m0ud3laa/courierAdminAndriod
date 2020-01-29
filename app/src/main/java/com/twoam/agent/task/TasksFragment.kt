@@ -14,6 +14,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.twoam.agent.R
 import com.twoam.agent.adapter.TaskAdapter
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.callback.ITaskCallback
+import com.twoam.agent.model.Stop
 import com.twoam.agent.model.Task
 import com.twoam.agent.model.Ticket
 import com.twoam.agent.utilities.AppConstants
@@ -23,13 +25,14 @@ import com.twoam.cartello.Utilities.Base.BaseFragment
 /**
  * A simple [Fragment] subclass.
  */
-class TasksFragment : BaseFragment(), IBottomSheetCallback {
+class TasksFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback {
 
     //region Members
     private var ticket: Ticket = Ticket()
     private var tasksList = ArrayList<Task>()
     private var rvTasks: RecyclerView? = null
     private var listener: IBottomSheetCallback? = null
+    private var taskListener: ITaskCallback? = null
     private var sRefresh: SwipeRefreshLayout? = null
     private var ivNoInternet: ImageView? = null
     private var currentView: View? = null
@@ -53,11 +56,24 @@ class TasksFragment : BaseFragment(), IBottomSheetCallback {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun onTaskDelete(task: Task?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onStopDelete(stop: Stop?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is IBottomSheetCallback) {
             listener = context
-        } else {
+        }
+        if (context is ITaskCallback) {
+            taskListener = context
+        }
+
+        else {
             throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
     }
@@ -87,7 +103,7 @@ class TasksFragment : BaseFragment(), IBottomSheetCallback {
 
     private fun loadTasks(tasksList: ArrayList<Task>) {
         if (tasksList.size > 0) {
-            var adapter = TaskAdapter(context!!, tasksList, listener!!)
+            var adapter = TaskAdapter(context!!, tasksList, listener!!,taskListener!!)
             rvTasks!!.adapter = adapter
             rvTasks?.layoutManager =
                 GridLayoutManager(

@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class Point implements Serializable {
 
-    @SerializedName("id")
+    @SerializedName("StopID")
     private int id;
 
     @SerializedName("dist")

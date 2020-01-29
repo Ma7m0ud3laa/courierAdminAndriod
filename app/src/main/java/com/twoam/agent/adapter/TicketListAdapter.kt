@@ -21,6 +21,7 @@ class TicketListAdapter(
     private val values: ArrayList<Ticket>
 ) : ArrayAdapter<Ticket>(context, resource) {
 
+
     override fun getCount(): Int {
         return values.size
     }
@@ -41,7 +42,6 @@ class TicketListAdapter(
         // Then you can get the current item using the values array (Users array) and the current position
         // You can NOW reference each method you has created in your bean object (User class)
         label.text = values[position].TicketName
-        label.tag=values[position].TicketId
         // And finally return your dynamic (or custom) view for each spinner item
         return label
     }
@@ -50,7 +50,6 @@ class TicketListAdapter(
         val label = super.getDropDownView(position, convertView, parent) as TextView
         label.setTextColor(Color.BLACK)
         label.text = values[position].TicketName
-        label.tag=values[position].TicketId
 
         return label
     }

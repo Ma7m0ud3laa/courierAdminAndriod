@@ -17,12 +17,14 @@
         <item
             android:id="@+id/navCompletedTasks"
             android:icon="@drawable/ic_event_available_black_24dp"
-            android:title="@string/completed_tasks" />
+            android:title="@string/completed_tasks"
+            android:visible="false"/>
 
         <item
             android:id="@+id/navWallet"
             android:icon="@drawable/ic_work_black_24dp"
-            android:title="@string/wallet" />
+            android:title="@string/wallet"
+            android:visible="false"/>
         
         <item
             android:id="@+id/navLogout"

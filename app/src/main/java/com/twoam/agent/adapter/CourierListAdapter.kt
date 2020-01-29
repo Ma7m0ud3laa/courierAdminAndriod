@@ -41,7 +41,6 @@ class CourierListAdapter(
         // Then you can get the current item using the values array (Users array) and the current position
         // You can NOW reference each method you has created in your bean object (User class)
         label.text = values[position].CourierName
-        label.tag=values[position].CourierId
         // And finally return your dynamic (or custom) view for each spinner item
         return label
     }
@@ -50,7 +49,6 @@ class CourierListAdapter(
         val label = super.getDropDownView(position, convertView, parent) as TextView
         label.setTextColor(Color.BLACK)
         label.text = values[position].CourierName
-        label.tag=values[position].CourierId
 
         return label
     }

@@ -15,13 +15,16 @@ import com.twoam.cartello.Utilities.Base.BaseFragment
 import kotlinx.android.synthetic.main.activity_ticket.*
 import androidx.fragment.app.Fragment
 import com.twoam.agent.R
+import com.twoam.agent.callback.ITaskCallback
+import com.twoam.agent.model.Stop
+import com.twoam.agent.model.Task
 import com.twoam.agent.task.NewTaskFragment
 import com.twoam.agent.task.TaskDetailsFragment
 import com.twoam.agent.task.TasksFragment
 
 
 
-class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
+class TicketActivity : AppCompatActivity(), IBottomSheetCallback,ITaskCallback {
     //  region Members
     private var ticketFragment: TicketFragment = TicketFragment()
     private var newTaskFragment: NewTaskFragment = NewTaskFragment()
@@ -57,6 +60,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
                 .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                 .commit()
             active = ticketFragment
+            toggleFabMode()
         }
         else if (active == newTaskFragment&&newTaskFragment.editMode) {
             fm.beginTransaction()
@@ -101,7 +105,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
 //            Log.i("MainActivity", "nothing on backstack, calling super")
 //            super.onBackPressed()
 //        }
-        toggleFabMode()
+//        toggleFabMode()
     }
 
     override fun onBottomSheetClosed(isClosed: Boolean) {
@@ -162,7 +166,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
                 active = tasksFragment
 
             }
-            6 -> // open tasks vie in edit mode
+            6 -> // open tasks view in edit mode
             {
                 newTaskFragment.editMode=true
                 fm.beginTransaction()
@@ -172,8 +176,9 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
 
             }
 
-            7 -> // add task to the current ticket
+            7 -> // add  new task to the current ticket
             {
+                newTaskFragment.editMode=false
                 fm.beginTransaction()
                     .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
                     .commit()
@@ -236,6 +241,14 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
         }
     }
 
+    override fun onTaskDelete(task: Task?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onStopDelete(stop: Stop?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     //endregion
 
     //region Helper Functions
@@ -261,6 +274,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
                         )
                         .commit()
                     active = newTaskFragment
+                    toggleFabMode()
                 }
                 newTaskFragment -> {
                     fm.beginTransaction()
@@ -271,6 +285,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
                         )
                         .commit()
                     active = ticketFragment
+                    toggleFabMode()
                 }
                 ticketDetailsFragment -> {
                     fm.beginTransaction()
@@ -304,7 +319,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback {
                 }
             }
 
-            toggleFabMode()
+//            toggleFabMode()
         }
 
     }

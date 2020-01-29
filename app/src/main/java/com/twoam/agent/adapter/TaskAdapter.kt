@@ -5,12 +5,19 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.twoam.Networking.INetworkCallBack
+import com.twoam.Networking.NetworkManager
 import com.twoam.agent.R
+import com.twoam.agent.api.ApiResponse
+import com.twoam.agent.api.ApiServices
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.callback.ITaskCallback
 import com.twoam.agent.model.Stop
 import com.twoam.agent.model.Task
+import com.twoam.agent.utilities.Alert
 import com.twoam.agent.utilities.AppConstants
 
 
@@ -21,13 +28,18 @@ import com.twoam.agent.utilities.AppConstants
 class TaskAdapter(
     private val context: Context,
     private val tasksList: ArrayList<Task>,
-    private val _taskListener: IBottomSheetCallback
+    private val _taskListener: IBottomSheetCallback,
+    private val _deleteTaskListener: ITaskCallback
+
 ) :
     RecyclerView.Adapter<TaskAdapter.MyViewHolder>() {
 
     private val inflater: LayoutInflater = LayoutInflater.from(context)
     private var task: Task = Task()
     private var listener: IBottomSheetCallback? = null
+    private var deleteTaskListener: ITaskCallback? = null
+
+
     private var stops = ArrayList<Stop>()
 
 
@@ -35,6 +47,7 @@ class TaskAdapter(
 
         val view = inflater.inflate(R.layout.task_layout, parent, false)
         listener = _taskListener
+        deleteTaskListener = _deleteTaskListener
         return MyViewHolder(view)
 
     }
@@ -64,6 +77,7 @@ class TaskAdapter(
                     3 ->
                         task.defaultStops.add(it)
 
+
                 }
 
             }
@@ -75,8 +89,9 @@ class TaskAdapter(
         }
 
 
-        if (task.Amount!! > 0)
-            holder.tvTaskAmount.text = task.Amount.toString() + " " + context.getString(R.string.le)
+        if (task.Amount > 0)
+            holder.tvTaskAmount.text =
+                task.Amount.toString() + " " + context.getString(R.string.le)
         else
             holder.tvTaskAmount.text = "0 " + context.getString(R.string.le)
 
@@ -96,8 +111,11 @@ class TaskAdapter(
 
         var tvTaskName: TextView = itemView.findViewById(R.id.tvTaskName)
         var tvTaskAmount: TextView = itemView.findViewById(R.id.tvTaskAmount)
-        var tvPickupLocation: TextView = itemView.findViewById(R.id.tvPickupLocation)
-        var tvDropOffLocation: TextView = itemView.findViewById(R.id.tvDropOffLocation)
+        var tvPickupLocation: TextView =
+            itemView.findViewById(R.id.tvPickupLocation)
+        var tvDropOffLocation: TextView =
+            itemView.findViewById(R.id.tvDropOffLocation)
+        var tvDelete: TextView = itemView.findViewById(R.id.tvDelete)
 
 
         init {
@@ -110,9 +128,29 @@ class TaskAdapter(
 
             }
 
+            itemView.setOnLongClickListener {
+                val pos = adapterPosition
+                task = tasksList[pos]
+                deleteTaskListener!!.onTaskDelete(task)
+//                var anim = AnimationUtils.loadAnimation(context, R.anim.shake)
+//                itemView.startAnimation(anim)
+                false
+            }
+
+
+            tvDelete.setOnClickListener {
+                //delete the current task
+                val pos = adapterPosition
+                task = tasksList[pos]
+                deleteTaskListener!!.onTaskDelete(task)
+//                var anim = AnimationUtils.loadAnimation(context, R.anim.shake)
+//                itemView.startAnimation(anim)
+            }
+
 
         }
 
 
     }
+
 }

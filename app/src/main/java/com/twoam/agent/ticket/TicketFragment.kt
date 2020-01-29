@@ -104,21 +104,21 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     }
 
     private fun init(view: View) {
-//        avi = view.findViewById(R.id.avi)
+//        avi = view.findViewById(R.StopID.avi)
         rvTickets = view.findViewById(R.id.rvTickets)
         sRefresh = view.findViewById(R.id.sRefresh)
         ivNoInternet = view.findViewById(R.id.ivNoInternet)
         tvEmptyData = view.findViewById(R.id.tvEmptyData)
         sRefresh?.setOnRefreshListener {
             loadTickets()
-            getAllCouriers()
+
         }
 
         if (AppConstants.GetALLTicket.count() > 0 && AppConstants.ALL_COURIERS.count() > 0) {
             prepareTicketData(AppConstants.GetALLTicket)
         } else {
             loadTickets()
-            getAllCouriers()
+
         }
 
     }
@@ -148,6 +148,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             if (ticketList.size > 0) {
                                 prepareTicketData(ticketList)
                                 Alert.hideProgress()
+                                getAllCouriers()
                             } else {//no taskModel
                                 tvEmptyData!!.visibility = View.VISIBLE
                                 Alert.hideProgress()

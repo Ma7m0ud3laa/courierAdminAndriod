@@ -1,6 +1,7 @@
 package com.twoam.agent.task
 
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,10 +15,6 @@ import com.twoam.agent.adapter.TicketListAdapter
 import com.twoam.agent.api.ApiResponse
 import com.twoam.agent.api.ApiServices
 import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.model.Courier
-import com.twoam.agent.model.Stop
-import com.twoam.agent.model.Task
-import com.twoam.agent.model.Ticket
 import com.twoam.cartello.Utilities.Base.BaseFragment
 import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,40 +25,46 @@ import com.twoam.agent.R
 import com.twoam.agent.utilities.*
 import android.widget.Spinner
 import androidx.core.view.isVisible
+import com.twoam.agent.callback.ITaskCallback
+import com.twoam.agent.model.*
+import org.json.JSONArray
+import org.json.JSONObject
 
 
-class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListener {
+class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, View.OnClickListener {
 
     //region Members
     private var ticketList = ArrayList<Ticket>()
     private var tasks = ArrayList<Task>()
     private var stopsList = ArrayList<Stop>()
+    private var stopsModelList = ArrayList<Stopsmodel>()
+
     private var courierList = ArrayList<Courier>()
     private var dummyCourierList = ArrayList<Courier>()
     private var dummyTicketList = ArrayList<Ticket>()
-    private var selectedStop = Stop()
     private var selectedCourier = Courier()
     private var selectedTicket = Ticket()
     private var selectedStopType: StopType? = null
-
-
+    private var adapterTicket: TicketListAdapter? = null
+    private var adapterCourier: CourierListAdapter? = null
     private var task = Task()
-     var editMode = false
+    private var taskModel = TaskModel()
+
+    var editMode = false
     private lateinit var currentView: View
     private lateinit var scroll: ScrollView
-    private var btnBack: ImageView? = null
+    private var ivBack: ImageView? = null
     private var tvTaskDetails: TextView? = null
-    private var tvDelete: TextView? = null
+    private var tvDeleteTask: TextView? = null
     private var listener: IBottomSheetCallback? = null
+    private var listenerTask: ITaskCallback? = null
     private lateinit var etTaskName: EditText
     private lateinit var etAmount: EditText
-    private lateinit var sTicket: Spinner
-    private lateinit var sCourier: Spinner
+    private lateinit var sTicket: AutoCompleteTextView
+    private lateinit var sCourier: AutoCompleteTextView
     private lateinit var tvAddStop: TextView
     private lateinit var tvClearStop: TextView
     private lateinit var tvGetLocation: TextView
-
-
     private lateinit var btnAddStopLocation: ImageButton
     private lateinit var rlStops: RelativeLayout
     private lateinit var etStopName: EditText
@@ -81,7 +84,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         currentView = inflater.inflate(
             R.layout.fragment_new_task, container, false
         )
-//        init()
         return currentView
     }
 
@@ -95,6 +97,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         super.onAttach(context)
         if (context is IBottomSheetCallback) {
             listener = context
+        }
+        if (context is ITaskCallback) {
+            listenerTask = context
         } else {
             throw ClassCastException("$context must implement IBottomSheetCallback.onBottomSheetSelectedItem")
         }
@@ -103,6 +108,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
     override fun onDetach() {
         super.onDetach()
         listener = null
+        listenerTask = null
     }
 
     override fun onBottomSheetClosed(isClosed: Boolean) {
@@ -110,7 +116,29 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
     }
 
     override fun onBottomSheetSelectedItem(index: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        listener!!.onBottomSheetSelectedItem(3)
+    }
+
+    override fun onTaskDelete(task: Task?) {
+
+    }
+
+    override fun onStopDelete(stop: Stop?) {
+        if (!stop!!.StopID.isNullOrEmpty()) {
+            AlertDialog.Builder(context)
+                .setTitle(AppConstants.WARNING)
+                .setMessage(getString(R.string.message_delete) + " " + stop.StopName + " ?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(AppConstants.OK) { _, _ ->
+                    removeStop(stop)
+                }
+                .setNegativeButton(AppConstants.CANCEL) { _, _ -> }
+                .show()
+
+        } else
+            stopsList.remove(stop)
+        var stopModel = stopsModelList.find { it.stopName == stop.StopName }
+        stopsModelList.remove(stopModel)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -128,11 +156,23 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
 
     override fun onClick(view: View?) {
         when (view!!.id) {
-            R.id.btnBack -> {
-                if(editMode)
-                    listener!!.onBottomSheetSelectedItem(3)
-                else
-                listener!!.onBottomSheetSelectedItem(0)
+            R.id.ivBack -> {
+                listener!!.onBottomSheetSelectedItem(3)
+            }
+            R.id.tvDeleteTask -> {
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty()) {
+                    var task = AppConstants.CurrentSelectedTask
+                    AlertDialog.Builder(context)
+                        .setTitle(AppConstants.WARNING)
+                        .setMessage(getString(R.string.message_delete) + " " + task.Task + " ?")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton(AppConstants.OK) { dialog, which ->
+                            deleteTask(task)
+                        }
+                        .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                        .show()
+
+                }
             }
             R.id.tvAddStop -> {
                 if (!rlStops.isVisible)
@@ -146,6 +186,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
                     rlStops.visibility = View.GONE
 
                     stopsList.clear()
+                    stopsModelList.clear()
                     rvStops.adapter = null
 
                 }
@@ -158,6 +199,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
             }
 
             R.id.btnAddStopLocation -> {
+
+                context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                 if (validateStopData()) {
                     var stopName = etStopName.text.toString()
                     var stopTypeId = sStopType.selectedItemPosition + 1
@@ -166,14 +209,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
                     var longitude = etLongitude.text.toString().toDouble()
 
                     var stop = Stop(
-                        task.TaskId,
+                        AppConstants.CurrentSelectedTask.TaskId,
                         AppConstants.CurrentLoginAdmin.AdminId,
                         stopName,
                         latitude,
                         longitude,
                         stopTypeId,
                         stopType,
-                        ""
+                        "", 0 //new
                     )
                     addStopToStopList(stop)
                 }
@@ -182,10 +225,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
 
 
             R.id.btnSave -> {
-                //todo save task to ticket
                 if (validateAll()) {
                     prepareTaskData()
-                    addTask(task)
+                    if (!editMode) {
+                        addTask(taskModel)
+                    } else {
+                        editTask(taskModel)
+                    }
                 }
 
             }
@@ -198,9 +244,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
     //region Helper Functions
     private fun init() {
         scroll = currentView.findViewById(R.id.scroll)
-        btnBack = currentView!!.findViewById(R.id.btnBack)
+        ivBack = currentView!!.findViewById(R.id.ivBack)
         tvTaskDetails = currentView!!.findViewById(R.id.tvTaskDetails)
-        tvDelete = currentView!!.findViewById(R.id.tvDelete)
+        tvDeleteTask = currentView!!.findViewById(R.id.tvDeleteTask)
         etTaskName = currentView!!.findViewById(R.id.etTaskName)
         sTicket = currentView!!.findViewById(R.id.sTicket)
         sCourier = currentView!!.findViewById(R.id.sCourier)
@@ -218,8 +264,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         rvStops = currentView!!.findViewById(R.id.rvStops)
         btnSave = currentView!!.findViewById(R.id.btnSave)
 
-        btnBack!!.setOnClickListener(this)
-        tvDelete!!.setOnClickListener(this)
+        sTicket.isEnabled = false
+
+        ivBack!!.setOnClickListener(this)
+        tvDeleteTask!!.setOnClickListener(this)
         tvAddStop!!.setOnClickListener(this)
         tvClearStop!!.setOnClickListener(this)
         tvGetLocation!!.setOnClickListener(this)
@@ -228,63 +276,85 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
 
-//        getAllCouriers()
 
-        tvTaskDetails!!.text = context!!.getString(R.string.new_task)
         prepareTickets()
         prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
 
 
         if (editMode) {
-            btnSave.setText(context!!.getString(R.string.update))
+            btnSave.text = context!!.getString(R.string.update)
             tvTaskDetails!!.text = context!!.getString(R.string.task_details)
-            tvDelete!!.visibility = View.VISIBLE
-//            getAllTaskStops(AppConstants.CurrentSelectedTask)
+            tvDeleteTask!!.visibility = View.VISIBLE
             loadTaskData(AppConstants.CurrentSelectedTask)
+
+        } else {
+            resetTaskData()
         }
 
 
     }
 
-    private fun loadTaskData(task:Task)
-    {
-        selectValue(sTicket,task.TicketId)
-        selectValue(sCourier,task.CourierId)
-        if(!task.Task.trim().isNullOrEmpty())
-        etTaskName.setText(task.Task)
-        if(!task.Amount.toString().trim().isNullOrEmpty())
-        etAmount!!.setText(task.Amount.toString())
+    private fun resetTaskData() {
 
-        if(task.stopsmodel.count()>0)
-        {
+        btnSave.text = context!!.getString(R.string.save)
+        tvTaskDetails!!.text = context!!.getString(R.string.new_task)
+        tvDeleteTask!!.visibility = View.INVISIBLE
+
+        etTaskName.setText(context!!.getString(R.string.task_name))
+        sCourier.setText(context!!.getString(R.string.select_courier))
+        etAmount!!.setText(context!!.getString(R.string.amount))
+
+        rvStops.adapter = null
+        rlStops.visibility = View.GONE
+
+    }
+
+    private fun loadTaskData(task: Task) {
+
+
+        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+
+        if (!task.Task.trim().isNullOrEmpty())
+            etTaskName.setText(task.Task)
+        if (task.CourierID!! > 0)
+            sCourier.setText(task.CourierName)
+        if (!task.Amount.toString().trim().isNullOrEmpty())
+            etAmount!!.setText(task.Amount.toString())
+
+        if (task.stopsmodel.count() > 0) {
             loadTaskStops(task.stopsmodel)
-            rlStops.visibility=View.VISIBLE
+            rlStops.visibility = View.VISIBLE
 
         }
+
+        prepareTaskModelData(AppConstants.CurrentSelectedTask)
     }
 
-    private fun selectValue(spinner: Spinner, value: Any) {
-        for (i in 0 until spinner.count) {
-            if (spinner.getItemAtPosition(i) == value) {
-                spinner.setSelection(i)
-                break
-            }
+    private fun prepareTaskModelData(task: Task) {
+        taskModel.taskId = task.TaskId
+        taskModel.taskName = task.Task
+        taskModel.amount = task.Amount
+        taskModel.addedBy = task.AddedBy
+        taskModel.ticketID = task.TicketId
+        taskModel.courierId = task.CourierID
+        task.stopsmodel.forEach {
+            taskModel.stopsmodels!!.add(
+                Stopsmodel(
+                    it.StopName,
+                    it.Latitude!!,
+                    it.Longitude!!,
+                    it.addedBy,
+                    it.StopTypeID
+                )
+            )
         }
-    }
 
+    }
 
     private fun validateAll(): Boolean {
 
-
-        if (selectedTicket.TicketId.trim().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Please select ticket to assign task to it.")
-            AnimateScroll.scrollToView(scroll, sTicket)
-            sTicket.isFocusable = true
-            sTicket.isFocusableInTouchMode = true
-            sTicket.requestFocus()
-            return false
-        } else if (etTaskName.text.toString().isNullOrEmpty()) {
+        if (etTaskName.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "Task Name is required.")
             AnimateScroll.scrollToView(scroll, etTaskName)
             etTaskName.requestFocus()
@@ -293,11 +363,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
             Alert.showMessage(context!!, "Amount is required.")
             AnimateScroll.scrollToView(scroll, etAmount)
             etAmount.requestFocus()
-            return false
-        } else if (sTicket.selectedItem.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Status is required.")
-            AnimateScroll.scrollToView(scroll, sTicket)
-            sTicket.requestFocus()
             return false
         } else if (rlStops.isVisible &&
             etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
@@ -308,17 +373,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
             btnAddStopLocation.requestFocus()
             return false
         }
-//        else if (etLatitude.text.toString().isNullOrEmpty()) {
-//            Alert.showMessage(context!!, "Latitude is required.")
-//            AnimateScroll.scrollToView(scroll, etLatitude)
-//            etLatitude.requestFocus()
-//            return false
-//        } else if (etLongitude.text.toString().isNullOrEmpty()) {
-//            Alert.showMessage(context!!, "Longitude is required.")
-//            AnimateScroll.scrollToView(scroll, etLongitude)
-//            etLongitude.requestFocus()
-//            return false
-//        }
 
 
         return true
@@ -329,20 +383,24 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         var taskName = etTaskName.text.toString()
         var amount = etAmount.text.toString().toDouble()
         var addedBY = AppConstants.CurrentLoginAdmin.AdminId
-        var ticketId = selectedTicket.TicketId.toString()
+        var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var taskId = AppConstants.CurrentSelectedTask.TaskId
-        var courierId = selectedCourier.CourierId
+        var courierId = selectedCourier.CourierId ?: null
 
-        task = Task(taskName, amount, addedBY, ticketId, taskId, courierId, stopsList)
+        task = Task(taskName, amount, addedBY, ticketId, taskId, courierId!!, stopsList)
+        taskModel =
+            TaskModel(taskName, amount, addedBY, ticketId, taskId, courierId!!, stopsModelList)
+
+
     }
 
-    private fun addTask(task: Task) {
+
+    private fun addTask(taskData: TaskModel) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var request = NetworkManager().create(ApiServices::class.java)
             var endPoint = request.addTask(
-                task.Task,
-                task.Amount, task.AddedBy, task.TicketId, task.CourierId
+                taskData
             )
             NetworkManager().request(
                 endPoint,
@@ -358,8 +416,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
                     override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
-                            tasks = response.ResponseObj!!
-                            saveStopsToTask(stopsList)
+                            var tasks = response.ResponseObj!!
+                            var task = tasks[0]
+                            // add new task to the current ticket
+                            AppConstants.CurrentSelectedTicket.taskModel.add(task)
+                            listener!!.onBottomSheetSelectedItem(3)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -384,13 +445,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         }
     }
 
-    private fun removeTask(task: Task) {
+
+    private fun editTask(taskModel: TaskModel) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.removeTask(
-                task.TaskId,
-                task.AddedBy
+            var endPoint = request.editTask(
+                taskModel
             )
             NetworkManager().request(
                 endPoint,
@@ -406,7 +467,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
                     override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
-                            tasks = response.ResponseObj!!
+
+                            var tasks = response.ResponseObj!!
+                            var task = tasks[0]
+                            var selectedTaskIndex =
+                                AppConstants.CurrentSelectedTicket.taskModel.indexOf(AppConstants.CurrentSelectedTicket.taskModel.find { it.TaskId == task.TaskId })
+                            AppConstants.CurrentSelectedTicket.taskModel[selectedTaskIndex] = task
+                            AppConstants.CurrentSelectedTask = task
+
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -431,15 +499,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         }
     }
 
-    private fun getPickupLoaction() {}
-
-    private fun getDropOffLoaction() {}
 
     private fun addStop(stop: Stop) {
 
         var request = NetworkManager().create(ApiServices::class.java)
         var endPoint = request.addTaskStop(
-            task.TaskId,
+            task.AddedBy,
             task.TaskId,
             stop.Latitude.toString(),
             stop.Longitude.toString(),
@@ -485,7 +550,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var request = NetworkManager().create(ApiServices::class.java)
             var endPoint = request.removeStop(
-                stop.id, AppConstants.CurrentLoginAdmin.AdminId
+                stop.StopID, AppConstants.CurrentLoginAdmin.AdminId
             )
             NetworkManager().request(
                 endPoint,
@@ -502,6 +567,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
                             stopsList = response.ResponseObj!!
+                            loadTaskStops(stopsList)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -677,36 +743,42 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
             }
         }
 
-        var adapter =
+        adapterTicket =
             TicketListAdapter(
                 context!!,
                 android.R.layout.simple_spinner_dropdown_item,
                 dummyTicketList
             )
-        sTicket.adapter = adapter
+        sTicket.setAdapter(adapterTicket)
+        sTicket.isCursorVisible = false
 
-        sTicket.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
 
-                var ticket = parent.selectedItem as Ticket
+        sTicket.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, view, position, id ->
+                sTicket.showDropDown()
+                var ticket = parent.getItemAtPosition(position) as Ticket
+
+
                 if (ticket.TicketId != "0")
                     selectedTicket = ticket
                 else
                     selectedTicket = Ticket("0", getString(R.string.select_ticket))
+
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
+        sTicket.setOnClickListener(View.OnClickListener {
+            sTicket.showDropDown()
+
+        })
+
+        // set current ticket
+        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+
     }
 
     private fun prepareCourier(courierList: ArrayList<Courier>) {
+        dummyCourierList.clear()
         if (courierList.size > 0) {
-            dummyCourierList.clear()
             var newArray = courierList
 
             var firstItem = Courier(0, getString(R.string.select_courier))
@@ -718,36 +790,43 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         }
 
 
-        var adapter = CourierListAdapter(
+        adapterCourier = CourierListAdapter(
             context!!,
             android.R.layout.simple_spinner_dropdown_item,
             dummyCourierList
         )
-        sCourier.adapter = adapter
+        sCourier.setAdapter(adapterCourier)
+        sCourier.isCursorVisible = false
 
-        sCourier.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
+        sCourier.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, view, position, id ->
+                sCourier.showDropDown()
+                var courier = parent.getItemAtPosition(position) as Courier
 
-                var courier = parent.selectedItem as Courier
-                if (courier.CourierId > 0)
+
+                if (courier.CourierId!! > 0) {
                     selectedCourier = courier
-                else
+                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.CourierName)
+                } else {
+//                    sCourier.setText(getString(R.string.select_courier))
                     selectedCourier = Courier(0, getString(R.string.select_courier))
+                }
+
 
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
+        sCourier.setOnClickListener(View.OnClickListener {
+            sCourier.showDropDown()
+
+        })
+
+
     }
 
 
     private fun loadTaskStops(stopList: ArrayList<Stop>) {
-        var adapter = StopAdapter(context!!, stopList)
+        stopList.forEach { it.status = 1/*1 == update*/ }
+        var adapter = StopAdapter(context!!, stopList, this)
         rvStops.adapter = adapter
         rvStops.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -781,25 +860,55 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
 
     }
 
-    private fun saveStopsToTask(stopList: ArrayList<Stop>) {
+    private fun saveStopsToTask(stopList: ArrayList<Stop>, task: Task) {
         var counter = 0
         if (stopsList.size > 0) {
             if (NetworkManager().isNetworkAvailable(context!!)) {
                 stopList.forEach {
-                    addStop(it)
-                    counter += 1
+                    when (it.status) {
+                        0 -> // new add
+                        {
+                            addStop(it)
+                            task.stopsmodel.add(it)
+                            counter += 1
+                        }
+                        1 -> // temp stop remove from list only
+                        {
+
+                        }
+                        2 -> // remove
+                        {
+                            removeStop(it)
+                            task.stopsmodel.remove(it)
+                            counter += 1
+                        }
+                    }
                 }
+
+
             } else {
                 Alert.showMessage(context!!, getString(R.string.no_internet))
             }
+
+
         }
-        listener!!.onBottomSheetSelectedItem(10)
+        listener!!.onBottomSheetSelectedItem(3)
+
     }
 
     private fun addStopToStopList(stop: Stop) {
         stopsList.add(stop)
+        stopsModelList.add(
+            Stopsmodel(
+                stop.StopName,
+                stop.Latitude!!,
+                stop.Longitude!!,
+                stop.addedBy,
+                stop.StopTypeID
+            )
+        )
 
-        var adapter = StopAdapter(context!!, stopsList)
+        var adapter = StopAdapter(context!!, stopsList, this)
         rvStops.adapter = adapter
         rvStops.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -809,11 +918,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
 
     }
 
+
     private fun clearStopControlsData() {
 
         sStopType.setSelection(0)
         etStopName.setText("")
-        etStopName.setHint(context!!.getString(R.string.stop_name))
+        etStopName.hint = context!!.getString(R.string.stop_name)
         etLatitude.setText("")
         etLatitude.hint = context!!.getString(R.string.latitude)
         etLongitude.setText("")
@@ -839,6 +949,88 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, View.OnClickListen
         }
 
         return true
+    }
+
+    private fun deleteTask(task: Task) {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Task>>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            context!!.getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Alert.hideProgress()
+                            var tasks = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTicket.taskModel = tasks
+                            //  close and go to task details view
+                            editMode = false
+                            listener!!.onBottomSheetSelectedItem(3)
+
+                        } else if (response.Status == AppConstants.STATUS_FAILED) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                context!!.getString(R.string.error_login_server_error)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(context!!, context!!.getString(R.string.no_internet))
+        }
+    }
+
+    fun convertTaskDataToJson(task: Task): JSONObject {
+
+        val jResult = JSONObject()
+        val jArray = JSONArray()
+
+        val array = arrayOfNulls<Stop>(task.stopsmodel.size)
+        for (i in task.stopsmodel.indices) {
+            array[i] = task.stopsmodel[i]
+        }
+
+        jResult.putOpt("TaskName", task.Task)
+        jResult.putOpt("Amount", task.Amount.toString())
+        jResult.putOpt("AddedBy", task.AddedBy)
+        jResult.putOpt("TicketID", task.TicketId)
+        jResult.putOpt("CourierId", task.CourierID.toString())
+
+
+        for (i in 0 until array.count()) {
+            val jGroup = JSONObject()
+            jGroup.put("Longitude", array[i]?.Longitude.toString())
+            jGroup.put("AddedBy", task.AddedBy)
+            jGroup.put("Latitude", array[i]?.Latitude.toString())
+            jGroup.put("StopName", array[i]?.StopName.toString())
+            jGroup.put("StopTypeID", array[i]?.StopTypeID.toString())
+
+
+            jArray.put(jGroup)
+        }
+
+        jResult.putOpt("stopsmodels", jArray)
+
+        return jResult
     }
 //endregion
 

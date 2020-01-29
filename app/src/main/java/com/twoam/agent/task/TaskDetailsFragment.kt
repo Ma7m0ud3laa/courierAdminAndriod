@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.twoam.agent.R
 import com.twoam.agent.adapter.StopAdapter
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.callback.ITaskCallback
 import com.twoam.agent.model.Stop
 import com.twoam.agent.model.Task
 import com.twoam.agent.utilities.AppConstants
@@ -24,11 +25,13 @@ import com.twoam.cartello.Utilities.Base.BaseFragment
 /**
  * A simple [Fragment] subclass.
  */
-class TaskDetailsFragment : BaseFragment(), IBottomSheetCallback {
+class TaskDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback {
 
 
     //region Members
     private var listener: IBottomSheetCallback? = null
+    private var listenerTask: ITaskCallback? = null
+
     private var task: Task = Task()
     private var currentView: View? = null
     private var btnBack: ImageView? = null
@@ -60,13 +63,31 @@ class TaskDetailsFragment : BaseFragment(), IBottomSheetCallback {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun onTaskDelete(task: Task?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onStopDelete(stop: Stop?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is IBottomSheetCallback) {
             listener = context
+        }
+        if (context is ITaskCallback) {
+            listenerTask = context
         } else {
             throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+        listenerTask = null
+
     }
     //endregion
     //region Helper Functions
@@ -114,7 +135,7 @@ class TaskDetailsFragment : BaseFragment(), IBottomSheetCallback {
     }
 
     private fun loadTaskStops(stopList: ArrayList<Stop>) {
-        var adapter = StopAdapter(context!!, stopList)
+        var adapter = StopAdapter(context!!, stopList, this)
         rvStops?.adapter = adapter
         rvStops?.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.VERTICAL, false)

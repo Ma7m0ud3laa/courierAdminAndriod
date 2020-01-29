@@ -103,8 +103,6 @@ class TicketAdapter(
                 val pos = adapterPosition
                 ticket = ticketList[pos]
                 AppConstants.CurrentSelectedTicket = ticket
-                //switch to ticket details fragment
-                AppConstants.CurrentSelectedTicket = ticket
                 listener!!.onBottomSheetSelectedItem(3)
 
             }

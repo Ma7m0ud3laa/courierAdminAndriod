@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <color AdminName="colorPrimary">#E54728</color>-->
-<!--    <color AdminName="colorPrimaryDark">#E54728</color>-->
-<!--    <color AdminName="colorAccent">#059719</color>-->
-    <color name="colorPrimary">#059719</color>
-    <color name="colorPrimaryDark">#059719</color>
-    <color name="colorAccent">#E54728</color>
+<!--    <color name="colorPrimary">#059719</color>-->
+<!--    <color name="colorPrimaryDark">#059719</color>-->
+<!--    <color name="colorAccent">#E54728</color>-->
+    <color name="colorPrimary">#E54728</color>
+    <color name="colorPrimaryDark">#E54728</color>
+    <color name="colorAccent">#059719</color>
     <color name="colorSecondary">#FFFFFF</color>
     <color name="textColor">#000000</color>
     <color name="background">#E1E1E1</color>

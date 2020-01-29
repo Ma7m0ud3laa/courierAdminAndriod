@@ -52,13 +52,17 @@ object AppConstants {
     const val URL_LOGIN = "AdminLogin"
     const val URL_LOG_OUT = "Logout"
     const val URL_ADD_TASK = "AddTask"
+    const val URL_EDIT_TASK = "EditTask"
+
     const val URL_REASSIGN_TASK_TO_COURIER = "ReassignTaskToCourier"
     const val URL_GET_ALL_TICKETS = "GetAllTickets"
+    const val URL_GET_TICKET_BY_ID = "GetTicketById"
     const val URL_GET_ALL_COURIERS = "GetAllCourier"
     const val URL_ADD_TASK_STOP = "AddTaskStop"
     const val URL_GET_ALL_TASK_STOPS = "GetAllTaskStops"
     const val URL_REMOVE_TASK = "RemoveCourierTask"
     const val URL_REMOVE_STOP = "RemoveTaskStop"
+
 
 
     //endregion
