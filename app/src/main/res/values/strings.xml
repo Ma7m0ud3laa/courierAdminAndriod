@@ -44,7 +44,6 @@
     <string name="remember_me">REMEMBER ME</string>
     <string name="don_t_have_an_account">Don\'t have an Account</string>
     <string name="sign_up">SIGN UP</string>
-    <string name="add_stop">Add Stop</string>
     <string name="kadabra">Kadabra</string>
     <string name="priority">Priority</string>
     <string name="price">Price</string>
@@ -85,6 +84,9 @@
     <string name="save">Save</string>
     <string name="task_name">Task Name</string>
     <string name="amount">Amount</string>
+    <string name="add_stop">Add Stop</string>
+    <string name="show">Show</string>
+    <string name="clear">Clear</string>
 
 </resources>
 

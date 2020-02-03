@@ -26,7 +26,7 @@
         app:fabCradleRoundedCornerRadius="10dp"
         app:fabCradleVerticalOffset="5dp"
         app:hideOnScroll="true"
-        app:navigationIcon="@drawable/ic_home" />
+        app:navigationIcon="@drawable/ic_menu" />
 
     <!-- Floating Action button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

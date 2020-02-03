@@ -51,6 +51,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var taskModel = TaskModel()
 
     var editMode = false
+    var taskAddMode = false
+
     private lateinit var currentView: View
     private lateinit var scroll: ScrollView
     private var ivBack: ImageView? = null
@@ -65,7 +67,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var tvAddStop: TextView
     private lateinit var tvClearStop: TextView
     private lateinit var tvGetLocation: TextView
-    private lateinit var btnAddStopLocation: ImageButton
+    private lateinit var btnAddStopLocation: Button
     private lateinit var rlStops: RelativeLayout
     private lateinit var etStopName: EditText
     private lateinit var sStopType: Spinner
@@ -157,7 +159,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     override fun onClick(view: View?) {
         when (view!!.id) {
             R.id.ivBack -> {
-                listener!!.onBottomSheetSelectedItem(3)
+                if (editMode)
+                    listener!!.onBottomSheetSelectedItem(3)
+                else
+                    listener!!.onBottomSheetSelectedItem(0)
+
             }
             R.id.tvDeleteTask -> {
                 if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty()) {
@@ -185,9 +191,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     // todo  empty stop list
                     rlStops.visibility = View.GONE
 
-                    stopsList.clear()
-                    stopsModelList.clear()
-                    rvStops.adapter = null
+//                    stopsList.clear()
+//                    stopsModelList.clear()
+//                    rvStops.adapter = null
 
                 }
 
@@ -218,7 +224,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         stopType,
                         "", 0 //new
                     )
+
                     addStopToStopList(stop)
+
                 }
 
             }
@@ -264,7 +272,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         rvStops = currentView!!.findViewById(R.id.rvStops)
         btnSave = currentView!!.findViewById(R.id.btnSave)
 
-        sTicket.isEnabled = false
+
 
         ivBack!!.setOnClickListener(this)
         tvDeleteTask!!.setOnClickListener(this)
@@ -283,24 +291,27 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
         if (editMode) {
+            sTicket.isEnabled = false
             btnSave.text = context!!.getString(R.string.update)
             tvTaskDetails!!.text = context!!.getString(R.string.task_details)
             tvDeleteTask!!.visibility = View.VISIBLE
             loadTaskData(AppConstants.CurrentSelectedTask)
 
         } else {
-            resetTaskData()
+            defaultTaskData()
         }
 
 
     }
 
-    private fun resetTaskData() {
+    private fun defaultTaskData() {
+
+        sTicket.isEnabled = taskAddMode
 
         btnSave.text = context!!.getString(R.string.save)
         tvTaskDetails!!.text = context!!.getString(R.string.new_task)
         tvDeleteTask!!.visibility = View.INVISIBLE
-
+        sTicket.setText(context!!.getString(R.string.select_ticket))
         etTaskName.setText(context!!.getString(R.string.task_name))
         sCourier.setText(context!!.getString(R.string.select_courier))
         etAmount!!.setText(context!!.getString(R.string.amount))
@@ -308,46 +319,66 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         rvStops.adapter = null
         rlStops.visibility = View.GONE
 
+        taskAddMode = false
     }
 
     private fun loadTaskData(task: Task) {
 
-
         sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+
+        selectedTicket =
+            AppConstants.GetALLTicket.find { it.TicketId == AppConstants.CurrentSelectedTicket.TicketId }!!
 
         if (!task.Task.trim().isNullOrEmpty())
             etTaskName.setText(task.Task)
-        if (task.CourierID!! > 0)
+        if (task.CourierID != null) {
             sCourier.setText(task.CourierName)
+            selectedCourier = AppConstants.ALL_COURIERS.find { it.CourierId == task.CourierID }!!
+        }
         if (!task.Amount.toString().trim().isNullOrEmpty())
             etAmount!!.setText(task.Amount.toString())
 
         if (task.stopsmodel.count() > 0) {
+
+            stopsList = task.stopsmodel
+
             loadTaskStops(task.stopsmodel)
-            rlStops.visibility = View.VISIBLE
+//            rlStops.visibility = View.VISIBLE
 
         }
 
-        prepareTaskModelData(AppConstants.CurrentSelectedTask)
+//        prepareTaskModelData(AppConstants.CurrentSelectedTask)
     }
 
     private fun prepareTaskModelData(task: Task) {
-        taskModel.taskId = task.TaskId
+
         taskModel.taskName = task.Task
         taskModel.amount = task.Amount
-        taskModel.addedBy = task.AddedBy
         taskModel.ticketID = task.TicketId
         taskModel.courierId = task.CourierID
+
+        if (!editMode) { // new
+            taskModel.addedBy = task.AddedBy
+
+        } else { //edit
+            taskModel.taskId = task.TaskId
+            taskModel.modifiedBy = task.AddedBy
+        }
+
         task.stopsmodel.forEach {
-            taskModel.stopsmodels!!.add(
-                Stopsmodel(
-                    it.StopName,
-                    it.Latitude!!,
-                    it.Longitude!!,
-                    it.addedBy,
-                    it.StopTypeID
+
+            if (it.status == 0) // new
+            {
+                taskModel.stopsmodels!!.add(
+                    Stopsmodel(
+                        it.StopName,
+                        it.Latitude!!,
+                        it.Longitude!!,
+                        it.addedBy,
+                        it.StopTypeID
+                    )
                 )
-            )
+            }
         }
 
     }
@@ -388,9 +419,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var courierId = selectedCourier.CourierId ?: null
 
         task = Task(taskName, amount, addedBY, ticketId, taskId, courierId!!, stopsList)
-        taskModel =
-            TaskModel(taskName, amount, addedBY, ticketId, taskId, courierId!!, stopsModelList)
-
+        prepareTaskModelData(task)
 
     }
 
@@ -475,7 +504,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             AppConstants.CurrentSelectedTicket.taskModel[selectedTaskIndex] = task
                             AppConstants.CurrentSelectedTask = task
 
-
+                            listener!!.onBottomSheetSelectedItem(3)
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
@@ -759,9 +788,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 var ticket = parent.getItemAtPosition(position) as Ticket
 
 
-                if (ticket.TicketId != "0")
+                if (ticket.TicketId != "0") {
                     selectedTicket = ticket
-                else
+                    sTicket.setText(ticket.TicketName)
+                    AppConstants.CurrentSelectedTicket=ticket
+                } else
                     selectedTicket = Ticket("0", getString(R.string.select_ticket))
 
             }
@@ -806,7 +837,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                 if (courier.CourierId!! > 0) {
                     selectedCourier = courier
-                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.CourierName)
+//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.CourierName)
+                    sCourier.setText(courier.CourierName)
                 } else {
 //                    sCourier.setText(getString(R.string.select_courier))
                     selectedCourier = Courier(0, getString(R.string.select_courier))

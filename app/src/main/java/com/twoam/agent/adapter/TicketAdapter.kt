@@ -22,6 +22,7 @@ class TicketAdapter(
     private val context: Context,
     private val ticketList: ArrayList<Ticket>,
     private val _ticketListener: IBottomSheetCallback
+
 ) : RecyclerView.Adapter<TicketAdapter.MyViewHolder>() {
 
     private val inflater: LayoutInflater = LayoutInflater.from(context)
@@ -29,6 +30,7 @@ class TicketAdapter(
     private var taskList = ArrayList<Task>()
     private var taskStops = ArrayList<Stop>()
     private var listener: IBottomSheetCallback? = null
+    private var totalTasksAmount = 0.0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TicketAdapter.MyViewHolder {
 
@@ -49,15 +51,30 @@ class TicketAdapter(
         holder.tvPriority.text = ticket.Priority
 
 
-        if (ticket.price!! > 0)
-            holder.tvPrice.text = ticket.price.toString() + " " + context.getString(R.string.le)
-        else
-            holder.tvPrice.text = "0 " + context.getString(R.string.le)
+//        if (ticket.price!! > 0)
+//            holder.tvPrice.text = ticket.price.toString() + " " + context.getString(R.string.le)
+//        else
+//            holder.tvPrice.text = "0 " + context.getString(R.string.le)
 
 
-        if (taskList.count() > 0)
+        if (taskList.count() > 0) {
+            totalTasksAmount = 0.0
             holder.tvTotalTasks.text =
                 taskList.count().toString()
+            taskList.forEach {
+                totalTasksAmount += it.Amount
+            }
+
+
+        }
+
+        if (totalTasksAmount > 0) {
+            holder.tvPrice.text =
+                totalTasksAmount.toString() + " " + context.getString(R.string.le)
+        }
+
+        else
+            holder.tvPrice.text = "0 " + context.getString(R.string.le)
 
 
         when (ticket.Status) {

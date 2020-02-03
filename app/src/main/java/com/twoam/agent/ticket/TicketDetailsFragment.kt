@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +23,7 @@ import com.twoam.agent.model.Stop
 import com.twoam.agent.model.Task
 import com.twoam.agent.model.Ticket
 import com.twoam.agent.utilities.Alert
+import com.twoam.agent.utilities.AnimateScroll
 import com.twoam.agent.utilities.AppConstants
 import com.twoam.agent.utilities.AppController
 import com.twoam.cartello.Utilities.Base.BaseFragment
@@ -32,6 +34,7 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
 
     private var mParam1: String? = null
     private var mParam2: String? = null
+    private lateinit var scroll: ScrollView
     private var tvTicketName: TextView? = null
     private var tvTicketDetails: TextView? = null
     private var tvStatus: TextView? = null
@@ -85,7 +88,7 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
 
 
     private fun init() {
-
+        scroll = currentView!!.findViewById(R.id.scroll)
         tvTicketName = currentView!!.findViewById(R.id.tvTicketName)
         tvTicketDetails = currentView!!.findViewById(R.id.tvTicketDetails)
         tvStatus = currentView!!.findViewById(R.id.tvStatus)
@@ -98,9 +101,12 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
         tvAddTask!!.setOnClickListener(this)
         ivBack!!.setOnClickListener(this)
 
-
+        AnimateScroll.scrollToView(scroll, tvTicketName!!)
+        tvTicketName!!.requestFocus()
 
         ticket = AppConstants.CurrentSelectedTicket
+
+
     }
 
     override fun onAttach(context: Context) {
@@ -159,8 +165,21 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
         tvStatus!!.text = ticket.Status
         tvPriority!!.text = ticket.Priority
 
-        if (ticket.price!! > 0)
-            tvPrice!!.text = ticket.price.toString()
+//        if (ticket.price!! > 0)
+//            tvPrice!!.text = ticket.price.toString()
+//        else
+//            tvPrice!!.text = "0 " + context!!.getString(R.string.le)
+
+
+        var totalTasksAmount = 0.0
+
+        ticket.taskModel.forEach {
+            totalTasksAmount += it.Amount
+        }
+
+        if (totalTasksAmount > 0)
+            tvPrice!!.text =
+                totalTasksAmount.toString() + " " + context!!.getString(R.string.le)
         else
             tvPrice!!.text = "0 " + context!!.getString(R.string.le)
 

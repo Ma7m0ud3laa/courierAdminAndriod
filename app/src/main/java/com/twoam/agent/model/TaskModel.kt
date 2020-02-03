@@ -17,6 +17,10 @@ class TaskModel {
     @SerializedName("AddedBy")
     @Expose
     var addedBy: String? = null
+    @SerializedName("ModifiedBy")
+    @Expose
+    var modifiedBy: String? = null
+
     @SerializedName("TicketID")
     @Expose
     var ticketID: String? = null
@@ -25,7 +29,7 @@ class TaskModel {
     var courierId: Int? = null
     @SerializedName("stopsmodels")
     @Expose
-    var stopsmodels: ArrayList<Stopsmodel>? = null
+    var stopsmodels= ArrayList<Stopsmodel>()
 
     constructor()
     constructor(

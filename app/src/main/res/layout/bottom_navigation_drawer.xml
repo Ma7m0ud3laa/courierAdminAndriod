@@ -53,6 +53,7 @@
             android:layout_centerVertical="true"
             android:padding="16dp"
             android:visibility="visible"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             app:srcCompat="@drawable/ic_close_black_24dp" />
 
         <View
