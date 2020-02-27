@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -21,7 +19,6 @@ import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.location.places.ui.PlacePicker.getPlace
@@ -33,17 +30,18 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.twoam.Networking.NetworkManager
 import com.twoam.agent.R
 import com.twoam.agent.callback.IBottomSheetCallback
+import com.twoam.agent.firebase.FirebaseManager
+import com.twoam.agent.model.Courier
 import com.twoam.agent.model.Stop
+import com.twoam.agent.utilities.Alert
 import com.twoam.agent.utilities.AppConstants
 import com.twoam.cartello.Utilities.Base.BaseFragment
-import kotlinx.android.synthetic.main.activity_ticket.*
-import kotlinx.android.synthetic.main.fragment_courier.view.*
 import java.io.IOException
 import java.lang.Exception
 import java.util.*
-import kotlin.collections.ArrayList
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -83,6 +81,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     var geoCoder: Geocoder? = null
     var addresList: List<Address>? = null
     private lateinit var selectedLatLng: LatLng
+    var markers = HashMap<String, Courier>()
 
 
     //endregion
@@ -103,7 +102,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             param2 = it.getString(ARG_PARAM2)
         }
 
-
+        FirebaseManager.setUpFirebase()
     }
 
     override fun onCreateView(
@@ -184,28 +183,103 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
             map.animateCamera(CameraUpdateFactory.newCameraPosition(googlePlex), 1000, null)
             //couriers points
-            AppConstants.ALL_COURIERS.forEach {
-                var latlng = LatLng(30.0163243, 30.9990016)
-             var latlngNew=  getRandomLocation(latlng, 13254)
-                map.addMarker(
+//            loadAllCouriers()  //this from db
+
+            loadAllCouriersFromFB()
+        }
+
+    }
+
+    private fun loadAllCouriers() {
+        var marker: Marker? = null
+        AppConstants.ALL_COURIERS.forEach {
+            var latlng = LatLng(30.0163243, 30.9990016)
+            var latlngNew = getRandomLocation(latlng, 13254)
+
+            if (it.CourierId == 2) {
+
+                marker = map.addMarker(
                     MarkerOptions()
                         .position(LatLng(latlngNew.latitude, latlngNew.longitude))
-                        .title(it.CourierName)
+                        .title(it.name)
                         .icon(
                             BitmapDescriptorFactory.fromBitmap(
                                 BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
                             )
                         )
                 )
+
+            } else {
+                marker = map.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(latlngNew.latitude, latlngNew.longitude))
+                        .title(it.name)
+
+                )
             }
-
-
+            markers[marker!!.id] = it
         }
+
 
     }
 
 
-    override fun onMarkerClick(p0: Marker?): Boolean {
+    private fun loadAllCouriersFromFB() {
+        var marker: Marker? = null
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            FirebaseManager.getAllCouriers { success, data ->
+                if (success) {
+                    data!!.forEach {
+
+                        if (it.CourierId == 2) {
+
+                            marker = map.addMarker(
+                                MarkerOptions()
+                                    .position(
+                                        LatLng(
+                                            it.location.lat.toDouble(),
+                                            it.location.long.toDouble()
+                                        )
+                                    )
+                                    .title(it.name)
+                                    .icon(
+                                        BitmapDescriptorFactory.fromBitmap(
+                                            BitmapFactory.decodeResource(
+                                                resources,
+                                                R.mipmap.ic_launcher
+                                            )
+                                        )
+                                    )
+                            )
+
+                        } else {
+                            marker = map.addMarker(
+                                MarkerOptions()
+                                    .position(
+                                        LatLng(
+                                            it.location.lat.toDouble(),
+                                            it.location.long.toDouble()
+                                        )
+                                    )
+                                    .title(it.name)
+
+                            )
+                        }
+                        markers[marker!!.id] = it
+                    }
+                }
+            }
+        } else
+            Alert.showMessage(context!!, getString(R.string.no_internet))
+
+    }
+
+
+    override fun onMarkerClick(courierMarker: Marker?): Boolean {
+
+        var currentCourier = markers[courierMarker!!.id]
+
+        getCurrentCourierLocation(currentCourier!!.CourierId!!.toInt())
         return false
     }
 
@@ -588,5 +662,26 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         val indexOfNearestPointToCentre = randomDistances.indexOf(Collections.min(randomDistances))
         return randomPoints[indexOfNearestPointToCentre]
     }
-    //endregion
+
+    private fun getCurrentCourierLocation(courierId: Int) {
+        map.clear()
+
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            FirebaseManager.getCurrentCourierLocation(courierId.toString(),
+                object : FirebaseManager.IFbOperation {
+                    override fun onSuccess(code: Int) {
+
+                    }
+
+                    override fun onFailure(message: String) {
+
+                    }
+                })
+        } else {
+            Alert.showMessage(context!!, getString(R.string.no_internet))
+        }
+
+    }
+
+//endregion
 }

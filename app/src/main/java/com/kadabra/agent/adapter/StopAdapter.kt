@@ -31,18 +31,15 @@ class StopAdapter(private val context: Context, private val stopList: ArrayList<
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StopAdapter.MyViewHolder {
-
         val view = inflater.inflate(R.layout.stop_layout, parent, false)
         listenerTask=_deleteTaskListener
         return MyViewHolder(view)
-
-
     }
 
     override fun onBindViewHolder(holder: StopAdapter.MyViewHolder, position: Int) {
         stop = stopList[position]
 
-        holder.tvStopName.text = stop.StopName
+        holder.tvStopName.text = stop.city
         holder.tvStopType.text = stop.StopType
 
 

@@ -76,11 +76,13 @@ object AppConstants {
     var CurrentLoginAdmin: Admin = Admin()
     var CurrentSelectedTicket: Ticket = Ticket()
     var GetALLTicket: ArrayList<Ticket> = ArrayList()
-
+    var CurrentCourierLocation: location = location()
     var CurrentSelectedTask: Task = Task()
     var CurrentSelectedStop: Stop = Stop()
     var CurrentTempStop: Stop = Stop()
     var ALL_COURIERS = ArrayList<Courier>()
+    var ALL_COURIERS_FIREBASE = ArrayList<Courier>()
+
      var StopType: StopType? = null
 
 

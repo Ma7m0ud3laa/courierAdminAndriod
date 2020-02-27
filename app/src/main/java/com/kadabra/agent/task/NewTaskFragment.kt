@@ -837,8 +837,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                 if (courier.CourierId!! > 0) {
                     selectedCourier = courier
-//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.CourierName)
-                    sCourier.setText(courier.CourierName)
+//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.name)
+                    sCourier.setText(courier.name)
                 } else {
 //                    sCourier.setText(getString(R.string.select_courier))
                     selectedCourier = Courier(0, getString(R.string.select_courier))
