@@ -1,9 +1,8 @@
-package com.twoam.agent.api
+package com.kadabra.agent.api
 
 
-import com.twoam.agent.model.*
-import com.twoam.agent.utilities.AppConstants
-import org.json.JSONObject
+import com.kadabra.agent.model.*
+import com.kadabra.agent.utilities.AppConstants
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -33,6 +32,21 @@ interface ApiServices {
         @Query("ticketId") ticketId: String
     )
             : Call<ApiResponse<Ticket>>
+
+    @GET(AppConstants.URL_TICKET_SUB_DATA)
+    fun getTicketSubData()
+            : Call<ApiResponse<data>>
+
+    @POST(AppConstants.URL_ADD_TICKET)
+    fun addTicket(
+        @Body ticket: TicketModel,@Query("ActionState") actionState: Int
+    )
+            : Call<ApiResponse<ArrayList<Ticket>>>
+
+
+
+    @GET(AppConstants.URL_TICKET_SUB_DATA)
+    fun getAllTicketSubDetails(): Call<ApiResponse<data>>
 
 
     @POST(AppConstants.URL_ADD_TASK)

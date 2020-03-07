@@ -1,4 +1,4 @@
-package com.twoam.agent.firebase
+package com.kadabra.agent.firebase
 
 import com.google.gson.JsonObject
 import retrofit2.Call

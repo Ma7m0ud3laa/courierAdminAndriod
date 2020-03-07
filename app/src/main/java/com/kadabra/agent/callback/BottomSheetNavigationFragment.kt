@@ -1,4 +1,4 @@
-package com.twoam.agent.callback
+package com.kadabra.agent.callback
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -6,7 +6,6 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -15,14 +14,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.navigation.NavigationView
 import com.reach.plus.admin.util.UserSessionManager
-import com.twoam.agent.R
-import com.twoam.agent.login.LoginActivity
-import com.twoam.agent.utilities.AppConstants
+import com.kadabra.agent.R
+import com.kadabra.agent.login.LoginActivity
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
 
-/**
- * Created by sonu on 17:07, 10/01/19
- * Copyright (c) 2019 . All rights reserved.
- */
+
 class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
 
 
@@ -66,9 +63,10 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
         }
     }
 
+
     override fun onDetach() {
         super.onDetach()
-        listener = null
+//        listener = null
     }
 
 
@@ -85,6 +83,7 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navLogout -> {
+
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
                         .setMessage(getString(R.string.exit))
@@ -127,9 +126,9 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
     }
 
     private fun logOut() {
-        UserSessionManager.getInstance(context!!).setUserData(null)
-        UserSessionManager.getInstance(context!!).setIsLogined(false)
-        context?.startActivity(Intent(context, LoginActivity::class.java))
+        UserSessionManager.getInstance(AppController.getContext()).setUserData(null)
+        UserSessionManager.getInstance(AppController.getContext()).setIsLogined(false)
+        listener!!.onBottomSheetSelectedItem(14)
         dismiss()
     }
 

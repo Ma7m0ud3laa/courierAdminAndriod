@@ -65,6 +65,8 @@
 
     <string name="no_tasks_available">No Tasks Available</string>
     <string name="tasks">Tasks</string>
+    <string name="service_cost">Service Cost</string>
+
     <string name="no_ticket_available">No Ticket Available</string>
     <string name="add_new">Add+</string>
 
@@ -72,21 +74,49 @@
     <string name="select_ticket">Select Ticket ...</string>
     <string name="select_task">Select Task ...</string>
     <string name="select_courier">Select Courier ...</string>
+    <string name="select_payment_method">Select Payment Method ...</string>
+    <string name="select_priority">Select Priority ...</string>
+    <string name="select_category">Select Category ...</string>
+    <string name="category">Category</string>
+
     <string name="stops">Stops</string>
     <string name="edit_task">Edit Task</string>
     <string name="delete">Delete</string>
     <string name="stop_name">Stop Name</string>
     <string name="task_details">Task Details</string>
-        <string name="new_task">New Task</string>
+    <string name="new_task">New Task</string>
 
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
     <string name="save">Save</string>
+    <string name="ticket_name">Ticket Name</string>
+    <string name="ticket_description">Ticket Description</string>
+    <string name="user_mobile">User Mobile</string>
+    <string name="ticket_status">Ticket Status</string>
+    <string name="ticket_category">Ticket Category</string>
+    <string name="need_courier">Need Courier</string>
+    <string name="payment_method">Payment Method</string>
+
+
     <string name="task_name">Task Name</string>
     <string name="amount">Amount</string>
     <string name="add_stop">Add Stop</string>
     <string name="show">Show</string>
     <string name="clear">Clear</string>
+
+    <string name="error_location_permission_required">Location Permission is required to obtain location.</string>
+    <string name="error_no_location_permission_gived">You did not give permissions to get location</string>
+    <string name="Permission">Permission</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core
+        functionality.</string>
+    <string name="ok">ok</string>
+    <string name="no">No</string>
+    <string name="ticket_details">Ticket Details</string>
+    <string name="new_ticket">New Ticket</string>
+    <string name="new_service_cost">Add Service Cost</string>
+    <string name="service_cost_name">Service Cost Name</string>
+    <string name="service_cost_cost">Cost</string>
+
 
 </resources>
 

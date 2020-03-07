@@ -1,19 +1,19 @@
-package com.twoam.agent.login
+package com.kadabra.agent.login
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.reach.plus.admin.util.UserSessionManager
-import com.twoam.Networking.INetworkCallBack
-import com.twoam.Networking.NetworkManager
-import com.twoam.agent.R
-import com.twoam.agent.api.ApiResponse
-import com.twoam.agent.api.ApiServices
-import com.twoam.agent.model.Admin
-import com.twoam.agent.ticket.TicketActivity
-import com.twoam.agent.utilities.Alert
-import com.twoam.agent.utilities.AppConstants
+import com.kadabra.Networking.INetworkCallBack
+import com.kadabra.Networking.NetworkManager
+import com.kadabra.agent.R
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
+import com.kadabra.agent.model.Admin
+import com.kadabra.agent.ticket.TicketActivity
+import com.kadabra.agent.utilities.Alert
+import com.kadabra.agent.utilities.AppConstants
 import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {

@@ -87,19 +87,6 @@
                     android:text="Ticket"
                     android:textSize="15sp" />
 
-                <!--                <Spinner-->
-                <!--                    android:id="@+id/sTicket"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:layout_marginTop="10dp"-->
-                <!--                    android:layout_marginBottom="10dp"-->
-                <!--                    android:textSize="15sp"-->
-                <!--                    android:gravity="center"-->
-                <!--                    android:imeOptions="actionNext"-->
-                <!--                    android:selectAllOnFocus="true"-->
-                <!--                    android:textAlignment="center"-->
-                <!--                    android:clickable="false"-->
-                <!--                    />-->
                 <AutoCompleteTextView
                     android:id="@+id/sTicket"
                     android:layout_width="match_parent"
@@ -168,17 +155,6 @@
                     android:text="Courier"
                     android:textSize="15sp" />
 
-                <!--                <Spinner-->
-                <!--                    android:id="@+id/sCourier"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:layout_marginTop="10dp"-->
-                <!--                    android:layout_marginBottom="10dp"-->
-                <!--                    android:gravity="center"-->
-                <!--                    android:imeOptions="actionNext"-->
-                <!--                    android:textSize="15sp"-->
-                <!--                    android:selectAllOnFocus="true"-->
-                <!--                    android:textAlignment="center" />-->
                 <AutoCompleteTextView
                     android:id="@+id/sCourier"
                     android:layout_width="match_parent"

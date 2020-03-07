@@ -1,4 +1,4 @@
-package com.twoam.agent
+package com.kadabra.agent
 
 import org.junit.Test
 

@@ -9,8 +9,8 @@ android {
     compileSdkVersion 28
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "com.twoam.agent"
-        minSdkVersion 23
+        applicationId "com.kadabra.agent"
+        minSdkVersion 24
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -78,6 +78,7 @@ dependencies {
     implementation 'pub.devrel:easypermissions:0.4.0'
     //Google Map
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-base:17.1.0'
     //places
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'com.google.android.gms:play-services-places:17.0.0'

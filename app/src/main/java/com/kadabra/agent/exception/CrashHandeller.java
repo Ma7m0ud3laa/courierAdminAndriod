@@ -1,4 +1,4 @@
-package com.twoam.agent.exception;
+package com.kadabra.agent.exception;
 
 import android.app.Activity;
 import android.content.Intent;

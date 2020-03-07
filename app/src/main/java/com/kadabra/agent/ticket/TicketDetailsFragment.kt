@@ -1,8 +1,12 @@
-package com.twoam.agent.ticket
+package com.kadabra.agent.ticket
+
 
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+
+import androidx.fragment.app.Fragment
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,22 +15,23 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.twoam.Networking.INetworkCallBack
-import com.twoam.Networking.NetworkManager
-import com.twoam.agent.R
-import com.twoam.agent.adapter.TaskAdapter
-import com.twoam.agent.api.ApiResponse
-import com.twoam.agent.api.ApiServices
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.callback.ITaskCallback
-import com.twoam.agent.model.Stop
-import com.twoam.agent.model.Task
-import com.twoam.agent.model.Ticket
-import com.twoam.agent.utilities.Alert
-import com.twoam.agent.utilities.AnimateScroll
-import com.twoam.agent.utilities.AppConstants
-import com.twoam.agent.utilities.AppController
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.Networking.INetworkCallBack
+import com.kadabra.Networking.NetworkManager
+
+import com.kadabra.agent.R
+import com.kadabra.agent.adapter.TaskAdapter
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.model.Stop
+import com.kadabra.agent.model.Task
+import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.utilities.Alert
+import com.kadabra.agent.utilities.AnimateScroll
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
+import com.kadabra.cartello.Utilities.Base.BaseFragment
 
 
 class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
@@ -103,7 +108,6 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
 
         AnimateScroll.scrollToView(scroll, tvTicketName!!)
         tvTicketName!!.requestFocus()
-
         ticket = AppConstants.CurrentSelectedTicket
 
 
@@ -165,10 +169,10 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
         tvStatus!!.text = ticket.Status
         tvPriority!!.text = ticket.Priority
 
-//        if (ticket.price!! > 0)
-//            tvPrice!!.text = ticket.price.toString()
-//        else
-//            tvPrice!!.text = "0 " + context!!.getString(R.string.le)
+        //        if (ticket.price!! > 0)
+        //            tvPrice!!.text = ticket.price.toString()
+        //        else
+        //            tvPrice!!.text = "0 " + context!!.getString(R.string.le)
 
 
         var totalTasksAmount = 0.0
@@ -324,14 +328,15 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
          * @param param2 Parameter 2.
          * @return A new instance of fragment TicketDetailsFragment.
          */
-//        // TODO: Rename and change types and number of parameters
-//        fun newInstance(param1: String, param2: String): TicketDetailsFragment {
-//            val fragment = TicketDetailsFragment()
-//            val args = Bundle()
-//            args.putString(ARG_PARAM1, param1)
-//            args.putString(ARG_PARAM2, param2)
-//            fragment.arguments = args
-//            return fragment
-//        }
+        //        // TODO: Rename and change types and number of parameters
+        //        fun newInstance(param1: String, param2: String): TicketDetailsFragment {
+        //            val fragment = TicketDetailsFragment()
+        //            val args = Bundle()
+        //            args.putString(ARG_PARAM1, param1)
+        //            args.putString(ARG_PARAM2, param2)
+        //            fragment.arguments = args
+        //            return fragment
+        //        }
     }
 }// Required empty public constructor
+

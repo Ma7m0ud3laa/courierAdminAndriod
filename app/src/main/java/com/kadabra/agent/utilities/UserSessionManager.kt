@@ -3,8 +3,9 @@ package com.reach.plus.admin.util
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import com.twoam.agent.model.Admin
-import com.twoam.agent.utilities.AppConstants
+import com.kadabra.agent.model.Admin
+import com.kadabra.agent.model.data
+import com.kadabra.agent.utilities.AppConstants
 
 
 
@@ -22,6 +23,7 @@ class UserSessionManager(val context: Context) {
     companion object {
         var sUserSessionManager: UserSessionManager? = null
         private val USER_OBJECT = UserSessionManager::class.java.name + "_user_object"
+
 
 
         @Synchronized
@@ -70,6 +72,19 @@ class UserSessionManager(val context: Context) {
         val json = sharedPreferences.getString(USER_OBJECT, "")
         var adminModel: Admin? = gson.fromJson<Any>(json, Admin::class.java) as Admin?
         return adminModel
+    }
+fun setTicketSubData(data: data?) {
+        val gson = Gson()
+        val json = gson.toJson(data)
+        editor.putString(AppConstants.TICKET_SUB_DATA, json)
+        editor.commit()
+    }
+
+    fun getTicketSubData(): data? {
+        val gson = Gson()
+        val json = sharedPreferences.getString(AppConstants.TICKET_SUB_DATA, "")
+        var data: data? = gson.fromJson<Any>(json, data::class.java) as data?
+        return data
     }
 
     fun logout() {

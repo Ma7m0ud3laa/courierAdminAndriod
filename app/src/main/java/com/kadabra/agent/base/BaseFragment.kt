@@ -1,15 +1,10 @@
-package com.twoam.cartello.Utilities.Base
+package com.kadabra.cartello.Utilities.Base
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.Window
-import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
-import com.twoam.agent.R
-import com.twoam.agent.utilities.Alert
+import com.kadabra.agent.R
 
 
 /**

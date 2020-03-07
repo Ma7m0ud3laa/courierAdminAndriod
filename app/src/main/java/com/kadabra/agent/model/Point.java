@@ -1,4 +1,4 @@
-package com.twoam.agent.model;
+package com.kadabra.agent.model;
 
 import com.google.gson.annotations.SerializedName;
 

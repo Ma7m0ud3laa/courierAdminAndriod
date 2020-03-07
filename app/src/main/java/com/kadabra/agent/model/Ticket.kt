@@ -1,4 +1,4 @@
-package com.twoam.agent.model
+package com.kadabra.agent.model
 
 class Ticket {
     var TicketId: String = ""
@@ -6,21 +6,52 @@ class Ticket {
     var AdminName: String = ""
     var TicketName: String = ""
     var TicketDescription: String = ""
+    var UserMobile: String = ""
+
     var PickUpName: String = ""
+
     var PickUpLongitude: Double? = null
+
     var PickUpLatitude: Double? = null
+
     var DropOffName: String = ""
+
     var DropOffLongitude: Double? = null
+
     var DropOffLatitude: Double? = null
+    var statusId: Int = 0
+
     var Status: String = ""
+    var CategoryId: String = ""
+
+    var Category: String = ""
+
     var price: Double? = null
+    var PriorityId: Int = 0
+
     var Priority: String = ""
+    var PaymentId: Int = 0
+    var PaymentName=""
+    var NeedCourier = false
 
     var taskModel = ArrayList<Task>()
+
     var title: String? = null
+
     var pickUpLocation: PickUpLocation = PickUpLocation()//need to be with AdminName
+
     var dropOffLocation: DropOffLocation = DropOffLocation()//need to be with AdminName
+
     var stopList: ArrayList<Stop>? = null//need to be added and with AdminName
+
+    var ticketCategories: ArrayList<TicketCategory>? = null
+
+    var ticketStatus: ArrayList<TicketStatus>? = null
+
+    var ticketPriority: ArrayList<TicketPriority>? = null
+
+    var ticketPaymetMethods: ArrayList<TicketPaymentMethod>? = null
+    var serviceCosts=ArrayList<TicketServiceCost>()
 
 
     constructor() {}
@@ -29,6 +60,33 @@ class Ticket {
         this.TicketId = id
         this.TicketName = name
     }
+
+    constructor(
+        id: String,
+        name: String,
+        ticketDescription: String,
+        userMobile: String,
+        categoryId: String,
+        priorityId: Int,
+        statusId: Int,
+        paymentId: Int,
+        needCourier: Boolean,
+        serviceCostList: ArrayList<TicketServiceCost>,
+        adminId: String
+    ) {
+        this.TicketId = id
+        this.TicketName = name
+        this.TicketDescription = ticketDescription
+        this.UserMobile = userMobile
+        this.CategoryId = categoryId
+        this.PriorityId = priorityId
+        this.statusId = statusId
+        this.PaymentId = paymentId
+        this.NeedCourier = needCourier
+        this.serviceCosts = serviceCostList
+        this.AdminId = adminId
+    }
+
     constructor(
         adminName: String,
         title: String,

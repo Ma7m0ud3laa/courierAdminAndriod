@@ -1,4 +1,4 @@
-package com.twoam.agent.model
+package com.kadabra.agent.model
 
 
 /**
@@ -19,6 +19,7 @@ class Admin {
     var created_at: String = ""
     var updated_at: String = ""
     var fullImagePath: String? = null
+    var isSuperAdmin = true
 
 
     constructor()

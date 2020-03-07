@@ -1,4 +1,4 @@
-package com.twoam.agent.adapter
+package com.kadabra.agent.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,12 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.twoam.agent.R
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.model.Stop
-import com.twoam.agent.model.Task
-import com.twoam.agent.model.Ticket
-import com.twoam.agent.utilities.AppConstants
+import com.kadabra.agent.R
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.model.Stop
+import com.kadabra.agent.model.Task
+import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.utilities.AppConstants
 
 
 /**

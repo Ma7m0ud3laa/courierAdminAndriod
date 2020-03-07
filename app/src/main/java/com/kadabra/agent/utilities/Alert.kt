@@ -1,4 +1,4 @@
-package com.twoam.agent.utilities
+package com.kadabra.agent.utilities
 
 import android.app.AlertDialog
 import android.app.Dialog
@@ -8,7 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.Window
 import android.widget.RelativeLayout
 import android.widget.Toast
-import com.twoam.agent.R
+import com.kadabra.agent.R
 
 
 object Alert {

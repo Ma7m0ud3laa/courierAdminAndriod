@@ -1,38 +1,45 @@
-package com.twoam.agent.ticket
+package com.kadabra.agent.ticket
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
-import com.twoam.agent.callback.BottomSheetNavigationFragment
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.courier.CourierFragment
-import com.twoam.agent.notification.NotificationFragment
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.agent.callback.BottomSheetNavigationFragment
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.courier.CourierFragment
+import com.kadabra.agent.notification.NotificationFragment
+import com.kadabra.cartello.Utilities.Base.BaseFragment
 import kotlinx.android.synthetic.main.activity_ticket.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.twoam.agent.R
-import com.twoam.agent.callback.ITaskCallback
-import com.twoam.agent.model.Stop
-import com.twoam.agent.model.Task
-import com.twoam.agent.task.NewTaskFragment
-import com.twoam.agent.task.TasksFragment
+import com.kadabra.Networking.NetworkManager
+import com.kadabra.agent.R
+import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.login.LoginActivity
+import com.kadabra.agent.model.Stop
+import com.kadabra.agent.model.Task
+import com.kadabra.agent.task.NewTaskFragment
+import com.kadabra.agent.task.TasksFragment
+import com.kadabra.agent.utilities.Alert
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
 
 
 class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback {
     //  region Members
     private var ticketFragment: TicketFragment = TicketFragment()
     private var newTaskFragment: NewTaskFragment = NewTaskFragment()
-    private var ticketDetailsFragment: TicketDetailsFragment = TicketDetailsFragment()
+    private var newTicketFragment: NewTicketFragment = NewTicketFragment()
     private var tasksFragment: TasksFragment = TasksFragment()
-    //    private var taskDetailsFragment: TaskDetailsFragment = TaskDetailsFragment()
+    private var ticketDetailsFragment: TicketDetailsFragment = TicketDetailsFragment()
     private var courierFragment: CourierFragment = CourierFragment()
     private var notificationFragment: NotificationFragment = NotificationFragment()
     private val fm = supportFragmentManager
     private var active = BaseFragment()
+    val bottomSheetDialogFragment=BottomSheetNavigationFragment.newInstance()
     //endregion
 
     //region Events
@@ -55,42 +62,42 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //            finish()
 //        else if (active == newTaskFragment && !newTaskFragment.editMode) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketFragment, "ticketFragment")
+//                .replace(R.paymentId.layout_container, ticketFragment, "ticketFragment")
 //                .commit()
 //            active = ticketFragment
 //            toggleFabMode()
 //        } else if (active == newTaskFragment && newTaskFragment.editMode) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketDetailsFragment, "ticketDetailsFragment")
+//                .replace(R.paymentId.layout_container, newTicketFragment, "newTicketFragment")
 //                .commit()
-//            active = ticketDetailsFragment
-//        } else if (active == ticketDetailsFragment) {
+//            active = newTicketFragment
+//        } else if (active == newTicketFragment) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketFragment, "ticketFragment")
+//                .replace(R.paymentId.layout_container, ticketFragment, "ticketFragment")
 //                .commit()
 //            active = ticketFragment
 //
 //        } else if (active == tasksFragment) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketDetailsFragment, "ticketDetailsFragment")
+//                .replace(R.paymentId.layout_container, newTicketFragment, "newTicketFragment")
 //                .commit()
-//            active = ticketDetailsFragment
+//            active = newTicketFragment
 //        } else if (active == taskDetailsFragment) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketFragment, "ticketFragment")
+//                .replace(R.paymentId.layout_container, ticketFragment, "ticketFragment")
 //                .commit()
 //            active = ticketFragment
 //        } else if (active == courierFragment && !courierFragment.searchMode) {
 //            fm.beginTransaction()
-//                .replace(active.id, ticketFragment, "ticketFragment")
+//                .replace(active.paymentId, ticketFragment, "ticketFragment")
 //            active = ticketFragment
 //        } else if (active == courierFragment && courierFragment.searchMode) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
+//                .replace(R.paymentId.layout_container, newTaskFragment, "newTaskFragment")
 //            active = newTaskFragment
 //        } else if (active == notificationFragment) {
 //            fm.beginTransaction()
-//                .replace(R.id.layout_container, ticketFragment, "ticketFragment")
+//                .replace(R.paymentId.layout_container, ticketFragment, "ticketFragment")
 //            active = ticketFragment
 //        } else if (fm.backStackEntryCount > 0) {
 //
@@ -101,7 +108,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
         if (fm.backStackEntryCount > 0) {
 //            if (active == courierFragment)
 //               onBottomSheetSelectedItem(13)
-            active=ticketFragment
+            active = ticketFragment
             fm.popBackStack()
         } else {
             super.onBackPressed()
@@ -147,10 +154,10 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             3 -> //open ticket details from adapter
             {
                 fm.beginTransaction()
-                    .replace(R.id.layout_container, ticketDetailsFragment, "ticketDetailsFragment")
+                    .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
                     .addToBackStack(null)
                     .commit()
-                active = ticketDetailsFragment
+                active = newTicketFragment
 
             }
 
@@ -185,7 +192,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
             7 -> // add  new task to the current ticket
             {
-                newTaskFragment.editMode=false
+                newTaskFragment.editMode = false
                 fm.beginTransaction()
                     .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
                     .addToBackStack(null)
@@ -250,10 +257,10 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             12 -> //delete task
             {
                 fm.beginTransaction()
-                    .replace(R.id.layout_container, ticketDetailsFragment, "ticketDetailsFragment")
+                    .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
                     .addToBackStack(null)
                     .commit()
-                active = ticketDetailsFragment
+                active = newTicketFragment
 
                 fm.popBackStack(
                     fm.getBackStackEntryAt(fm.backStackEntryCount - 1).id,
@@ -264,15 +271,21 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             13 -> //show new task again after hide mode
             {
 //                fm.beginTransaction()
-//                    .replace(R.id.layout_container, ticketDetailsFragment, "ticketDetailsFragment")
+//                    .replace(R.paymentId.layout_container, newTicketFragment, "newTicketFragment")
 //                    .addToBackStack(null)
 //                    .commit()
-//                active = ticketDetailsFragment
+//                active = newTicketFragment
 
                 fm.popBackStack(
                     fm.getBackStackEntryAt(fm.backStackEntryCount - 1).id,
                     FragmentManager.POP_BACK_STACK_INCLUSIVE
                 )
+            }
+
+            14 -> // LOG OUT
+            {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
             }
 
 
@@ -294,7 +307,6 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
         setUpBottomAppBar()
 
-
         fm.beginTransaction()
             .replace(R.id.layout_container, ticketFragment, "ticketFragment")
             .commit()
@@ -302,19 +314,35 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
         fab.setOnClickListener {
 
-            if (active != newTaskFragment) {
-                newTaskFragment.editMode = false
-                newTaskFragment.taskAddMode = true
+            if (active == ticketFragment) {
+                if (AppConstants.CurrentLoginAdmin.isSuperAdmin)//add new ticket
+                {
+                    fm.beginTransaction()
+                        .replace(
+                            R.id.layout_container,
+                            newTicketFragment,
+                            "newTicketFragment"
+                        ).addToBackStack(null)
+                        .commit()
+                    active = newTicketFragment
+                } else {
+                    newTaskFragment.editMode = false
+                    newTaskFragment.taskAddMode = true
 
-                fm.beginTransaction()
-                    .replace(
-                        R.id.layout_container,
-                        newTaskFragment,
-                        "newTaskFragment"
-                    ).addToBackStack(null)
-                    .commit()
-                active = newTaskFragment
+                    fm.beginTransaction()
+                        .replace(
+                            com.kadabra.agent.R.id.layout_container,
+                            newTaskFragment,
+                            "newTaskFragment"
+                        ).addToBackStack(null)
+                        .commit()
+                    active = newTaskFragment
+                }
+
             }
+
+
+
 
             when (active) {
 
@@ -325,7 +353,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //
 //                    fm.beginTransaction()
 //                        .replace(
-//                            R.id.layout_container,
+//                            R.paymentId.layout_container,
 //                            newTaskFragment,
 //                            "newTaskFragment"
 //                        ).addToBackStack(null)
@@ -337,7 +365,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                newTaskFragment -> {
 //                    fm.beginTransaction()
 //                        .replace(
-//                            R.id.layout_container,
+//                            R.paymentId.layout_container,
 //                            ticketFragment,
 //                            "ticketFragment"
 //                        ).addToBackStack(null)
@@ -345,10 +373,10 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                    active = ticketFragment
 //                    toggleFabMode()
 //                }
-//                ticketDetailsFragment -> {
+//                newTicketFragment -> {
 //                    fm.beginTransaction()
 //                        .replace(
-//                            R.id.layout_container,
+//                            R.paymentId.layout_container,
 //                            ticketFragment,
 //                            "ticketFragment"
 //                        )
@@ -358,7 +386,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                courierFragment -> {
 //                    fm.beginTransaction()
 //                        .replace(
-//                            R.id.layout_container,
+//                            R.paymentId.layout_container,
 //                            ticketFragment,
 //                            "ticketFragment"
 //                        )
@@ -368,7 +396,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                notificationFragment -> {
 //                    fm.beginTransaction()
 //                        .replace(
-//                            R.id.layout_container,
+//                            R.paymentId.layout_container,
 //                            ticketFragment,
 //                            "ticketFragment"
 //                        )
@@ -407,12 +435,18 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 }
                 R.id.action_find_couriers -> {
 //                    toggleFabMode()
-                    courierFragment.searchMode = false
-                    fm.beginTransaction()
-                        .replace(R.id.layout_container, courierFragment, "courierFragment")
-                        .addToBackStack(null)
-                        .commit()
-                    active = courierFragment
+                  if(NetworkManager().isNetworkAvailable(this))
+                  {
+                      courierFragment.searchMode = false
+                      fm.beginTransaction()
+                          .replace(R.id.layout_container, courierFragment, "courierFragment")
+                          .addToBackStack(null)
+                          .commit()
+                      active = courierFragment
+                  }
+                    else
+                      Alert.showMessage(this, getString(R.string.no_internet))
+
 
 
                 }
@@ -437,7 +471,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
         //click event over navigation menu like back arrow or hamburger icon
         bottomAppBar?.setNavigationOnClickListener(View.OnClickListener {
             //open bottom sheet
-            val bottomSheetDialogFragment = BottomSheetNavigationFragment.newInstance()
+//            val bottomSheetDialogFragment = BottomSheetNavigationFragment.newInstance()
             bottomSheetDialogFragment.show(
                 supportFragmentManager,
                 "Bottom Sheet Dialog Fragment"

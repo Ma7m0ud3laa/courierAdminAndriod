@@ -1,4 +1,4 @@
-package com.twoam.agent.task
+package com.kadabra.agent.task
 
 
 import android.app.AlertDialog
@@ -9,24 +9,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
-import com.twoam.Networking.INetworkCallBack
-import com.twoam.Networking.NetworkManager
-import com.twoam.agent.adapter.TicketListAdapter
-import com.twoam.agent.api.ApiResponse
-import com.twoam.agent.api.ApiServices
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.Networking.INetworkCallBack
+import com.kadabra.Networking.NetworkManager
+import com.kadabra.agent.adapter.TicketListAdapter
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.cartello.Utilities.Base.BaseFragment
 import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.twoam.agent.adapter.CourierListAdapter
-import com.twoam.agent.adapter.StopAdapter
+import com.kadabra.agent.adapter.CourierListAdapter
+import com.kadabra.agent.adapter.StopAdapter
 import android.widget.ArrayAdapter
-import com.twoam.agent.R
-import com.twoam.agent.utilities.*
+import com.kadabra.agent.R
+import com.kadabra.agent.utilities.*
 import android.widget.Spinner
 import androidx.core.view.isVisible
-import com.twoam.agent.callback.ITaskCallback
-import com.twoam.agent.model.*
+import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -284,9 +284,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
 
-
+        getAllCouriers()
         prepareTickets()
-        prepareCourier(AppConstants.ALL_COURIERS)
+//        prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
 
 
@@ -331,10 +331,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         if (!task.Task.trim().isNullOrEmpty())
             etTaskName.setText(task.Task)
+
         if (task.CourierID != null) {
             sCourier.setText(task.CourierName)
             selectedCourier = AppConstants.ALL_COURIERS.find { it.CourierId == task.CourierID }!!
         }
+
         if (!task.Amount.toString().trim().isNullOrEmpty())
             etAmount!!.setText(task.Amount.toString())
 
@@ -343,7 +345,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             stopsList = task.stopsmodel
 
             loadTaskStops(task.stopsmodel)
-//            rlStops.visibility = View.VISIBLE
 
         }
 
@@ -791,7 +792,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 if (ticket.TicketId != "0") {
                     selectedTicket = ticket
                     sTicket.setText(ticket.TicketName)
-                    AppConstants.CurrentSelectedTicket=ticket
+                    AppConstants.CurrentSelectedTicket = ticket
                 } else
                     selectedTicket = Ticket("0", getString(R.string.select_ticket))
 
@@ -837,8 +838,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                 if (courier.CourierId!! > 0) {
                     selectedCourier = courier
-//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.name)
-                    sCourier.setText(courier.name)
+//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.PaymentName)
+                    sCourier.setText(courier.CourierName)
                 } else {
 //                    sCourier.setText(getString(R.string.select_courier))
                     selectedCourier = Courier(0, getString(R.string.select_courier))

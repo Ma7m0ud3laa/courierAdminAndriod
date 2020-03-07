@@ -1,8 +1,8 @@
-package com.twoam.agent.callback;
+package com.kadabra.agent.callback;
 
 
-import com.twoam.agent.model.Stop;
-import com.twoam.agent.model.Task;
+import com.kadabra.agent.model.Stop;
+import com.kadabra.agent.model.Task;
 
 public interface ITaskCallback {
 

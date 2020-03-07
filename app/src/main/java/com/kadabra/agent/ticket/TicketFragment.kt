@@ -1,28 +1,30 @@
-package com.twoam.agent.ticket
+package com.kadabra.agent.ticket
 
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.twoam.Networking.INetworkCallBack
-import com.twoam.Networking.NetworkManager
-import com.twoam.agent.R
-import com.twoam.agent.adapter.TicketAdapter
-import com.twoam.agent.api.ApiResponse
-import com.twoam.agent.api.ApiServices
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.model.Courier
-import com.twoam.agent.model.Ticket
-import com.twoam.agent.utilities.Alert
-import com.twoam.agent.utilities.AppConstants
-import com.twoam.agent.utilities.AppController
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.Networking.INetworkCallBack
+import com.kadabra.Networking.NetworkManager
+import com.kadabra.agent.R
+import com.kadabra.agent.adapter.TicketAdapter
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.model.Courier
+import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.utilities.Alert
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
+import com.kadabra.cartello.Utilities.Base.BaseFragment
+import kotlinx.android.synthetic.main.fragment_new_ticket.*
+import kotlinx.android.synthetic.main.fragment_new_ticket.ivBack
+import kotlinx.android.synthetic.main.fragment_ticket_details.*
 
 
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
@@ -37,6 +39,9 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     private var sRefresh: SwipeRefreshLayout? = null
     private var ivNoInternet: ImageView? = null
     private var tvEmptyData: TextView? = null
+
+
+    var editMode = false
 //    private var avi: AVLoadingIndicatorView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,7 +82,6 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         listener = null
     }
 
-
     companion object {
         // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -109,6 +113,9 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         sRefresh = view.findViewById(R.id.sRefresh)
         ivNoInternet = view.findViewById(R.id.ivNoInternet)
         tvEmptyData = view.findViewById(R.id.tvEmptyData)
+
+
+
         sRefresh?.setOnRefreshListener {
             loadTickets()
 
@@ -210,4 +217,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         } else {
         }
     }
+
+
+
 }// Required empty public constructor

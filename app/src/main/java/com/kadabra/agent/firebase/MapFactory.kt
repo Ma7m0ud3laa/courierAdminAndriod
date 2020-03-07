@@ -1,4 +1,4 @@
-package com.twoam.agent.firebase;
+package com.kadabra.agent.firebase;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;

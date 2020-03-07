@@ -1,10 +1,10 @@
-package com.twoam.agent.utilities;
+package com.kadabra.agent.utilities;
 
 import android.app.Application;
 import android.content.Context;
 
 import com.reach.plus.admin.util.UserSessionManager;
-import com.twoam.agent.R;
+import com.kadabra.agent.R;
 
 import java.util.Locale;
 

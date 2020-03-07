@@ -1,7 +1,6 @@
-package com.twoam.agent.notification
+package com.kadabra.agent.notification
 
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,9 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 
-import com.twoam.agent.R
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.agent.R
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.cartello.Utilities.Base.BaseFragment
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

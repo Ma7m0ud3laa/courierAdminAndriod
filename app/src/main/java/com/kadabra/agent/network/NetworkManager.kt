@@ -1,4 +1,4 @@
-package com.twoam.Networking
+package com.kadabra.Networking
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -12,9 +12,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import okhttp3.logging.HttpLoggingInterceptor
 import android.util.Log
-import com.twoam.agent.R
-import com.twoam.agent.utilities.AppConstants
-import com.twoam.agent.utilities.AppController
+import com.kadabra.agent.R
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
 import java.util.concurrent.TimeUnit
 
 

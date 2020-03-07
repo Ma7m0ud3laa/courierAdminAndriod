@@ -1,4 +1,4 @@
-package com.twoam.agent.model
+package com.kadabra.agent.model
 
 import com.google.firebase.database.Exclude
 
@@ -8,7 +8,7 @@ class Task {
 //    var Task: String = ""
 //    var TaskDescription: String = ""
 //    var CourierID: Int ? = null
-//    var name: String = ""
+//    var PaymentName: String = ""
 //    var Amount = 0.0
 //    var title: String? = null
 //    var stopsmodel = ArrayList<Stop>()

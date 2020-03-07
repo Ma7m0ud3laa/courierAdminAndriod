@@ -1,6 +1,4 @@
-package com.twoam.cartello.Utilities.Base
-
-import android.view.View
+package com.kadabra.cartello.Utilities.Base
 
 interface OnItemClick {
 

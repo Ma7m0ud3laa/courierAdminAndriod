@@ -1,4 +1,4 @@
-package com.twoam.agent.utilities
+package com.kadabra.agent.utilities
 
 enum class TaskStatus(var status: String) {
     NEW("New"),

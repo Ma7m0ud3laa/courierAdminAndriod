@@ -1,4 +1,4 @@
-package com.twoam.agent.firebase
+package com.kadabra.agent.firebase
 
 class MapRequestBody(
         private val lng: Double, private val lat: Double,

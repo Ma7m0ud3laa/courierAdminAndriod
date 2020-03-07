@@ -1,4 +1,4 @@
-package com.twoam.agent.adapter
+package com.kadabra.agent.adapter
 
 import android.content.Context
 import android.graphics.Color
@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 
-import com.twoam.agent.model.Ticket
+import com.kadabra.agent.model.Ticket
 
 import java.util.ArrayList
 

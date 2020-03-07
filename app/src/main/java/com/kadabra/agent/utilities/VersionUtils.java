@@ -1,4 +1,4 @@
-package com.twoam.agent.utilities;
+package com.kadabra.agent.utilities;
 
 import android.os.Build;
 

@@ -10,7 +10,7 @@
 
     Package AdminName:
     05:D6:C0:42:88:53:09:62:0F:C2:56:60:7F:1B:30:92:18:10:01:8B
-
+Lo
     SHA-1 certificate fingerprint:
     05:D6:C0:42:88:53:09:62:0F:C2:56:60:7F:1B:30:92:18:10:01:8B
 
@@ -20,5 +20,5 @@
     Once you have your key (it starts with "AIza"), replace the "google_maps_key"
     string in this file.
     -->
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDz5jHg1AzeDa2JrR3ccgHO1vMHvMO698E</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAjSI0GYuAh0RwtltIluYsds4pU7O_dvtc</string>
 </resources>

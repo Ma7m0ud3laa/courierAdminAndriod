@@ -1,4 +1,4 @@
-package com.twoam.agent.task
+package com.kadabra.agent.task
 
 
 import android.content.Context
@@ -11,16 +11,16 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.twoam.agent.R
-import com.twoam.agent.adapter.TaskAdapter
-import com.twoam.agent.callback.IBottomSheetCallback
-import com.twoam.agent.callback.ITaskCallback
-import com.twoam.agent.model.Stop
-import com.twoam.agent.model.Task
-import com.twoam.agent.model.Ticket
-import com.twoam.agent.utilities.AppConstants
-import com.twoam.agent.utilities.AppController
-import com.twoam.cartello.Utilities.Base.BaseFragment
+import com.kadabra.agent.R
+import com.kadabra.agent.adapter.TaskAdapter
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.model.Stop
+import com.kadabra.agent.model.Task
+import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.utilities.AppConstants
+import com.kadabra.agent.utilities.AppController
+import com.kadabra.cartello.Utilities.Base.BaseFragment
 
 /**
  * A simple [Fragment] subclass.

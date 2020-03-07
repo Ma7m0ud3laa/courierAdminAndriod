@@ -1,6 +1,7 @@
-package com.twoam.agent.utilities
+package com.kadabra.agent.utilities
 
-import com.twoam.agent.model.*
+import android.location.Location
+import com.kadabra.agent.model.*
 
 
 /**
@@ -41,6 +42,8 @@ object AppConstants {
 
     val IS_FIRST = "is_first"
     val IS_LOGIN = "login"
+    val TICKET_SUB_DATA = "ticket_sub_data"
+    var isMoving = false
 
 
     //endregion
@@ -51,6 +54,9 @@ object AppConstants {
 
     const val URL_LOGIN = "AdminLogin"
     const val URL_LOG_OUT = "Logout"
+    const val URL_ADD_TICKET = "AddTicket"
+    const val URL_EDIT_TICKET = "EditTicket"
+    const val URL_TICKET_SUB_DATA = "GetAllDataForAddingTicket"
     const val URL_ADD_TASK = "AddTask"
     const val URL_EDIT_TASK = "EditTask"
 
@@ -62,7 +68,6 @@ object AppConstants {
     const val URL_GET_ALL_TASK_STOPS = "GetAllTaskStops"
     const val URL_REMOVE_TASK = "RemoveCourierTask"
     const val URL_REMOVE_STOP = "RemoveTaskStop"
-
 
 
     //endregion
@@ -82,8 +87,11 @@ object AppConstants {
     var CurrentTempStop: Stop = Stop()
     var ALL_COURIERS = ArrayList<Courier>()
     var ALL_COURIERS_FIREBASE = ArrayList<Courier>()
+    var TICKET_SERVICE_COST_LIST = ArrayList<TicketServiceCost>()
 
-     var StopType: StopType? = null
+    var CurrentLocation: Location? = null
+
+    var StopType: StopType? = null
 
 
     enum class TaskStatus(var status: String) {
