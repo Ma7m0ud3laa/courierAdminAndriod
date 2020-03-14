@@ -1,9 +1,9 @@
 package com.kadabra.agent.model
 
 class Ticket {
-    var TicketId: String = ""
+    var TicketId: String? = null
     var AdminId: String = ""
-    var AdminName: String = ""
+    var AdminName: String? = null
     var TicketName: String = ""
     var TicketDescription: String = ""
     var UserMobile: String = ""
@@ -19,19 +19,19 @@ class Ticket {
     var DropOffLongitude: Double? = null
 
     var DropOffLatitude: Double? = null
-    var statusId: Int = 0
+    var StatusId: Int ?=null
 
-    var Status: String = ""
-    var CategoryId: String = ""
+    var Status: String? = null
+    var CategoryId: String=""
 
     var Category: String = ""
 
     var price: Double? = null
-    var PriorityId: Int = 0
+    var PriorityId: Int? = null
 
-    var Priority: String = ""
-    var PaymentId: Int = 0
-    var PaymentName=""
+    var Priority: String? = null
+    var PaymentMethodId: Int? = null
+    var PaymentMethod: String? = null
     var NeedCourier = false
 
     var taskModel = ArrayList<Task>()
@@ -43,15 +43,11 @@ class Ticket {
     var dropOffLocation: DropOffLocation = DropOffLocation()//need to be with AdminName
 
     var stopList: ArrayList<Stop>? = null//need to be added and with AdminName
-
     var ticketCategories: ArrayList<TicketCategory>? = null
-
     var ticketStatus: ArrayList<TicketStatus>? = null
-
     var ticketPriority: ArrayList<TicketPriority>? = null
-
     var ticketPaymetMethods: ArrayList<TicketPaymentMethod>? = null
-    var serviceCosts=ArrayList<TicketServiceCost>()
+    var serviceCosts= ArrayList<TicketServiceCost>()
 
 
     constructor() {}
@@ -80,10 +76,10 @@ class Ticket {
         this.UserMobile = userMobile
         this.CategoryId = categoryId
         this.PriorityId = priorityId
-        this.statusId = statusId
-        this.PaymentId = paymentId
+        this.StatusId = statusId
+        this.PaymentMethodId = paymentId
         this.NeedCourier = needCourier
-        this.serviceCosts = serviceCostList
+        this.serviceCosts= serviceCostList
         this.AdminId = adminId
     }
 

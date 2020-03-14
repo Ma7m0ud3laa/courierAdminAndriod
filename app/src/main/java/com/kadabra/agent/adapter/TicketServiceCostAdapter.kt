@@ -39,7 +39,7 @@ class TicketServiceCostAdapter(
     override fun onBindViewHolder(holder: TicketServiceCostAdapter.MyViewHolder, position: Int) {
         serviceCost = serviceCostList[position]
 
-        holder.tvTicketServiceCostName.text = serviceCost.name
+        holder.tvTicketServiceCostName.text = serviceCost.serviceCostName
         holder.tvTicketServiceCostType.text = serviceCost.cost.toString()+ " " + context.getString(R.string.le)
 
 

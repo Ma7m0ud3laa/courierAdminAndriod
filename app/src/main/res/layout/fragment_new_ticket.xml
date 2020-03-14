@@ -151,50 +151,10 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/llPriorityData"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/llCategoryData"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginRight="10dp"
-                            android:text="@string/priority"
-                            android:textSize="15sp" />
-
-                        <AutoCompleteTextView
-                            android:id="@+id/sPriority"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/transparent"
-                            android:clickable="true"
-                            android:cursorVisible="false"
-                            android:drawableRight="@drawable/ic_down"
-                            android:editable="false"
-                            android:focusable="false"
-                            android:fontFamily="Poppins-Regular"
-                            android:gravity="center|left"
-                            android:imeOptions="actionNext"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:text="@string/select_priority"
-                            android:textColor="@color/colorLabel"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
                         android:id="@+id/llStatusData"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/llPriorityData"
+                        android:layout_below="@+id/llCategoryData"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
                         android:layout_marginEnd="24dp"
@@ -229,7 +189,6 @@
                             android:textColor="@color/colorLabel"
                             android:textSize="15sp" />
                     </LinearLayout>
-
                     <LinearLayout
                         android:id="@+id/llPaymentData"
                         android:layout_width="match_parent"
@@ -270,11 +229,55 @@
                             android:textSize="15sp" />
                     </LinearLayout>
 
+                    <LinearLayout
+                        android:id="@+id/llPriorityData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/llPaymentData"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginEnd="24dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginRight="10dp"
+                            android:text="@string/priority"
+                            android:textSize="15sp" />
+
+                        <AutoCompleteTextView
+                            android:id="@+id/sPriority"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/transparent"
+                            android:clickable="true"
+                            android:cursorVisible="false"
+                            android:drawableRight="@drawable/ic_down"
+                            android:editable="false"
+                            android:focusable="false"
+                            android:fontFamily="Poppins-Regular"
+                            android:gravity="center|left"
+                            android:imeOptions="actionNext"
+                            android:inputType="none"
+                            android:maxLines="1"
+                            android:text="@string/select_priority"
+                            android:textColor="@color/colorLabel"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+
+
+
+
                     <CheckBox
                         android:id="@+id/cbNeedCourier"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/llPaymentData"
+                        android:layout_below="@+id/llPriorityData"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
                         android:imeOptions="actionDone"

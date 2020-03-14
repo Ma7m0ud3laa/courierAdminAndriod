@@ -22,17 +22,15 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AnimateScroll
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
-import com.kadabra.cartello.Utilities.Base.BaseFragment
 import com.reach.plus.admin.util.UserSessionManager
 import android.widget.TextView
 import android.widget.EditText
+import com.kadabra.Utilities.Base.BaseFragment
 
 
 class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     View.OnClickListener {
 
-    private var mParam1: String? = null
-    private var mParam2: String? = null
     private lateinit var scroll: ScrollView
     private var tvTicketName: TextView? = null
     private var tvTicketDetails: TextView? = null
@@ -43,11 +41,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var tvAddTask: TextView? = null
     private var tvTasks: TextView? = null
     private var rvTasks: RecyclerView? = null
-
     private var rvServiceCost: RecyclerView? = null
     private var currentView: View? = null
     private var serviceCostView: View? = null
-
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
@@ -62,19 +58,17 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var taskListener: ITaskCallback? = null
     private var ticketModel = TicketModel()
     private var ticket = Ticket()
-
     private var dummyTicketCategoryList = ArrayList<TicketCategory>()
     private var dummyTicketStatusList = ArrayList<TicketStatus>()
     private var dummyTicketPriorityList = ArrayList<TicketPriority>()
     private var dummyTicketPaymentMethodList = ArrayList<TicketPaymentMethod>()
     private var selectedCategory = TicketCategory("", "")
-    private var selectedStatus = TicketStatus(0, "")
-    private var selectedPriority = TicketPriority(0, "")
-    private var selectedPaymentMethod = TicketPaymentMethod(0, "")
+    private var selectedStatus = TicketStatus(null, "")
+    private var selectedPriority = TicketPriority(null, "")
+    private var selectedPaymentMethod = TicketPaymentMethod(null, "")
     private var ticketCategoryAdapter: TicketCategoryAdapter? = null
     private var ticketPriorityAdapter: TicketPriorityAdapter? = null
     private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
-
     private var ticketPaymentMethodAdapter: TicketPaymentMethodAdapter? = null
     private var ticketStatusAdapter: TicketStatusAdapter? = null
     private var btnSaveServiceCost: Button? = null
@@ -83,14 +77,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var etCost: EditText? = null
     private var alertDialog: AlertDialog? = null
     var editMode = false
-    var actionState = 1 //1 add 2 edit
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-            mParam2 = arguments!!.getString(ARG_PARAM2)
-        }
+
 
     }
 
@@ -107,18 +98,23 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var subData = UserSessionManager.getInstance(context!!).getTicketSubData()
-//            if (subData != null) {
-//                prepareCategories(subData.CategoriesModels!!)
-//                prepareStatus(subData.StatusModels!!)
-//                preparePriorities(subData.PrioritiesModels!!)
-//                preparePaymentMethods(subData.paymentMethodModels!!)
-//            } else {
-            prepareTicketSubData()
-//            }
+            if (subData != null) {
+                prepareCategories(subData.CategoriesModels!!)
+                prepareStatus(subData.StatusModels!!)
+                preparePriorities(subData.PrioritiesModels!!)
+                preparePaymentMethods(subData.paymentMethodModels!!)
+            } else {
+                prepareTicketSubData()
+            }
         } else
             Alert.showMessage(context!!, getString(R.string.no_internet))
 
+//        if (editMode)
+//            getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+//            loadTicketDetails(AppConstants.CurrentSelectedTicket)
 
+//        else
+//            defaultTicketData()
 
         return currentView
     }
@@ -126,9 +122,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (!AppConstants.CurrentSelectedTicket.TicketId.isNullOrEmpty()) {
-            loadTicketDetails()
-        }
+//        if (editMode)
+//            getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+//        else
+//            defaultTicketData()
+
+
     }
 
     override fun onClick(view: View?) {
@@ -164,7 +163,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                                 etServiceCost!!.text.toString(),
                                 etCost!!.text.toString().toDouble()
                             )
-                            AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost!!)
+                            AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
                             prepareTicketServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
                             alertDialog!!.dismiss()
 
@@ -194,12 +193,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private fun validateServiceCost(): Boolean {
 
         if (etServiceCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Service Cost Name is required.")
+            Alert.showMessage(context!!, "Service cost Name is required.")
             etServiceCost!!.requestFocus()
             return false
         }
         if (etCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Cost is required.")
+            Alert.showMessage(context!!, "cost is required.")
             etCost!!.requestFocus()
             return false
         }
@@ -243,13 +242,23 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         tvAddServiceCost!!.setOnClickListener(this)
         tvAddTask!!.setOnClickListener(this)
 
-        ivBack!!.setOnClickListener(this)
-        btnSave!!.setOnClickListener(this)
+        ivBack.setOnClickListener(this)
+        btnSave.setOnClickListener(this)
         btnSaveServiceCost!!.setOnClickListener(this)
         ivBackServiceCost!!.setOnClickListener(this)
 
         AnimateScroll.scrollToView(scroll, tvTicketName!!)
         tvTicketName!!.requestFocus()
+
+        if (editMode) {
+            tvTicketDetails!!.text = getString(R.string.ticket_details)
+            etMobile.isEnabled = false
+            btnSave.text = getString(R.string.update)
+            tvTasks!!.visibility = View.VISIBLE
+            tvAddTask!!.visibility = View.VISIBLE
+            rvTasks!!.visibility = View.VISIBLE
+            getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+        }
 
 
     }
@@ -278,7 +287,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         sCategory.isCursorVisible = false
 
         sCategory.onItemClickListener =
-            AdapterView.OnItemClickListener { parent, view, position, id ->
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
                 sCategory.showDropDown()
                 var category = parent.getItemAtPosition(position) as TicketCategory
 
@@ -308,7 +317,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         if (prioritiesList.size > 0) {
             var newArray = prioritiesList
 
-            var firstItem = TicketPriority(0, getString(R.string.select_priority))
+            var firstItem = TicketPriority(null, getString(R.string.select_priority))
             dummyTicketPriorityList.add(firstItem)
 
             for (c in newArray.indices) {
@@ -326,17 +335,17 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         sPriority.isCursorVisible = false
 
         sPriority.onItemClickListener =
-            AdapterView.OnItemClickListener { parent, view, position, id ->
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
                 sPriority.showDropDown()
                 var priority = parent.getItemAtPosition(position) as TicketPriority
 
 
-                if (priority.PriorityId > 0) {
+                if (priority.PriorityId != null) {
                     selectedPriority = priority
                     sPriority.setText(priority.Priority)
                 } else {
                     selectedPriority =
-                        TicketPriority(0, getString(R.string.select_priority))
+                        TicketPriority(null, getString(R.string.select_priority))
                     sPriority.setText(selectedPriority.Priority)
                 }
 
@@ -359,7 +368,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var newArray = paymentMethodsList
 
             var firstItem =
-                TicketPaymentMethod(0, getString(R.string.select_payment_method))
+                TicketPaymentMethod(null, getString(R.string.select_payment_method))
             dummyTicketPaymentMethodList.add(firstItem)
 
             for (c in newArray.indices) {
@@ -382,13 +391,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 var paymentMethod = parent.getItemAtPosition(position) as TicketPaymentMethod
 
 
-                if (paymentMethod.paymentId > 0) {
+                if (paymentMethod.paymentId != null) {
                     selectedPaymentMethod = paymentMethod
                     sPayment.setText(paymentMethod.PaymentName)
                 } else {
                     selectedPaymentMethod =
                         TicketPaymentMethod(
-                            0,
+                            null,
                             getString(R.string.select_payment_method)
                         )
                     sPayment.setText(selectedPaymentMethod.PaymentName)
@@ -412,7 +421,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         if (statusList.size > 0) {
             var newArray = statusList
 
-            var firstItem = TicketStatus(0, getString(R.string.select_status))
+            var firstItem = TicketStatus(null, getString(R.string.select_status))
             dummyTicketStatusList.add(firstItem)
 
             for (c in newArray.indices) {
@@ -426,6 +435,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             android.R.layout.simple_spinner_dropdown_item,
             dummyTicketStatusList
         )
+
         sStatus.setAdapter(ticketStatusAdapter)
         sStatus.isCursorVisible = false
 
@@ -435,12 +445,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 var ticketStatus = parent.getItemAtPosition(position) as TicketStatus
 
 
-                if (ticketStatus.StatusId > 0) {
+                if (ticketStatus.StatusId != null) {
                     selectedStatus = ticketStatus
                     sStatus.setText(selectedStatus.Status)
                 } else {
                     selectedStatus =
-                        TicketStatus(0, getString(R.string.select_status))
+                        TicketStatus(null, getString(R.string.select_status))
                     sStatus.setText(selectedStatus.Status)
                 }
 
@@ -524,7 +534,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         if (!task!!.TaskId.isNullOrEmpty()) {
             AlertDialog.Builder(context)
                 .setTitle(AppConstants.WARNING)
-                .setMessage(getString(R.string.message_delete) + " " + task.Task + " ?")
+                .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(AppConstants.OK) { dialog, which ->
                     deleteTask(task)
@@ -539,49 +549,42 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    private fun loadTicketDetails() {
+    private fun loadTicketDetails(ticket: Ticket) {
 
-        tvTasks!!.visibility = View.VISIBLE
-        tvAddTask!!.visibility = View.VISIBLE
-        rvTasks!!.visibility = View.VISIBLE
-        tvTicketDetails!!.text = getString(R.string.ticket_details)
-        etMobile.isEnabled = false
-        btnSave.text = getString(R.string.update)
-
-
-        var ticket = AppConstants.CurrentSelectedTicket
         etTicketName.setText(ticket.TicketName)
         etTicketDescription.setText(ticket.TicketDescription)
         etMobile.setText(ticket.UserMobile)
 
 
-        if (!ticket.CategoryId.trim().isNullOrEmpty()) {
+        if (!ticket.CategoryId!!.trim().isNullOrEmpty()) {
             sCategory.setText(ticket.Category)
-            selectedCategory = TicketCategory(ticket.CategoryId, ticket.Category)
+            selectedCategory = TicketCategory(ticket.CategoryId!!, ticket.Category)
         }
-        if (ticket.PriorityId > 0) {
+        if (ticket.PriorityId != null) {
             sPriority.setText(ticket.Priority)
-            selectedPriority = TicketPriority(ticket.PriorityId, ticket.Priority)
+            selectedPriority = TicketPriority(ticket.PriorityId!!, ticket.Priority!!)
         }
-        if (ticket.statusId > 0) {
+        if (ticket.StatusId != null) {
             sStatus.setText(ticket.Status)
-            selectedStatus = TicketStatus(ticket.statusId, ticket.Status)
+            selectedStatus = TicketStatus(ticket.StatusId, ticket.Status!!)
         }
-        if (ticket.PaymentId > 0) {
-            sPayment.setText(ticket.PaymentName)
+        if (ticket.PaymentMethodId != null) {
+            sPayment.setText(ticket.PaymentMethod)
             selectedPaymentMethod =
-                TicketPaymentMethod(ticket.PaymentId, ticket.PaymentName)
+                TicketPaymentMethod(ticket.PaymentMethodId!!, ticket.PaymentMethod!!)
         }
-        if (ticket.NeedCourier)
-            cbNeedCourier.isChecked = true
+
 
         cbNeedCourier.isChecked = ticket.NeedCourier
         //ticket service cost
-        if (ticket.serviceCosts != null && ticket.serviceCosts!!.size > 0) {
-            prepareTicketServiceCost(ticket.serviceCosts!!)
+        if (ticket.serviceCosts != null && ticket.serviceCosts.size > 0) {
+            rvServiceCost!!.visibility = View.VISIBLE
+            AppConstants.TICKET_SERVICE_COST_LIST = ticket.serviceCosts
+            prepareTicketServiceCost(ticket.serviceCosts)
         }
         if (ticket.taskModel.size > 0)
-            loadTicketTasks(ticket.taskModel)
+            rvTasks!!.visibility = View.VISIBLE
+        loadTicketTasks(ticket.taskModel)
 
     }
 
@@ -591,7 +594,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         var adapter = TaskAdapter(context!!, taskList, this, this)
         rvTasks!!.adapter = adapter
         rvTasks!!.layoutManager =
-            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.VERTICAL, false)
+            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
         adapter.notifyDataSetChanged()
     }
 
@@ -664,10 +667,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
                     override fun onSuccess(response: ApiResponse<Ticket>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            Alert.hideProgress()
                             ticket = response.ResponseObj!!
                             AppConstants.CurrentSelectedTicket = ticket
-
+                            loadTicketDetails(ticket)
+                            Alert.hideProgress()
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -697,40 +700,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         return ticket
     }
 
-    companion object {
-        // TODO: Rename parameter arguments, choose names that match
-        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private val ARG_PARAM1 = "param1"
-        private val ARG_PARAM2 = "param2"
-
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NewTicketFragment.
-         */
-//        // TODO: Rename and change types and number of parameters
-//        fun newInstance(param1: String, param2: String): NewTicketFragment {
-//            val fragment = NewTicketFragment()
-//            val args = Bundle()
-//            args.putString(ARG_PARAM1, param1)
-//            args.putString(ARG_PARAM2, param2)
-//            fragment.arguments = args
-//            return fragment
-//        }
-    }
 
     private fun addTicket(ticketData: TicketModel) {
-
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-            actionState = 1
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.addTicket(
-                ticketData, actionState
-            )
+            var endPoint = request.addTicket(ticketData)
             NetworkManager().request(
                 endPoint,
                 object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
@@ -749,13 +724,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             var ticket = tickets[0]
                             // add new task to the current ticket
                             AppConstants.GetALLTicket.add(ticket)
-                            listener!!.onBottomSheetSelectedItem(3)
+                            listener!!.onBottomSheetSelectedItem(0)
 
-                        } else if (response.Status == AppConstants.STATUS_FAILED) {
+                        } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
                             Alert.showMessage(
                                 context!!,
-                                getString(R.string.error_login_server_error)
+                                getString(R.string.error_mobile_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
@@ -781,14 +756,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     }
 
     private fun editTicket(ticketData: TicketModel) {
-
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-            actionState = 2
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.addTicket(
-                ticketData, actionState
-            )
+            var endPoint = request.editTicket(ticketData)
             NetworkManager().request(
                 endPoint,
                 object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
@@ -805,10 +776,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             Alert.hideProgress()
 
                             var tickets = response.ResponseObj!!
-                            var ticket = tickets[0]
-
-                            AppConstants.CurrentSelectedTicket = ticket
-                            listener!!.onBottomSheetSelectedItem(3)
+//                            var ticket = tickets[0]
+//
+//                            AppConstants.CurrentSelectedTicket = ticket
+                            listener!!.onBottomSheetSelectedItem(0)
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
@@ -849,10 +820,21 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        } else if (selectedCategory.CategoryId == "") {
+        } else if (selectedCategory.CategoryId.isNullOrEmpty()) {
             Alert.showMessage(context!!, "Category is required.")
             AnimateScroll.scrollToView(scroll, etMobile)
             sCategory.showDropDown()
+            return false
+        }
+        else if (selectedStatus.StatusId == null) {
+            Alert.showMessage(context!!, "Status is required.")
+            AnimateScroll.scrollToView(scroll, sStatus)
+            sStatus.showDropDown()
+            return false
+        } else if (selectedPaymentMethod.paymentId == null) {
+            Alert.showMessage(context!!, "Payment is required.")
+            AnimateScroll.scrollToView(scroll, sPayment)
+            sPayment.showDropDown()
             return false
         }
 
@@ -860,10 +842,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     }
 
     private fun prepareTicketData() {
-
+        var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var ticketName = etTicketName.text.toString()
         var ticketDescription = etTicketDescription.text.toString()
         var mobile = "2" + etMobile.text.toString()
+
         var categoryId = selectedCategory.CategoryId
         var priorityId = selectedPriority.PriorityId
         var statusId = selectedStatus.StatusId
@@ -871,19 +854,35 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         var needCourier = cbNeedCourier.isChecked
         var adminId = AppConstants.CurrentLoginAdmin.AdminId
 
-        ticketModel = TicketModel(
-            AppConstants.CurrentSelectedTicket.TicketId,
-            ticketName,
-            ticketDescription,
-            mobile,
-            categoryId,
-            statusId,
-            priorityId,
-            paymentId,
-            needCourier,
-            AppConstants.TICKET_SERVICE_COST_LIST!!,
-            adminId
-        )
+
+        if (editMode)
+            ticketModel = TicketModel(
+                ticketId,
+                ticketName,
+                ticketDescription,
+                mobile,
+                categoryId,
+                statusId,
+                priorityId,
+                paymentId,
+                needCourier,
+                AppConstants.TICKET_SERVICE_COST_LIST,
+                adminId
+            )
+        else
+            ticketModel = TicketModel(
+                ticketId,
+                ticketName,
+                ticketDescription,
+                mobile,
+                categoryId,
+                statusId,
+                priorityId,
+                paymentId,
+                needCourier,
+                null,
+                adminId
+            )
 
 
     }
@@ -922,6 +921,42 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         }
 
         alertDialog!!.show()
+
+    }
+
+    private fun defaultTicketData() {
+        tvTasks!!.visibility = View.INVISIBLE
+        tvAddTask!!.visibility = View.INVISIBLE
+        rvTasks!!.visibility = View.INVISIBLE
+        tvTicketDetails!!.text = getString(R.string.new_ticket)
+        etMobile.isEnabled = false
+        btnSave.text = getString(R.string.save)
+
+        etTicketName.text.clear()
+        etTicketName.hint = getString(R.string.ticket_name)
+        etTicketDescription.text.clear()
+        etTicketDescription.hint = getString(R.string.ticket_description)
+        etMobile.text.clear()
+        etMobile.hint = getString(R.string.user_mobile)
+        etMobile.isEnabled = true
+
+        sCategory.setText(getString(R.string.select_category))
+        sPriority.setText(getString(R.string.select_priority))
+
+        sStatus.setText(getString(R.string.select_status))
+
+        sPayment.setText(getString(R.string.select_payment_method))
+
+        cbNeedCourier.isChecked = false
+        //ticket service cost
+
+        rvServiceCost!!.adapter = null
+        rvServiceCost!!.visibility = View.VISIBLE
+
+
+        rvTasks!!.adapter = null
+        rvTasks!!.visibility = View.VISIBLE
+
 
     }
 

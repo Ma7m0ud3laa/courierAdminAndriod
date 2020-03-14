@@ -97,11 +97,15 @@ object FirebaseManager {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (currentTask in dataSnapshot.children) {
+                try {
                     var location = dataSnapshot.getValue(location::class.java)!!
                     if (!location.lat.isNullOrEmpty() && !location.long.isNullOrEmpty()) {
                         AppConstants.CurrentCourierLocation = location!!
                         completion(true, location)
                     }
+                }
+                catch(ex:Exception)
+                {}
                 }
             }
 

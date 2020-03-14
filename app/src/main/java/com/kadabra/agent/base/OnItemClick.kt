@@ -1,4 +1,4 @@
-package com.kadabra.cartello.Utilities.Base
+package com.kadabra.Utilities.Base
 
 interface OnItemClick {
 

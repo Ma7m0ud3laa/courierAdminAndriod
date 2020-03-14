@@ -11,6 +11,9 @@ class TaskModel {
     @SerializedName("TaskName")
     @Expose
     var taskName: String? = null
+    @SerializedName("TaskDescription")
+    @Expose
+    var TaskDescription: String? = null
     @SerializedName("Amount")
     @Expose
     var amount: Double? = null

@@ -12,7 +12,6 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +20,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.location.places.ui.PlacePicker.getPlace
@@ -30,25 +28,21 @@ import com.google.android.gms.location.*
 import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
 import com.kadabra.Networking.NetworkManager
+import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.firebase.FirebaseManager
-import com.kadabra.agent.firebase.LatLngInterpolator
-import com.kadabra.agent.firebase.LocationHelper
-import com.kadabra.agent.firebase.MarkerAnimation
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
-import com.kadabra.cartello.Utilities.Base.BaseFragment
 import java.io.IOException
 import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
-import kotlin.math.abs
+
 
 
 class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback,

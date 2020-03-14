@@ -15,7 +15,7 @@ import com.kadabra.agent.adapter.TicketListAdapter
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
-import com.kadabra.cartello.Utilities.Base.BaseFragment
+
 import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kadabra.agent.adapter.CourierListAdapter
@@ -25,6 +25,7 @@ import com.kadabra.agent.R
 import com.kadabra.agent.utilities.*
 import android.widget.Spinner
 import androidx.core.view.isVisible
+import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.callback.ITaskCallback
 import com.kadabra.agent.model.*
 import org.json.JSONArray
@@ -61,6 +62,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var listener: IBottomSheetCallback? = null
     private var listenerTask: ITaskCallback? = null
     private lateinit var etTaskName: EditText
+    private lateinit var etTaskDescription: EditText
+
     private lateinit var etAmount: EditText
     private lateinit var sTicket: AutoCompleteTextView
     private lateinit var sCourier: AutoCompleteTextView
@@ -86,13 +89,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         currentView = inflater.inflate(
             R.layout.fragment_new_task, container, false
         )
+        init()
         return currentView
     }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        init()
+
     }
 
     override fun onAttach(context: Context) {
@@ -153,24 +157,24 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             sStopType.setSelection(0)
             etLatitude.setText(stop.Latitude.toString())
             etLongitude.setText(stop.Longitude.toString())
+
+        } else {
+//            stopsList.clear()
+//            stopsModelList.clear()
         }
     }
 
     override fun onClick(view: View?) {
         when (view!!.id) {
             R.id.ivBack -> {
-                if (editMode)
-                    listener!!.onBottomSheetSelectedItem(3)
-                else
-                    listener!!.onBottomSheetSelectedItem(0)
-
+                listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
             R.id.tvDeleteTask -> {
                 if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty()) {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
-                        .setMessage(getString(R.string.message_delete) + " " + task.Task + " ?")
+                        .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(AppConstants.OK) { dialog, which ->
                             deleteTask(task)
@@ -205,7 +209,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.btnAddStopLocation -> {
-
                 context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                 if (validateStopData()) {
                     var stopName = etStopName.text.toString()
@@ -256,6 +259,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvTaskDetails = currentView!!.findViewById(R.id.tvTaskDetails)
         tvDeleteTask = currentView!!.findViewById(R.id.tvDeleteTask)
         etTaskName = currentView!!.findViewById(R.id.etTaskName)
+        etTaskDescription = currentView!!.findViewById(R.id.etTaskDescription)
+
         sTicket = currentView!!.findViewById(R.id.sTicket)
         sCourier = currentView!!.findViewById(R.id.sCourier)
         etAmount = currentView!!.findViewById(R.id.etAmount)
@@ -285,36 +290,39 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         btnSave!!.setOnClickListener(this)
 
         getAllCouriers()
-        prepareTickets()
+//        prepareTickets()
 //        prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
 
 
+        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+
+        sTicket.isEnabled = false
+
         if (editMode) {
-            sTicket.isEnabled = false
             btnSave.text = context!!.getString(R.string.update)
             tvTaskDetails!!.text = context!!.getString(R.string.task_details)
             tvDeleteTask!!.visibility = View.VISIBLE
             loadTaskData(AppConstants.CurrentSelectedTask)
-
-        } else {
+        } else
             defaultTaskData()
-        }
 
 
     }
 
     private fun defaultTaskData() {
 
-        sTicket.isEnabled = taskAddMode
 
         btnSave.text = context!!.getString(R.string.save)
-        tvTaskDetails!!.text = context!!.getString(R.string.new_task)
+        tvTaskDetails!!.hint = context!!.getString(R.string.new_task)
+
         tvDeleteTask!!.visibility = View.INVISIBLE
-        sTicket.setText(context!!.getString(R.string.select_ticket))
-        etTaskName.setText(context!!.getString(R.string.task_name))
+
+        etTaskName.hint = context!!.getString(R.string.task_name)
+        etTaskDescription.hint = context!!.getString(R.string.task_description)
+
         sCourier.setText(context!!.getString(R.string.select_courier))
-        etAmount!!.setText(context!!.getString(R.string.amount))
+        etAmount!!.hint = context!!.getString(R.string.amount)
 
         rvStops.adapter = null
         rlStops.visibility = View.GONE
@@ -324,13 +332,16 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun loadTaskData(task: Task) {
 
-        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
 
         selectedTicket =
             AppConstants.GetALLTicket.find { it.TicketId == AppConstants.CurrentSelectedTicket.TicketId }!!
 
-        if (!task.Task.trim().isNullOrEmpty())
-            etTaskName.setText(task.Task)
+
+        if (!task.TaskName.trim().isNullOrEmpty())
+            etTaskName.setText(task.TaskName)
+
+        if (task.TaskDescription!=null&&!task.TaskDescription.isNullOrEmpty())
+            etTaskDescription.setText(task.TaskDescription)
 
         if (task.CourierID != null) {
             sCourier.setText(task.CourierName)
@@ -341,6 +352,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             etAmount!!.setText(task.Amount.toString())
 
         if (task.stopsmodel.count() > 0) {
+
+            rlStops.visibility=View.VISIBLE
 
             stopsList = task.stopsmodel
 
@@ -353,7 +366,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun prepareTaskModelData(task: Task) {
 
-        taskModel.taskName = task.Task
+        taskModel.taskName = task.TaskName
+        taskModel.TaskDescription=task.TaskDescription
         taskModel.amount = task.Amount
         taskModel.ticketID = task.TicketId
         taskModel.courierId = task.CourierID
@@ -387,16 +401,33 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private fun validateAll(): Boolean {
 
         if (etTaskName.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Task Name is required.")
+            Alert.showMessage(context!!, "TaskName Name is required.")
             AnimateScroll.scrollToView(scroll, etTaskName)
             etTaskName.requestFocus()
             return false
-        } else if (etAmount.text.toString().isNullOrEmpty()) {
+        }
+
+        else if (etTaskDescription.text.toString().isNullOrEmpty()) {
+            Alert.showMessage(context!!, "TaskName Description is required.")
+            AnimateScroll.scrollToView(scroll, etTaskDescription)
+            etTaskDescription.requestFocus()
+            return false
+        }
+
+
+        else if (etAmount.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "Amount is required.")
             AnimateScroll.scrollToView(scroll, etAmount)
             etAmount.requestFocus()
             return false
-        } else if (rlStops.isVisible &&
+        }
+        else if (selectedCourier.CourierId==null) {
+            Alert.showMessage(context!!, "Courier is required.")
+            AnimateScroll.scrollToView(scroll, sCourier)
+            sCourier.showDropDown()
+            return false
+        }
+        else if (rlStops.isVisible &&
             etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
         ) {
 
@@ -413,13 +444,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun prepareTaskData() {
         var taskName = etTaskName.text.toString()
+        var taskDescription = etTaskDescription.text.toString()
+
         var amount = etAmount.text.toString().toDouble()
         var addedBY = AppConstants.CurrentLoginAdmin.AdminId
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var taskId = AppConstants.CurrentSelectedTask.TaskId
-        var courierId = selectedCourier.CourierId ?: null
+        var courierId = selectedCourier.CourierId
 
-        task = Task(taskName, amount, addedBY, ticketId, taskId, courierId!!, stopsList)
+        task = Task(taskName,taskDescription, amount, addedBY, ticketId!!, taskId, courierId!!, stopsList)
         prepareTaskModelData(task)
 
     }
@@ -793,9 +826,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     selectedTicket = ticket
                     sTicket.setText(ticket.TicketName)
                     AppConstants.CurrentSelectedTicket = ticket
-                } else
+                } else {
                     selectedTicket = Ticket("0", getString(R.string.select_ticket))
-
+                    sTicket.setText(getString(R.string.select_ticket))
+                }
             }
 
         sTicket.setOnClickListener(View.OnClickListener {
@@ -803,8 +837,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         })
 
-        // set current ticket
-        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+//        // set current ticket
+//        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
 
     }
 
@@ -838,11 +872,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                 if (courier.CourierId!! > 0) {
                     selectedCourier = courier
-//                    sCourier.setText(AppConstants.ALL_COURIERS.find { it.CourierId == selectedCourier.CourierId }!!.PaymentName)
                     sCourier.setText(courier.CourierName)
                 } else {
-//                    sCourier.setText(getString(R.string.select_courier))
                     selectedCourier = Courier(0, getString(R.string.select_courier))
+                    sCourier.setText(getString(R.string.select_courier))
                 }
 
 
@@ -1042,7 +1075,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             array[i] = task.stopsmodel[i]
         }
 
-        jResult.putOpt("TaskName", task.Task)
+        jResult.putOpt("TaskName", task.TaskName)
         jResult.putOpt("Amount", task.Amount.toString())
         jResult.putOpt("AddedBy", task.AddedBy)
         jResult.putOpt("TicketID", task.TicketId)

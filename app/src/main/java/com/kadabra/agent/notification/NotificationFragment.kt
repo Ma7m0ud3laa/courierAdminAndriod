@@ -7,10 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import com.kadabra.Utilities.Base.BaseFragment
 
 import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
-import com.kadabra.cartello.Utilities.Base.BaseFragment
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

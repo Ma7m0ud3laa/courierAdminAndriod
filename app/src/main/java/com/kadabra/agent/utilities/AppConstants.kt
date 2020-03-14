@@ -19,6 +19,7 @@ object AppConstants {
     val DATA = "data"
     val STATUS_SUCCESS = 1
     val STATUS_FAILED = -1
+    val STATUS_NOT_EXIST=-2
     val STATUS_INCORRECT_DATA = -3
 
     //endregion
@@ -87,7 +88,11 @@ object AppConstants {
     var CurrentTempStop: Stop = Stop()
     var ALL_COURIERS = ArrayList<Courier>()
     var ALL_COURIERS_FIREBASE = ArrayList<Courier>()
+    var TICKET_TASK_LIST = ArrayList<Task>()
     var TICKET_SERVICE_COST_LIST = ArrayList<TicketServiceCost>()
+
+    var TASK_STOP_LIST = ArrayList<Stop>()
+
 
     var CurrentLocation: Location? = null
 

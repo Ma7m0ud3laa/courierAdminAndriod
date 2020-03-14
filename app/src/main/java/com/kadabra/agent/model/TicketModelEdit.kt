@@ -3,34 +3,35 @@ package com.kadabra.agent.model
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class TicketModel {
+class TicketModelEdit {
+
     @SerializedName("TicketId")
     @Expose
-    var ticketId: String? = null
+    var ticketId: String = ""
     @SerializedName("TicketName")
     @Expose
     var ticketName: String = ""
     @SerializedName("TicketDescription")
     @Expose
     var ticketDescription: String = ""
-    @SerializedName("Mobile")
+    @SerializedName("UserMobile")
     @Expose
     var userMobile: String = ""
     @SerializedName("StatusId")
     @Expose
-    var statusId: Int ?=null
+    var statusId: Int = 0
     @SerializedName("CategoryId")
     @Expose
     var categoryId: String = ""
     @SerializedName("PriorityId")
     @Expose
-    var priorityId:  Int ?=null
-    @SerializedName("PaymentId")
+    var priorityId: Int = 0
+    @SerializedName("PaymentMethodId")
     @Expose
-    var paymentId: Int ?=null
+    var paymentId: Int = 0
     @SerializedName("NeedCourier")
     @Expose
-    var needCourier: Boolean ?= false
+    var needCourier: Boolean = false
     @SerializedName("ServiceCost")
     @Expose
     var TicketServiceCost: ArrayList<TicketServiceCost>? = null
@@ -40,17 +41,18 @@ class TicketModel {
 
     constructor()
 
+
     constructor(
-        ticketId: String?,
+        ticketId: String,
         ticketName: String,
         ticketDescription: String,
         userMobile: String,
         categoryId: String,
-        statusId: Int?,
-        priorityId: Int?,
-        paymentId: Int?,
-        needCourier: Boolean?,
-        TicketServiceCost: ArrayList<TicketServiceCost>?,
+        statusId: Int,
+        priorityId: Int,
+        paymentId: Int,
+        needCourier: Boolean,
+        TicketServiceCost: ArrayList<TicketServiceCost>,
         adminId: String
 
     ) {

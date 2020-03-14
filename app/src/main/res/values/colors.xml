@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <color PaymentName="colorPrimary">#059719</color>-->
-<!--    <color PaymentName="colorPrimaryDark">#059719</color>-->
-<!--    <color PaymentName="colorAccent">#E54728</color>-->
+<!--    <color PaymentMethod="colorPrimary">#059719</color>-->
+<!--    <color PaymentMethod="colorPrimaryDark">#059719</color>-->
+<!--    <color PaymentMethod="colorAccent">#E54728</color>-->
     <color name="colorPrimary">#E54728</color>
     <color name="colorPrimaryDark">#E54728</color>
     <color name="colorAccent">#059719</color>

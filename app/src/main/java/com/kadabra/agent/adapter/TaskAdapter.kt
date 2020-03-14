@@ -48,8 +48,8 @@ class TaskAdapter(
     override fun onBindViewHolder(holder: TaskAdapter.MyViewHolder, position: Int) {
         task = tasksList[position]
 
-        if (!task.Task.isNullOrEmpty())
-            holder.tvTaskName.text = task.Task
+        if (!task.TaskName.isNullOrEmpty())
+            holder.tvTaskName.text = task.TaskName
 
         if (task.stopsmodel.size > 0) {
             task.stopsmodel.sortBy { it.StopTypeID }

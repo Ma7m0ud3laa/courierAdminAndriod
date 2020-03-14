@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
+import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
 import com.kadabra.agent.adapter.TicketAdapter
 import com.kadabra.agent.api.ApiResponse
@@ -21,10 +22,7 @@ import com.kadabra.agent.model.Ticket
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
-import com.kadabra.cartello.Utilities.Base.BaseFragment
-import kotlinx.android.synthetic.main.fragment_new_ticket.*
-import kotlinx.android.synthetic.main.fragment_new_ticket.ivBack
-import kotlinx.android.synthetic.main.fragment_ticket_details.*
+
 
 
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
@@ -39,6 +37,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     private var sRefresh: SwipeRefreshLayout? = null
     private var ivNoInternet: ImageView? = null
     private var tvEmptyData: TextView? = null
+    private var currentView: View? = null
 
 
     var editMode = false
@@ -57,15 +56,15 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         savedInstanceState: Bundle?
     ): View? {
 
-        return inflater.inflate(R.layout.fragment_ticket, container, false)
+        currentView = inflater.inflate(R.layout.fragment_ticket, container, false)
+        init(currentView!!)
 
-
-//        return view
+        return currentView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        init(view)
+//        init(view)
     }
 
     override fun onAttach(context: Context) {
@@ -120,15 +119,17 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             loadTickets()
 
         }
+//
+//        if (AppConstants.GetALLTicket.count() > 0 && AppConstants.ALL_COURIERS.count() > 0) {
+//            prepareTicketData(AppConstants.GetALLTicket)
+//        } else {
+//            loadTickets()
+//
+//        }
 
-        if (AppConstants.GetALLTicket.count() > 0 && AppConstants.ALL_COURIERS.count() > 0) {
-            prepareTicketData(AppConstants.GetALLTicket)
-        } else {
-            loadTickets()
-
-        }
-
+        loadTickets()
     }
+
 
 
     private fun loadTickets() {
@@ -217,7 +218,6 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         } else {
         }
     }
-
 
 
 }// Required empty public constructor

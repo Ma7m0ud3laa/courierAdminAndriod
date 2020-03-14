@@ -11,6 +11,7 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
 import com.kadabra.agent.adapter.TaskAdapter
 import com.kadabra.agent.callback.IBottomSheetCallback
@@ -20,7 +21,7 @@ import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.Ticket
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
-import com.kadabra.cartello.Utilities.Base.BaseFragment
+
 
 /**
  * A simple [Fragment] subclass.

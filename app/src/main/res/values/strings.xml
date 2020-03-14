@@ -5,6 +5,7 @@
     <string name="courier_power_by_kadabra">Powered by kadabra</string>
     <string name="no_results">No Data Available.</string>
     <string name="error_login_server_error">Error Occurred.</string>
+    <string name="error_mobile_error">User mobile does not Exist.</string>
     <string name="error_login_server_unknown_error">Unknown Error.</string>
     <string name="title_activity_maps">Map</string>
     <string name="no_internet">No internet connection</string>
@@ -99,6 +100,8 @@
 
 
     <string name="task_name">Task Name</string>
+    <string name="task_description">Task Description</string>
+
     <string name="amount">Amount</string>
     <string name="add_stop">Add Stop</string>
     <string name="show">Show</string>

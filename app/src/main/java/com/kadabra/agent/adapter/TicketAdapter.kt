@@ -120,6 +120,7 @@ class TicketAdapter(
                 val pos = adapterPosition
                 ticket = ticketList[pos]
                 AppConstants.CurrentSelectedTicket = ticket
+//                if(AppConstants.CurrentLoginAdmin.IsSuperAdmin)
                 listener!!.onBottomSheetSelectedItem(3)
 
             }

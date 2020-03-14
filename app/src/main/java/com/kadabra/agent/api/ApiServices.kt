@@ -37,11 +37,17 @@ interface ApiServices {
     fun getTicketSubData()
             : Call<ApiResponse<data>>
 
+
     @POST(AppConstants.URL_ADD_TICKET)
     fun addTicket(
-        @Body ticket: TicketModel,@Query("ActionState") actionState: Int
-    )
+        @Body ticket: TicketModel)
             : Call<ApiResponse<ArrayList<Ticket>>>
+
+    @POST(AppConstants.URL_EDIT_TICKET)
+    fun editTicket(
+        @Body ticketAdd: TicketModel)
+            : Call<ApiResponse<ArrayList<Ticket>>>
+
 
 
 

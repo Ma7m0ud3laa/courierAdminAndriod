@@ -37,7 +37,7 @@ class StopAdapter(private val context: Context, private val stopList: ArrayList<
     override fun onBindViewHolder(holder: StopAdapter.MyViewHolder, position: Int) {
         stop = stopList[position]
 
-        holder.tvStopName.text = stop.city
+        holder.tvStopName.text = stop.StopName
         holder.tvStopType.text = stop.StopType
 
 

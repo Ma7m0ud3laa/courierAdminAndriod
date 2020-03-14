@@ -5,8 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 
-import androidx.fragment.app.Fragment
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
+import com.kadabra.Utilities.Base.BaseFragment
 
 import com.kadabra.agent.R
 import com.kadabra.agent.adapter.TaskAdapter
@@ -31,7 +30,7 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AnimateScroll
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
-import com.kadabra.cartello.Utilities.Base.BaseFragment
+
 
 
 class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
@@ -143,7 +142,7 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
         if (!task!!.TaskId.isNullOrEmpty()) {
             AlertDialog.Builder(context)
                 .setTitle(AppConstants.WARNING)
-                .setMessage(getString(R.string.message_delete) + " " + task.Task + " ?")
+                .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(AppConstants.OK) { dialog, which ->
                     deleteTask(task)

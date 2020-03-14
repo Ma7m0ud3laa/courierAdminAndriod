@@ -5,10 +5,10 @@ import com.google.firebase.database.Exclude
 class Task {
 //    var TaskId: String = ""
 //    var TicketId: String = ""
-//    var Task: String = ""
+//    var TaskName: String = ""
 //    var TaskDescription: String = ""
 //    var CourierID: Int ? = null
-//    var PaymentName: String = ""
+//    var PaymentMethod: String = ""
 //    var Amount = 0.0
 //    var title: String? = null
 //    var stopsmodel = ArrayList<Stop>()
@@ -27,11 +27,11 @@ var TaskId: String = ""
     @Exclude
     @set:Exclude
     @get:Exclude
-    var Task: String = ""
+    var TaskName: String = ""
     @Exclude
     @set:Exclude
     @get:Exclude
-    var TaskDescription: String = ""
+    var TaskDescription: String ?=null
     var CourierID: Int ? = null
     @Exclude
     @set:Exclude
@@ -77,6 +77,7 @@ var TaskId: String = ""
 
     constructor(
         taskName: String,
+        taskDescription:String,
         amount: Double,
         addedBy: String,
         ticketId: String,
@@ -84,7 +85,8 @@ var TaskId: String = ""
         courierId: Int,
         stopList: ArrayList<Stop>
     ) {
-        this.Task = taskName
+        this.TaskName = taskName
+        this.TaskDescription=taskDescription
         this.Amount = amount
         this.AddedBy = addedBy
         this.TicketId = ticketId
