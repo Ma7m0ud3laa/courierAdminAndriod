@@ -30,6 +30,7 @@ import com.kadabra.Utilities.Base.BaseFragment
 import android.text.InputFilter
 import android.view.inputmethod.InputMethodManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.hbb20.CountryCodePicker
 
 
 class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
@@ -53,6 +54,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
+    private lateinit var ccp: CountryCodePicker
+
     private lateinit var sCategory: AutoCompleteTextView
     private lateinit var sPriority: AutoCompleteTextView
     private lateinit var sStatus: AutoCompleteTextView
@@ -235,6 +238,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         etTicketName = currentView!!.findViewById(R.id.etTicketName)
         etTicketDescription = currentView!!.findViewById(R.id.etTicketDescription)
         etMobile = currentView!!.findViewById(R.id.etMobile)
+        ccp = currentView!!.findViewById(R.id.ccp)
+
         sCategory = currentView!!.findViewById(R.id.sCategory)
         sPriority = currentView!!.findViewById(R.id.sPriority)
         sStatus = currentView!!.findViewById(R.id.sStatus)
@@ -514,7 +519,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
 
                     }
-
+                    Alert.hideProgress()
                 }
             })
 
@@ -576,8 +581,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         etTicketName.setText(ticket.TicketName)
         etTicketDescription.setText(ticket.TicketDescription)
+
         etMobile.setText(ticket.UserMobile)
 
+        ccp.fullNumber = ticket.UserMobile
+//        ccp.isEnabled=false
+        ccp.setCcpClickable(false)
 
         if (ticket.CategoryId != null) {
             sCategory.setText(ticket.Category)
@@ -851,12 +860,20 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, etTicketDescription)
             etTicketDescription.requestFocus()
             return false
-        } else if (etMobile.text.trim().isNullOrEmpty() || etMobile.text.length < 11) {
+        } else if (etMobile.text.trim().isNullOrEmpty() /*|| etMobile.text.length < 11*/) {
             Alert.showMessage(context!!, "User Mobile is required,and must be 11 digit.")
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        } else if (selectedCategory.CategoryId.isNullOrEmpty()) {
+        }
+        else if(!validatePhone(ccp,etMobile)&&!editMode)
+        {
+            Alert.showMessage(context!!,getString(R.string.error_invalid_phone))
+            AnimateScroll.scrollToView(scroll, etMobile)
+            etMobile.requestFocus()
+            return false
+        }
+        else if (selectedCategory.CategoryId.isNullOrEmpty()) {
             Alert.showMessage(context!!, "Category is required.")
             AnimateScroll.scrollToView(scroll, etMobile)
             sCategory.showDropDown()
@@ -880,7 +897,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var ticketName = etTicketName.text.toString()
         var ticketDescription = etTicketDescription.text.toString()
-        var mobile = "2" + etMobile.text.toString()
+        var mobile = ccp.fullNumber//"2" + etMobile.text.toString()
+
 
         var categoryId = selectedCategory.CategoryId
         var priorityId = selectedPriority.PriorityId
@@ -1002,5 +1020,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         val inputMethodManager =
             context!!.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager!!.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    fun validatePhone(mPhone: CountryCodePicker, mPhoneEdit: EditText): Boolean {
+        mPhone.registerCarrierNumberEditText(mPhoneEdit)
+        return mPhone.isValidFullNumber
+
     }
 }// Required empty public constructor

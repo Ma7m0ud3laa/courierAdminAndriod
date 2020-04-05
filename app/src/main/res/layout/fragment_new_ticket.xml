@@ -98,38 +98,92 @@
                         android:inputType="text"
                         android:selectAllOnFocus="true"
                         android:textSize="15sp" />
-                    <com.hbb20.CountryCodePicker
-                        android:id="@+id/ccp"
-                        android:layout_width="wrap_content"
+<!--                    <com.hbb20.CountryCodePicker-->
+<!--                        android:id="@+id/ccp"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_below="@+id/etTicketDescription"-->
+<!--                        android:layout_marginStart="24dp"-->
+<!--                        android:layout_marginTop="15dp"-->
+<!--                        app:ccp_showFullName="true"-->
+<!--                        app:ccp_showPhoneCode="false"-->
+<!--                        app:ccp_showNameCode="false"/>-->
+<!--                    <EditText-->
+<!--                        android:id="@+id/etMobile"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_below="@+id/etTicketDescription"-->
+<!--                        android:layout_marginStart="10dp"-->
+<!--                        android:layout_marginTop="15dp"-->
+<!--                        android:layout_marginEnd="24dp"-->
+<!--                        android:layout_toEndOf="@+id/ccp"-->
+<!--                        android:digits="0123456789"-->
+<!--                        android:maxLength="11"-->
+<!--                        android:hint="@string/user_mobile"-->
+<!--                        android:imeOptions="actionNext"-->
+<!--                        android:inputType="phone"-->
+<!--                        android:selectAllOnFocus="true"-->
+<!--                        android:textSize="15sp" />-->
+                    <LinearLayout
+                        android:id="@+id/lPhone"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+
                         android:layout_below="@+id/etTicketDescription"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
-                        app:ccp_showFullName="true"
-                        app:ccp_showPhoneCode="false"
-                        app:ccp_showNameCode="false"/>
-                    <EditText
-                        android:id="@+id/etMobile"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/etTicketDescription"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:layout_toEndOf="@+id/ccp"
-                        android:digits="0123456789"
-                        android:maxLength="11"
-                        android:hint="@string/user_mobile"
-                        android:imeOptions="actionNext"
-                        android:inputType="phone"
-                        android:selectAllOnFocus="true"
-                        android:textSize="15sp" />
+                        android:layout_marginEnd="24dp">
+
+                        <com.hbb20.CountryCodePicker
+                            android:id="@+id/ccp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            app:ccpDialog_allowSearch="true"
+                            app:ccpDialog_initialScrollToSelection="true"
+                            app:ccpDialog_keyboardAutoPopup="false"
+                            app:ccpDialog_showCloseIcon="true"
+                            app:ccpDialog_showFastScroller="false"
+                            app:ccpDialog_showFlag="true"
+                            app:ccpDialog_showPhoneCode="true"
+                            app:ccpDialog_showTitle="false"
+                            app:ccp_arrowColor="@color/black"
+                            app:ccp_arrowSize="20dp"
+                            app:ccp_autoDetectCountry="true"
+                            app:ccp_autoDetectLanguage="true"
+                            app:ccp_autoFormatNumber="true"
+                            app:ccp_clickable="true"
+                            app:ccp_countryAutoDetectionPref="SIM_ONLY"
+                            app:ccp_rememberLastSelection="true"
+                            app:ccp_selectionMemoryTag="signupCCP"
+                            app:ccp_showArrow="true"
+                            app:ccp_showFlag="true"
+                            app:ccp_showFullName="false"
+                            app:ccp_showNameCode="false"
+                            app:ccp_showPhoneCode="false"
+                            app:ccp_textGravity="RIGHT"
+                            app:ccp_textSize="16sp"
+                            />
+
+                        <EditText
+                            android:id="@+id/etMobile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:editable="false"
+                            android:hint="@string/user_mobile"
+                            android:inputType="phone"
+                            android:singleLine="true"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+
+                            android:textSize="15sp" />
+                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/llCategoryData"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/etMobile"
+                        android:layout_below="@+id/lPhone"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
                         android:layout_marginEnd="24dp"

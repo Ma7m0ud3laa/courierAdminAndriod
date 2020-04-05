@@ -22,6 +22,8 @@
     <string name="required">Required</string>
     <string name="welcome_back">Welcome Back!</string>
     <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_invalid_phone">Invalid Phone no.</string>
+
     <string name="error_email_not_registered">The email is not registered</string>
     <string name="success">Success</string>
     <string name="error_network">Network Error.</string>

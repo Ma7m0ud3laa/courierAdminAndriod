@@ -29,10 +29,11 @@ object Alert {
     }
 
     fun hideProgress() {
-//        if (mLoadingDialog != null) {
-            mLoadingDialog?.dismiss()
-            mLoadingDialog = null
-//        }
+////        if (mLoadingDialog != null) {
+//            mLoadingDialog?.dismiss()
+//            mLoadingDialog = null
+////        }
+        mLoadingDialog!!.hide()
     }
 
     fun showMessage(context: Context, message: String) {
