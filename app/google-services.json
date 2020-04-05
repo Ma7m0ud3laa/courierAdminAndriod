@@ -1,42 +1,42 @@
 {
   "project_info": {
-    "project_number": "513841496056",
-    "firebase_url": "https://courier-25dd1.firebaseio.com",
-    "project_id": "courier-25dd1",
-    "storage_bucket": "courier-25dd1.appspot.com"
+    "project_number": "754569028289",
+    "firebase_url": "https://agent-d2cc9.firebaseio.com",
+    "project_id": "agent-d2cc9",
+    "storage_bucket": "agent-d2cc9.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:513841496056:android:9c482c88002f8678eb200d",
+        "mobilesdk_app_id": "1:754569028289:android:fca9eb9446050b52c76a40",
         "android_client_info": {
           "package_name": "com.kadabra.agent"
         }
       },
       "oauth_client": [
         {
-          "client_id": "513841496056-or37461oh12maneq9d0g0raoeio6ilvv.apps.googleusercontent.com",
+          "client_id": "754569028289-2gbddi50qh4qmlf98bpe61lqgvtrurmb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.kadabra.agent",
-            "certificate_hash": "05d6c042885309620fc256607f1b30921810018b"
+            "certificate_hash": "ba24a5cb6f82b1299998065a3cd333a9169ded74"
           }
         },
         {
-          "client_id": "513841496056-3mu9ak6g7t8j2gbh7mt0omm5tsgrhejl.apps.googleusercontent.com",
+          "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyC70zswBrDCnFMJKiTylr1ptCX3GdarKXQ"
+          "current_key": "AIzaSyA8TjBH1lS5c9eet6QJdup4zWx9XUoji5s"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "513841496056-3mu9ak6g7t8j2gbh7mt0omm5tsgrhejl.apps.googleusercontent.com",
+              "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
@@ -45,35 +45,27 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:513841496056:android:838abe9a5d0eaaf1eb200d",
+        "mobilesdk_app_id": "1:754569028289:android:a3321a07c5cbb87cc76a40",
         "android_client_info": {
-          "package_name": "com.kadabra.courier"
+          "package_name": "com.twoam.agent"
         }
       },
       "oauth_client": [
         {
-          "client_id": "513841496056-dlpt3h7iorpv5o5gr3co5dtd0o6hmi1t.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.kadabra.courier",
-            "certificate_hash": "05d6c042885309620fc256607f1b30921810018b"
-          }
-        },
-        {
-          "client_id": "513841496056-3mu9ak6g7t8j2gbh7mt0omm5tsgrhejl.apps.googleusercontent.com",
+          "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyC70zswBrDCnFMJKiTylr1ptCX3GdarKXQ"
+          "current_key": "AIzaSyA8TjBH1lS5c9eet6QJdup4zWx9XUoji5s"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "513841496056-3mu9ak6g7t8j2gbh7mt0omm5tsgrhejl.apps.googleusercontent.com",
+              "client_id": "754569028289-p63fmrbs9p2ni3g9lj24jcgf211ggg3e.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

@@ -11,6 +11,7 @@ import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.callback.ITaskCallback
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
+import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 
 
@@ -50,6 +51,8 @@ class TaskAdapter(
 
         if (!task.TaskName.isNullOrEmpty())
             holder.tvTaskName.text = task.TaskName
+
+        holder.tvStatus.text = task.Status
 
         if (task.stopsmodel.size > 0) {
             task.stopsmodel.sortBy { it.StopTypeID }
@@ -109,6 +112,7 @@ class TaskAdapter(
         var tvDropOffLocation: TextView =
             itemView.findViewById(R.id.tvDropOffLocation)
         var tvDelete: TextView = itemView.findViewById(R.id.tvDelete)
+        var tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
 
 
         init {
@@ -135,7 +139,14 @@ class TaskAdapter(
                 //delete the current task
                 val pos = adapterPosition
                 task = tasksList[pos]
-                deleteTaskListener!!.onTaskDelete(task)
+                if (task.Status == "In progress")
+                    Alert.showAlertMessage(
+                        context,
+                        AppConstants.WARNING,
+                        "Can't delete this task is in progress."
+                    )
+                else
+                    deleteTaskListener!!.onTaskDelete(task)
 //                var anim = AnimationUtils.loadAnimation(context, R.anim.shake)
 //                itemView.startAnimation(anim)
             }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.kadabra.agent.model.Admin
+import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.data
 import com.kadabra.agent.utilities.AppConstants
 
@@ -88,11 +89,11 @@ fun setTicketSubData(data: data?) {
     }
 
     fun logout() {
-        var isFirst = isFirstTime()
+        setFirstTime(true)
+        setIsLogined(false)
+        setUserData(Admin())
         editor.clear()
         editor.commit()
-        setFirstTime(isFirst)
-        setIsLogined(false)
     }
 
 

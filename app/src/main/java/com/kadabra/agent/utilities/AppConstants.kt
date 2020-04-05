@@ -19,7 +19,7 @@ object AppConstants {
     val DATA = "data"
     val STATUS_SUCCESS = 1
     val STATUS_FAILED = -1
-    val STATUS_NOT_EXIST=-2
+    val STATUS_NOT_EXIST = -2
     val STATUS_INCORRECT_DATA = -3
 
     //endregion
@@ -63,13 +63,16 @@ object AppConstants {
 
     const val URL_REASSIGN_TASK_TO_COURIER = "ReassignTaskToCourier"
     const val URL_GET_ALL_TICKETS = "GetAllTickets"
+    const val URL_GET_ALL_TICKETS_BY_PAGE_NO = "GetAllTicketsByPageNo"
     const val URL_GET_TICKET_BY_ID = "GetTicketById"
     const val URL_GET_ALL_COURIERS = "GetAllCourier"
     const val URL_ADD_TASK_STOP = "AddTaskStop"
     const val URL_GET_ALL_TASK_STOPS = "GetAllTaskStops"
     const val URL_REMOVE_TASK = "RemoveCourierTask"
     const val URL_REMOVE_STOP = "RemoveTaskStop"
-
+    const val URL_SET_USER_TOKEN = "UpdateAdminToken"
+    const val URL_GET_VERSION_CODE = "GetVersionCodeForAndroidAdmin"
+    const val URL_GET_TAKS_DETAILS = "GetTaskByID"
 
     //endregion
 
@@ -90,13 +93,17 @@ object AppConstants {
     var ALL_COURIERS_FIREBASE = ArrayList<Courier>()
     var TICKET_TASK_LIST = ArrayList<Task>()
     var TICKET_SERVICE_COST_LIST = ArrayList<TicketServiceCost>()
-
+    val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 9002
+    val ADMIN_CHANNEL_ID = "123456"
     var TASK_STOP_LIST = ArrayList<Stop>()
-
-
     var CurrentLocation: Location? = null
-
     var StopType: StopType? = null
+
+    var FIRE_BASE_LOGOUT = false
+    var FIRE_BASE_NEW_TASK = false
+    var FIRE_BASE_EDIT_TASK = false
+    var FIRE_BASE_DELETE_TASK = false
+    var FIRE_BASE_REASSIGN_TASK = false
 
 
     enum class TaskStatus(var status: String) {

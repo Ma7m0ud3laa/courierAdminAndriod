@@ -26,6 +26,9 @@ interface ApiServices {
     @GET(AppConstants.URL_GET_ALL_TICKETS)
     fun getAllTickets()
             : Call<ApiResponse<ArrayList<Ticket>>>
+    @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO)
+    fun getAllTicketsByPage(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
+            : Call<ApiResponse<ArrayList<Ticket>>>
 
     @POST(AppConstants.URL_GET_TICKET_BY_ID)
     fun getTicketById(
@@ -100,7 +103,7 @@ interface ApiServices {
 
     @POST(AppConstants.URL_REMOVE_TASK)
     fun removeTask(
-        @Query("TaskId") taskId: String,
+        @Query("taskId") taskId: String,
         @Query("AdminId") adminId: String
     )
             : Call<ApiResponse<ArrayList<Task>>>
@@ -112,6 +115,18 @@ interface ApiServices {
         @Query("AdminId") adminId: String
     )
             : Call<ApiResponse<ArrayList<Stop>>>
+
+    @POST(AppConstants.URL_SET_USER_TOKEN)
+    fun setAdminToken(@Query("adminId") adminId:String,@Query("Token") token:String)
+            : Call<ApiResponse<Boolean>>
+
+
+    @GET(AppConstants.URL_GET_VERSION_CODE)
+    fun forceUpdate(): Call<ApiResponse<String>>
+
+    @GET(AppConstants.URL_GET_TAKS_DETAILS)
+    fun getTaskDetails(@Query("taskId") taskID: String)
+            : Call<ApiResponse<Task>>
 
 
 }

@@ -166,7 +166,7 @@ class LocationHelper : ILocationListener {
     }
 
 
-    fun isLocationEnabled(): Boolean {
+    fun isGPSEnabled(): Boolean {
 
         var gps_enabled = false
         var network_enabled = false

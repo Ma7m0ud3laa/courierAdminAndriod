@@ -196,7 +196,7 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
                 tvStatus!!.setTextColor(context!!.getColor(R.color.crimson))
             }
             AppConstants.TaskStatus.POST_PONDED.status -> {
-                tvStatus!!.setTextColor(context!!.getColor(R.color.greenYellow))
+                tvStatus!!.setTextColor(context!!.getColor(R.color.black))
             }
             AppConstants.TaskStatus.COMPLETED.status -> {
                 tvStatus!!.setTextColor(context!!.getColor(R.color.green))

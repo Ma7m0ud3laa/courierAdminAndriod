@@ -1,13 +1,23 @@
 package com.kadabra.agent.ticket
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.location.Location
+import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 import com.kadabra.agent.callback.BottomSheetNavigationFragment
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.courier.CourierFragment
@@ -15,10 +25,19 @@ import com.kadabra.agent.notification.NotificationFragment
 import kotlinx.android.synthetic.main.activity_ticket.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.crashlytics.android.Crashlytics
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.material.snackbar.Snackbar
+import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
+import com.kadabra.agent.BuildConfig
 import com.kadabra.agent.R
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.login.LoginActivity
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
@@ -28,8 +47,10 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 
 
+
 class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback {
     //  region Members
+    private var TAG=this.javaClass.simpleName
     private var ticketFragment: TicketFragment = TicketFragment()
     private var newTaskFragment: NewTaskFragment = NewTaskFragment()
     private var newTicketFragment: NewTicketFragment = NewTicketFragment()
@@ -39,13 +60,24 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     private val fm = supportFragmentManager
     private var active = BaseFragment()
     val bottomSheetDialogFragment = BottomSheetNavigationFragment.newInstance()
+    private var locationUpdateState = false
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+    private var lastLocation: Location? = null
+    private  val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private  val REQUEST_CHECK_SETTINGS = 2
+    private var lastVerion = 0
     //endregion
 
     //region Events
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ticket)
+//        Crashlytics.getInstance().crash()
+        FirebaseManager.setUpFirebase()
         init()
+        forceUpdate()
 
     }
 
@@ -72,8 +104,13 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
                 if (courierFragment.searchMode) //TASK VIEW
                 {
-                    fm.beginTransaction()
-                        .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
+//                    fm.beginTransaction()
+//                        .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
+
+                    fm.beginTransaction().show(newTaskFragment)
+                        .commit()
+                    //remove courier view
+                    fm.beginTransaction().remove(courierFragment).commit()
                     active = newTaskFragment
                 } else //MAP VIEW [ALL COURIERS]
                 {
@@ -91,7 +128,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                     .commit()
                 active = ticketFragment
-                fab.visibility=View.VISIBLE
+                fab.visibility = View.VISIBLE
 
 //                fm.beginTransaction()
 //                    .detach(newTicketFragment)
@@ -220,7 +257,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
                 active = ticketFragment
 
-                fab.visibility=View.VISIBLE
+                fab.visibility = View.VISIBLE
             }
             1 -> //back from new ticket view
             {
@@ -228,7 +265,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                     .addToBackStack(null)
                     .commit()
-                fab.visibility=View.VISIBLE
+                fab.visibility = View.VISIBLE
                 active = ticketFragment
                 toggleFabMode()
 
@@ -239,20 +276,21 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                     .addToBackStack(null)
                     .commit()
-                fab.visibility=View.VISIBLE
+                fab.visibility = View.VISIBLE
                 active = ticketFragment
 //                toggleFabMode()
 
             }
             3 -> //open ticket details from adapter
             {
+                newTicketFragment=NewTicketFragment()
                 fm.beginTransaction()
                     .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
                     .addToBackStack(null)
                     .commit()
                 newTicketFragment.editMode = AppConstants.CurrentLoginAdmin.IsSuperAdmin
                 active = newTicketFragment
-                fab.visibility=View.INVISIBLE
+                fab.visibility = View.INVISIBLE
 
             }
 
@@ -276,12 +314,27 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             }
             6 -> // open tasks view in edit mode
             {
-                newTaskFragment = NewTaskFragment()
-                fm.beginTransaction()
-                    .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
-                    .addToBackStack(null)
-                    .commit()
-                newTaskFragment.editMode = true
+                if(courierFragment.searchMode)
+                {
+                    fm.beginTransaction().show(newTaskFragment)
+                        .commit()
+                    //remove courier view
+                    courierFragment.searchMode=false
+                    fm.beginTransaction().remove(courierFragment).commit()
+
+                }
+                else
+                {
+                    newTaskFragment = NewTaskFragment()
+                    newTaskFragment.editMode = true
+                    fm.beginTransaction()
+                        .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
+                        .addToBackStack(null)
+                        .commit()
+
+
+                }
+
                 active = newTaskFragment
 
             }
@@ -301,7 +354,8 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             {
                 courierFragment.searchMode = true
 
-                if (fm.findFragmentByTag("newTaskFragment") != null) {
+//                if (fm.findFragmentByTag("newTaskFragment") != null) {
+                if (active==newTaskFragment) {
 
                     //hide new task view
                     fm.beginTransaction().hide(active).commit()
@@ -335,7 +389,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                     .addToBackStack(null)
                     .commit()
-                fab.visibility=View.VISIBLE
+                fab.visibility = View.VISIBLE
                 active = ticketFragment
                 toggleFabMode()
 
@@ -348,9 +402,9 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                         .replace(R.id.layout_container, ticketFragment, "ticketFragment")
                         .addToBackStack(null)
                         .commit()
-                    fab.visibility=View.VISIBLE
+                    fab.visibility = View.VISIBLE
                     active = ticketFragment
-                    fab.visibility=View.VISIBLE
+                    fab.visibility = View.VISIBLE
                 }
             }
 
@@ -407,13 +461,26 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     @SuppressLint("RestrictedApi")
     private fun init() {
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                super.onLocationResult(p0)
+
+                lastLocation = p0.lastLocation
+
+//                placeMarkerOnMap(LatLng(lastLocation.latitude, lastLocation.longitude))
+            }
+        }
+        createLocationRequest()
+
+
         setUpBottomAppBar()
 
         fm.beginTransaction()
             .replace(R.id.layout_container, ticketFragment, "ticketFragment")
             .commit()
         active = ticketFragment
-        fab.visibility=View.VISIBLE
+        fab.visibility = View.VISIBLE
 
         fab.setOnClickListener {
 
@@ -429,7 +496,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
                 active = newTicketFragment
 
-                fab.visibility=View.INVISIBLE
+                fab.visibility = View.INVISIBLE
             }
 //            else if (active == newTicketFragment && newTicketFragment.editMode) {
 //                newTaskFragment.editMode = false
@@ -539,7 +606,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 R.id.action_find_couriers -> {
 //                    toggleFabMode()
                     if (NetworkManager().isNetworkAvailable(this)) {
-                        courierFragment.searchMode = false
+                        courierFragment= CourierFragment()
                         fm.beginTransaction()
                             .replace(R.id.layout_container, courierFragment, "courierFragment")
                             .addToBackStack(null)
@@ -606,6 +673,238 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //        }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
+        Log.i(TAG, "onRequestPermissionResult")
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.size <= 0) {
+                // If user interaction was interrupted, the permission request is cancelled and you
+                // receive empty arrays.
+                Log.i(TAG, "User interaction was cancelled.")
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission was granted.
+                if (!locationUpdateState) {
+                    startLocationUpdates()
+                }
+            } else {
+                // Permission denied.
+//                setButtonsState(false)
+                Snackbar.make(
+                    findViewById(R.id.rlParent),
+                    R.string.permission_denied_explanation,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(R.string.settings) {
+                        // Build intent that displays the App settings screen.
+                        val intent = Intent()
+                        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        val uri = Uri.fromParts(
+                            "package",
+                            BuildConfig.APPLICATION_ID, null
+                        )
+                        intent.data = uri
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                    }
+                    .show()
+            }
+        }
+    }
+    private fun startLocationUpdates() {
+        //1
+        if (ActivityCompat.checkSelfPermission(
+              this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                AppConstants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
+            )
+            return
+        }
+        //2
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            null /* Looper */
+        )
+    }
+
+    private fun checkPermissions(): Boolean {
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+    }
+    private fun requestPermissions() {
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+        // Provide an additional rationale to the user. This would happen if the user denied the
+        // request previously, but didn't check the "Don't ask again" checkbox.
+        if (shouldProvideRationale) {
+            Log.i(TAG, "Displaying permission rationale to provide additional context.")
+            Snackbar.make(
+                findViewById(R.id.coordinatorLayout),
+                R.string.permission_rationale,
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction(R.string.ok) {
+                    // Request permission
+                    ActivityCompat.requestPermissions(
+                        this@TicketActivity,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        LOCATION_PERMISSION_REQUEST_CODE
+                    )
+                }
+                .show()
+        } else {
+            Log.i(TAG, "Requesting permission")
+            // Request permission. It's possible this can be auto answered if device policy
+            // sets the permission in a given state or the user denied the permission
+            // previously and checked "Never ask again".
+            ActivityCompat.requestPermissions(
+                this@TicketActivity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    public override fun onResume() {
+        super.onResume()
+//        if (!locationUpdateState) {
+//            startLocationUpdates()
+//        }
+//        forceUpdate()
+    }
+
+    private fun createLocationRequest() {
+        // 1
+        locationRequest = LocationRequest()
+        // 2
+        locationRequest.interval = 10000
+        // 3
+        locationRequest.fastestInterval = 5000
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+
+        // 4
+        val client = LocationServices.getSettingsClient(this)
+        val task = client.checkLocationSettings(builder.build())
+
+        // 5
+        task.addOnSuccessListener {
+            locationUpdateState = true
+            startLocationUpdates()
+        }
+        task.addOnFailureListener { e ->
+            // 6
+            if (e is ResolvableApiException) {
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    e.startResolutionForResult(
+                        this,
+                        REQUEST_CHECK_SETTINGS
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
+    }
+
+    private fun forceUpdate() {
+//        Alert.showProgress(this)
+        if (NetworkManager().isNetworkAvailable(this)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.forceUpdate()
+            NetworkManager().request(endPoint, object : INetworkCallBack<ApiResponse<String>> {
+                override fun onFailed(error: String) {
+//                    Alert.hideProgress()
+                    Alert.showMessage(
+                        this@TicketActivity,
+                        getString(R.string.no_internet)
+                    )
+                }
+
+                override fun onSuccess(response: ApiResponse<String>) {
+                    if (response.Status == AppConstants.STATUS_SUCCESS) {
+                        //stop  tracking service
+                        lastVerion = response.ResponseObj!!.toInt()
+                        if (lastVerion > BuildConfig.VERSION_CODE)
+                            showDilogUpdate()
+
+//                        Alert.hideProgress()
+
+                    } else {
+//                        Alert.hideProgress()
+                        Alert.showMessage(
+                            this@TicketActivity,
+                            getString(R.string.error_network)
+                        )
+                    }
+
+                }
+            })
+
+        } else {
+//            Alert.hideProgress()
+            Alert.showMessage(
+                this@TicketActivity,
+                getString(R.string.no_internet)
+            )
+        }
+
+
+    }
+
+    private fun showDilogUpdate() {
+        val builder = android.app.AlertDialog.Builder(this@TicketActivity)
+        builder.setTitle(getString(R.string.update))
+        builder.setMessage(getString(R.string.please_update))
+        builder.setPositiveButton(getString(R.string.update_now)) { dialogInterface, i ->
+            val uri = Uri.parse("market://details?id=com.kadabra.agent")
+            val goToMarket = Intent(Intent.ACTION_VIEW, uri)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                goToMarket.addFlags(
+                    Intent.FLAG_ACTIVITY_NO_HISTORY or
+                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                )
+                startActivity(goToMarket)
+            } else {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=com.kadabra.agent")
+                    )
+                )
+            }
+        }
+        val alertDialog = builder.create()
+        alertDialog.setCancelable(false)
+        if (!this@TicketActivity.isFinishing) {
+            alertDialog.show()
+        }
+    }
 
 //endregion
 

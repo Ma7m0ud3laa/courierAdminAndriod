@@ -155,8 +155,62 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
                                 prepareTicketData(ticketList)
+                                AppConstants.GetALLTicket=ticketList
                                 Alert.hideProgress()
                                 getAllCouriers()
+                            } else {//no taskModel
+                                tvEmptyData!!.visibility = View.VISIBLE
+                                Alert.hideProgress()
+                            }
+
+                        } else {
+                            sRefresh!!.isRefreshing = false
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            ivNoInternet!!.visibility = View.VISIBLE
+            sRefresh!!.isRefreshing = false
+            Alert.hideProgress()
+            Alert.showMessage(context!!, getString(R.string.no_internet))
+        }
+
+
+    }
+
+    private fun loadTicketsPerPge( noOfItems:Int,pageNo:Int) {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            ivNoInternet!!.visibility = View.INVISIBLE
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getAllTicketsByPage(noOfItems ,pageNo)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
+                    override fun onFailed(error: String) {
+                        sRefresh!!.isRefreshing = false
+                        Alert.hideProgress()
+                        Alert.showMessage(context!!, getString(R.string.error_login_server_error))
+                    }
+
+                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            sRefresh!!.isRefreshing = false
+                            tvEmptyData!!.visibility = View.INVISIBLE
+                            ticketList = response.ResponseObj!!
+                            AppConstants.GetALLTicket = ticketList
+                            if (ticketList.size > 0) {
+                                prepareTicketData(ticketList)
+                                AppConstants.GetALLTicket=ticketList
+                                Alert.hideProgress()
+//                                getAllCouriers()
                             } else {//no taskModel
                                 tvEmptyData!!.visibility = View.VISIBLE
                                 Alert.hideProgress()

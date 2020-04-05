@@ -1,10 +1,12 @@
 package com.kadabra.agent.firebase
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.iid.FirebaseInstanceId
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.location
@@ -38,7 +40,10 @@ object FirebaseManager {
     }
 
     fun setUpFirebase() {
-
+        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener { instanceIdResult ->
+            token = instanceIdResult.token
+            Log.d("Token", token)
+        }
         auth = FirebaseAuth.getInstance()
         firebaseDatabase = FirebaseDatabase.getInstance()
         dbCourier = firebaseDatabase.getReference(dbNameCourier)

@@ -56,6 +56,8 @@ class NetworkManager {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
         val client = OkHttpClient.Builder()
+//            .followRedirects(false)
+//            .followSslRedirects(false)
             .addInterceptor(interceptor).build()
 /////
         var builder = Retrofit.Builder()

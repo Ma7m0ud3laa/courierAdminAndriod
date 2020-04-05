@@ -1,17 +1,35 @@
 package com.kadabra.agent.adapter
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.NonNull
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.firebase.LocationHelper
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 
 
 /**
@@ -23,6 +41,7 @@ class TicketAdapter(
     private val ticketList: ArrayList<Ticket>,
     private val _ticketListener: IBottomSheetCallback
 
+
 ) : RecyclerView.Adapter<TicketAdapter.MyViewHolder>() {
 
     private val inflater: LayoutInflater = LayoutInflater.from(context)
@@ -31,6 +50,8 @@ class TicketAdapter(
     private var taskStops = ArrayList<Stop>()
     private var listener: IBottomSheetCallback? = null
     private var totalTasksAmount = 0.0
+    private val VIEW_TYPE_ITEM = 0
+    private val VIEW_TYPE_LOADING = 1
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TicketAdapter.MyViewHolder {
 
@@ -43,6 +64,10 @@ class TicketAdapter(
     override fun onBindViewHolder(holder: TicketAdapter.MyViewHolder, position: Int) {
         ticket = ticketList[position]
         taskList = ticket.taskModel
+
+//        if (holder is MyViewHolder) {
+//
+
 
         holder.tvStatus.text = ticket.Status
         holder.tvTicketName.text = ticket.TicketName
@@ -71,9 +96,7 @@ class TicketAdapter(
         if (totalTasksAmount > 0) {
             holder.tvPrice.text =
                 totalTasksAmount.toString() + " " + context.getString(R.string.le)
-        }
-
-        else
+        } else
             holder.tvPrice.text = "0 " + context.getString(R.string.le)
 
 
@@ -85,13 +108,19 @@ class TicketAdapter(
                 holder.tvStatus.setTextColor(context.getColor(R.color.crimson))
             }
             AppConstants.TaskStatus.POST_PONDED.status -> {
-                holder.tvStatus.setTextColor(context.getColor(R.color.greenYellow))
+                holder.tvStatus.setTextColor(context.getColor(R.color.black))
             }
             AppConstants.TaskStatus.COMPLETED.status -> {
                 holder.tvStatus.setTextColor(context.getColor(R.color.green))
             }
 
         }
+
+//        } else  {
+
+//           var holder=LoadingViewHolder()
+//            showLoadingView(holder, position)
+//        }
     }
 
     override fun getItemCount(): Int {
@@ -119,9 +148,25 @@ class TicketAdapter(
             itemView.setOnClickListener {
                 val pos = adapterPosition
                 ticket = ticketList[pos]
+//
+//                if (checkPermissions()&& LocationHelper.shared.isGPSEnabled()) {
                 AppConstants.CurrentSelectedTicket = ticket
-//                if(AppConstants.CurrentLoginAdmin.IsSuperAdmin)
                 listener!!.onBottomSheetSelectedItem(3)
+//                }
+//                else
+//                {
+//                    if(!checkPermissions())
+//                        Alert.showMessage(
+//                            context,
+//                            context.getString(R.string.permission_rationale)
+//                        )
+//                    else if(!LocationHelper.shared.isGPSEnabled())
+//                        Alert.showMessage(
+//                            context,
+//                            context.getString(R.string.error_gps)
+//                        )
+//                }
+
 
             }
 
@@ -131,12 +176,21 @@ class TicketAdapter(
 
     }
 
-    enum class StatusType(var status: String) {
-        NEW("New"),
-        POST_PONDED("FEB"),
-        IN_PROGRESS("In progress"),
-        DIS_PAUSED("In progress");
+     inner class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+        internal var progressBar: ProgressBar = itemView.findViewById(R.id.progressBar)
+
     }
+
+
+
+
+    private fun showLoadingView(viewHolder: LoadingViewHolder, position: Int) {
+        //ProgressBar would be displayed
+
+    }
+
+
 
 
 }

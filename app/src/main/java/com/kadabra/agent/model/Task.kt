@@ -70,6 +70,9 @@ var TaskId: String = ""
     @get:Exclude
     lateinit var location: location
     var isActive: Boolean = false
+    @set:Exclude
+    @get:Exclude
+    var Status = ""
 
 
 

@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ticket.NewTicketFragment">
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <ScrollView
         android:id="@+id/scroll"
@@ -20,6 +24,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
 
             <RelativeLayout
                 android:id="@+id/rlParent"
@@ -93,15 +98,25 @@
                         android:inputType="text"
                         android:selectAllOnFocus="true"
                         android:textSize="15sp" />
-
+                    <com.hbb20.CountryCodePicker
+                        android:id="@+id/ccp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/etTicketDescription"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="15dp"
+                        app:ccp_showFullName="true"
+                        app:ccp_showPhoneCode="false"
+                        app:ccp_showNameCode="false"/>
                     <EditText
                         android:id="@+id/etMobile"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/etTicketDescription"
-                        android:layout_marginStart="24dp"
+                        android:layout_marginStart="10dp"
                         android:layout_marginTop="15dp"
                         android:layout_marginEnd="24dp"
+                        android:layout_toEndOf="@+id/ccp"
                         android:digits="0123456789"
                         android:maxLength="11"
                         android:hint="@string/user_mobile"
@@ -377,9 +392,11 @@
                         android:textColor="@color/colorSecondary"
                         android:textSize="20sp" />
                 </RelativeLayout>
+
             </ScrollView>
 
 
         </RelativeLayout>
     </ScrollView>
-</FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</RelativeLayout>

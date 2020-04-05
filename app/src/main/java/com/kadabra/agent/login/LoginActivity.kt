@@ -3,6 +3,7 @@ package com.kadabra.agent.login
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import com.reach.plus.admin.util.UserSessionManager
 import com.kadabra.Networking.INetworkCallBack
@@ -10,6 +11,7 @@ import com.kadabra.Networking.NetworkManager
 import com.kadabra.agent.R
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
+import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.model.Admin
 import com.kadabra.agent.ticket.TicketActivity
 import com.kadabra.agent.utilities.Alert
@@ -20,11 +22,15 @@ class LoginActivity : AppCompatActivity() {
 
 
     //region Members
+    private var TAG=this.javaClass.simpleName
     private var admin: Admin = Admin()
 
     //endregion
     //region Helper Functions
     private fun init() {
+
+
+
         btnLogIn.setOnClickListener {
 
             if (validateData()) {
@@ -70,9 +76,13 @@ class LoginActivity : AppCompatActivity() {
 
                 override fun onSuccess(response: ApiResponse<Admin>) {
                     if (response.Status == AppConstants.STATUS_SUCCESS) {
-                        Alert.hideProgress()
                         admin = response.ResponseObj!!
+                        sendUserToken(admin.AdminId, FirebaseManager.token)
+                        Alert.hideProgress()
+
                         saveUserData(admin)
+
+
                     } else if (response.Status == AppConstants.STATUS_FAILED) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -95,6 +105,32 @@ class LoginActivity : AppCompatActivity() {
             Alert.showMessage(this@LoginActivity, getString(R.string.no_internet))
         }
         return admin
+    }
+
+    private fun sendUserToken(id: String, token: String) {
+        if (NetworkManager().isNetworkAvailable(this)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.setAdminToken(id, token)
+            NetworkManager().request(endPoint, object : INetworkCallBack<ApiResponse<Boolean>> {
+                override fun onSuccess(response: ApiResponse<Boolean>) {
+                    Log.d(TAG, "SEND TOKEN - API - SUCCESSFULLY.")
+                }
+
+                override fun onFailed(error: String) {
+                    Log.d(TAG, "SEND TOKEN - API - FAILED.")
+                    Alert.showMessage(
+                        this@LoginActivity,
+                        getString(R.string.error_login_server_error)
+                    )
+                }
+            })
+
+
+        } else {
+            Log.d(TAG, "SEND TOKEN - API - NO INTERNET.")
+            Alert.showMessage(this@LoginActivity, getString(R.string.no_internet))
+        }
+
     }
 
     private fun saveUserData(admin: Admin) {

@@ -6,7 +6,10 @@
     android:layout_height="match_parent"
     android:focusableInTouchMode="true"
     tools:context=".task.NewTaskFragment">
-
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
@@ -68,12 +71,30 @@
                     android:visibility="invisible" />
 
             </RelativeLayout>
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_below="@+id/rlBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerHorizontal="true"
 
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="10dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/status"
+                android:textColor="@color/colorApp"
+                android:textSize="18sp"
+                android:textStyle="bold|italic"
+                 />
             <LinearLayout
                 android:id="@+id/llTicketData"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/rlBack"
+                android:layout_below="@+id/tvStatus"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="24dp"
@@ -374,5 +395,5 @@
         </RelativeLayout>
 
     </ScrollView>
-
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </FrameLayout>

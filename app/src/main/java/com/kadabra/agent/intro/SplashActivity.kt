@@ -14,6 +14,7 @@ import com.kadabra.agent.ticket.TicketActivity
 import com.kadabra.agent.R
 import com.kadabra.agent.exception.CrashActivity
 import com.kadabra.agent.exception.CrashHandeller
+import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.login.LoginActivity
 import com.kadabra.agent.utilities.AppConstants
 import kotlinx.android.synthetic.main.activity_splash.*
@@ -29,7 +30,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-
+        FirebaseManager.setUpFirebase()
         init()
 
     }

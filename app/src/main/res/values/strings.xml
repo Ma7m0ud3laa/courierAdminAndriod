@@ -70,12 +70,13 @@
 
     <string name="no_ticket_available">No Ticket Available</string>
     <string name="add_new">Add+</string>
+ <string name="new_status">New</string>
 
     <string name="select_status">Select Status ...</string>
     <string name="select_ticket">Select Ticket ...</string>
     <string name="select_task">Select Task ...</string>
     <string name="select_courier">Select Courier ...</string>
-    <string name="select_payment_method">Select Payment Method ...</string>
+    <string name="select_payment_method">Select Payment ...</string>
     <string name="select_priority">Select Priority ...</string>
     <string name="select_category">Select Category ...</string>
     <string name="category">Category</string>
@@ -86,6 +87,7 @@
     <string name="stop_name">Stop Name</string>
     <string name="task_details">Task Details</string>
     <string name="new_task">New Task</string>
+
 
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
@@ -114,11 +116,18 @@
         functionality.</string>
     <string name="ok">ok</string>
     <string name="no">No</string>
+    <string name="cancel">Cancel</string>
     <string name="ticket_details">Ticket Details</string>
     <string name="new_ticket">New Ticket</string>
     <string name="new_service_cost">Add Service Cost</string>
     <string name="service_cost_name">Service Cost Name</string>
     <string name="service_cost_cost">Cost</string>
+    <string name="permission_rationale">Location permission is needed for core functionality</string>
+    <string name="settings">Settings</string>
+    <string name="permission_denied">Denied</string>
+    <string name="error_permission">Permission to access device location is permanently denied. you need to go to setting to allow the permission.</string>
+    <string name="please_update">Please Update Your App</string>
+    <string name="update_now">Update Now</string>
 
 
 </resources>

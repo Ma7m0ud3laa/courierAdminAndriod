@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -25,6 +26,9 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
 
     private var closeButton: ImageView? = null
     private var listener: IBottomSheetCallback? = null
+    private var tvName: TextView? = null
+    private var tvEmail: TextView? = null
+
     //Bottom Sheet Callback
     private val mBottomSheetBehaviorCallback =
         object : BottomSheetBehavior.BottomSheetCallback(), IBottomSheetCallback {
@@ -73,12 +77,21 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
     @SuppressLint("RestrictedApi")
     override fun setupDialog(dialog: Dialog, style: Int) {
         super.setupDialog(dialog, style)
+        var admin = UserSessionManager.getInstance(
+            AppController.getContext()
+        ).getUserData()
         //Get the content View
         val contentView = View.inflate(context, R.layout.bottom_navigation_drawer, null)
         dialog.setContentView(contentView)
 
         val navigationView = contentView.findViewById<NavigationView>(R.id.navigation_view)
+        tvName = contentView.findViewById<TextView>(R.id.user_name)
+         tvEmail = contentView.findViewById<TextView>(R.id.user_email)
+        if (!admin!!.AdminId.isNullOrEmpty()) {
+            tvName?.text = admin.AdminName
+            tvEmail?.text = admin.AdminMobile
 
+        }
         //implement navigation menu item click event
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -126,8 +139,7 @@ class BottomSheetNavigationFragment : BottomSheetDialogFragment() {
     }
 
     private fun logOut() {
-        UserSessionManager.getInstance(AppController.getContext()).setUserData(null)
-        UserSessionManager.getInstance(AppController.getContext()).setIsLogined(false)
+        UserSessionManager.getInstance(AppController.getContext()).logout()
         listener!!.onBottomSheetSelectedItem(14)
         dismiss()
     }

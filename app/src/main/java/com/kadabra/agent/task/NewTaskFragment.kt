@@ -1,12 +1,14 @@
 package com.kadabra.agent.task
 
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.kadabra.Networking.INetworkCallBack
@@ -25,9 +27,11 @@ import com.kadabra.agent.R
 import com.kadabra.agent.utilities.*
 import android.widget.Spinner
 import androidx.core.view.isVisible
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.callback.ITaskCallback
 import com.kadabra.agent.model.*
+import com.kadabra.agent.utilities.Alert.hideProgress
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -78,6 +82,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var etLongitude: EditText
     private lateinit var rvStops: RecyclerView
     private lateinit var btnSave: Button
+    private lateinit var tvStatus: TextView
+    private lateinit var refresh: SwipeRefreshLayout
     //endregion
 
     //region Events
@@ -143,8 +149,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else
             stopsList.remove(stop)
-        var stopModel = stopsModelList.find { it.stopName == stop.StopName }
-        stopsModelList.remove(stopModel)
+        loadTaskStops(stopsList)
+//        var stopModel = stopsModelList.find { it.stopName == stop.StopName }
+//        stopsModelList.remove(stopModel)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -170,7 +177,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
             R.id.tvDeleteTask -> {
-                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty()) {
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != "In progress") {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
@@ -182,7 +189,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
                         .show()
 
-                }
+                } else
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't delete this task is in progress."
+                    )
             }
             R.id.tvAddStop -> {
                 if (!rlStops.isVisible)
@@ -204,6 +216,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.tvGetLocation -> {
+                hideKeyboard(tvGetLocation)
                 //to do open map and get selected location
                 listener!!.onBottomSheetSelectedItem(8)
             }
@@ -211,6 +224,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             R.id.btnAddStopLocation -> {
                 context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                 if (validateStopData()) {
+                    hideKeyboard(btnAddStopLocation)
+                    etStopName.requestFocus()
+
                     var stopName = etStopName.text.toString()
                     var stopTypeId = sStopType.selectedItemPosition + 1
                     var stopType = sStopType.selectedItem.toString()
@@ -237,6 +253,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             R.id.btnSave -> {
                 if (validateAll()) {
+                    hideKeyboard(btnSave)
                     prepareTaskData()
                     if (!editMode) {
                         addTask(taskModel)
@@ -255,11 +272,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     //region Helper Functions
     private fun init() {
         scroll = currentView.findViewById(R.id.scroll)
+        refresh = currentView!!.findViewById(R.id.refresh)
         ivBack = currentView!!.findViewById(R.id.ivBack)
         tvTaskDetails = currentView!!.findViewById(R.id.tvTaskDetails)
         tvDeleteTask = currentView!!.findViewById(R.id.tvDeleteTask)
         etTaskName = currentView!!.findViewById(R.id.etTaskName)
         etTaskDescription = currentView!!.findViewById(R.id.etTaskDescription)
+        tvStatus = currentView!!.findViewById(R.id.tvStatus)
 
         sTicket = currentView!!.findViewById(R.id.sTicket)
         sCourier = currentView!!.findViewById(R.id.sCourier)
@@ -289,9 +308,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
 
-        getAllCouriers()
+//        getAllCouriers()
 //        prepareTickets()
-//        prepareCourier(AppConstants.ALL_COURIERS)
+        prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
 
 
@@ -308,6 +327,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             defaultTaskData()
 
 
+        refresh.setOnRefreshListener {
+            if (editMode)
+                getTaskDetails(AppConstants.CurrentSelectedTask.TaskId)
+            else
+                refresh.isRefreshing = false
+        }
+
     }
 
     private fun defaultTaskData() {
@@ -320,8 +346,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         etTaskName.hint = context!!.getString(R.string.task_name)
         etTaskDescription.hint = context!!.getString(R.string.task_description)
+        tvStatus.text = getString(R.string.new_status)
 
-        sCourier.setText(context!!.getString(R.string.select_courier))
+//        sCourier.setText(context!!.getString(R.string.select_courier))
         etAmount!!.hint = context!!.getString(R.string.amount)
 
         rvStops.adapter = null
@@ -340,7 +367,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (!task.TaskName.trim().isNullOrEmpty())
             etTaskName.setText(task.TaskName)
 
-        if (task.TaskDescription!=null&&!task.TaskDescription.isNullOrEmpty())
+
+            tvStatus.text = task.Status
+
+        if (task.TaskDescription != null && !task.TaskDescription.isNullOrEmpty())
             etTaskDescription.setText(task.TaskDescription)
 
         if (task.CourierID != null) {
@@ -353,9 +383,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         if (task.stopsmodel.count() > 0) {
 
-            rlStops.visibility=View.VISIBLE
+            rlStops.visibility = View.VISIBLE
 
             stopsList = task.stopsmodel
+
 
             loadTaskStops(task.stopsmodel)
 
@@ -367,7 +398,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private fun prepareTaskModelData(task: Task) {
 
         taskModel.taskName = task.TaskName
-        taskModel.TaskDescription=task.TaskDescription
+        taskModel.TaskDescription = task.TaskDescription
         taskModel.amount = task.Amount
         taskModel.ticketID = task.TicketId
         taskModel.courierId = task.CourierID
@@ -380,20 +411,21 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             taskModel.modifiedBy = task.AddedBy
         }
 
+        taskModel.stopsmodels.clear()
         task.stopsmodel.forEach {
 
-            if (it.status == 0) // new
-            {
-                taskModel.stopsmodels!!.add(
-                    Stopsmodel(
-                        it.StopName,
-                        it.Latitude!!,
-                        it.Longitude!!,
-                        it.addedBy,
-                        it.StopTypeID
-                    )
+            //            if (it.status == 0) // new
+//            {
+            taskModel.stopsmodels!!.add(
+                Stopsmodel(
+                    it.StopName,
+                    it.Latitude!!,
+                    it.Longitude!!,
+                    task.AddedBy,
+                    it.StopTypeID
                 )
-            }
+            )
+//            }
         }
 
     }
@@ -405,29 +437,22 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             AnimateScroll.scrollToView(scroll, etTaskName)
             etTaskName.requestFocus()
             return false
-        }
-
-        else if (etTaskDescription.text.toString().isNullOrEmpty()) {
+        } else if (etTaskDescription.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "TaskName Description is required.")
             AnimateScroll.scrollToView(scroll, etTaskDescription)
             etTaskDescription.requestFocus()
             return false
-        }
-
-
-        else if (etAmount.text.toString().isNullOrEmpty()) {
+        } else if (etAmount.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "Amount is required.")
             AnimateScroll.scrollToView(scroll, etAmount)
             etAmount.requestFocus()
             return false
-        }
-        else if (selectedCourier.CourierId==null) {
+        } else if (selectedCourier.CourierId == null) {
             Alert.showMessage(context!!, "Courier is required.")
             AnimateScroll.scrollToView(scroll, sCourier)
             sCourier.showDropDown()
             return false
-        }
-        else if (rlStops.isVisible &&
+        } else if (rlStops.isVisible &&
             etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
         ) {
 
@@ -452,7 +477,16 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var taskId = AppConstants.CurrentSelectedTask.TaskId
         var courierId = selectedCourier.CourierId
 
-        task = Task(taskName,taskDescription, amount, addedBY, ticketId!!, taskId, courierId!!, stopsList)
+        task = Task(
+            taskName,
+            taskDescription,
+            amount,
+            addedBY,
+            ticketId!!,
+            taskId,
+            courierId!!,
+            stopsList
+        )
         prepareTaskModelData(task)
 
     }
@@ -630,6 +664,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
                             stopsList = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTask.stopsmodel = stopsList
                             loadTaskStops(stopsList)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
@@ -964,15 +999,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun addStopToStopList(stop: Stop) {
         stopsList.add(stop)
-        stopsModelList.add(
-            Stopsmodel(
-                stop.StopName,
-                stop.Latitude!!,
-                stop.Longitude!!,
-                stop.addedBy,
-                stop.StopTypeID
-            )
-        )
+//        stopsModelList.add(
+//            Stopsmodel(
+//                stop.StopName,
+//                stop.Latitude!!,
+//                stop.Longitude!!,
+//                stop.addedBy,
+//                stop.StopTypeID
+//            )
+//        )
 
         var adapter = StopAdapter(context!!, stopsList, this)
         rvStops.adapter = adapter
@@ -1098,6 +1133,63 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         return jResult
     }
+
+    fun hideKeyboard(view: View) {
+        val inputMethodManager =
+            context!!.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager!!.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun getTaskDetails(taskId: String) {
+        refresh.isRefreshing = false
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getTaskDetails(taskId)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<Task>> {
+                    override fun onFailed(error: String) {
+                        hideProgress()
+                        refresh.isRefreshing = false
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<Task>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            hideProgress()
+                            refresh.isRefreshing = false
+                            task = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTask = task
+                            loadTaskData(task)
+
+                        } else {
+                            hideProgress()
+                            refresh.isRefreshing = false
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            hideProgress()
+            refresh.isRefreshing = false
+            Alert.showMessage(
+                context!!,
+                getString(R.string.no_internet)
+            )
+        }
+
+
+    }
+
 //endregion
 
 

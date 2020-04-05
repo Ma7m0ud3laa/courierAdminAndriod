@@ -35,6 +35,22 @@
             android:textColor="@color/colorApp"
             android:textSize="13sp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="10dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="@string/status"
+            android:textColor="@color/colorApp"
+            android:textSize="11sp"
+            android:textStyle="bold|italic" />
 
 
         <TextView
