@@ -76,9 +76,12 @@ class NetworkManager {
         var s = endPoint.request().url
         endPoint.enqueue(object : Callback<U> {
             override fun onResponse(call: Call<U>?, response: retrofit2.Response<U>?) {
+
                 print(response?.body().toString())
                 Log.d("Mokhtar", response?.body().toString())
+                // send crah latycs api name +devic type +response+request
                 if (response!!.isSuccessful) {
+
                     callback.onSuccess(response.body()!!)
                 } else {
                     when (response.code()) {

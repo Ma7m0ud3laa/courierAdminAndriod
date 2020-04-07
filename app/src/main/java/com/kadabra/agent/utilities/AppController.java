@@ -25,11 +25,11 @@ public class AppController extends Application {
         else
             LanguageUtil.changeLanguageType(mContext, new Locale(AppConstants.INSTANCE.getARABIC()));
 
-        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-                .setDefaultFontPath("fonts/Montserrat-Regular.otf")
-                .setFontAttrId(R.attr.fontPath)
-                .build()
-        );
+//        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
+//                .setDefaultFontPath("font/avenir_book.ttf")
+//                .setFontAttrId(R.attr.fontPath)
+//                .build()
+//        );
     }
 
 

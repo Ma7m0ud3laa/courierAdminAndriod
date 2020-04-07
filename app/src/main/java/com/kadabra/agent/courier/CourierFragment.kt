@@ -1,9 +1,6 @@
 package com.kadabra.agent.courier
 
-import android.Manifest
-import android.app.Activity
-import android.app.Activity.RESULT_OK
-import android.app.AlertDialog
+
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.content.DialogInterface
@@ -81,15 +78,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var ivBack: ImageView
     private lateinit var ivSearchMarker: ImageView
     private lateinit var btnConfirmLocation: Button
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var lastLocation: Location? = null
-    private lateinit var locationCallback: LocationCallback
-    private lateinit var locationRequest: LocationRequest
-    private var locationUpdateState = false
+
     private var firstTimeFlag = true
     private var listener: IBottomSheetCallback? = null
     var searchMode = false
-    var isMoving = false
     private var isFirstTime = true
     private var currentMarker: Marker? = null
     private var stop: Stop = Stop()
@@ -117,29 +109,18 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var mapView: View? = null
     //endregion
 
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        private const val REQUEST_CHECK_SETTINGS = 2
-        private const val PLACE_PICKER_REQUEST = 3
-
-
-    }
 
     //region Events
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        checkLocationPermission()
         FirebaseManager.setUpFirebase()
-
-
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         // Inflate the layout for this fragment
         currentView = inflater.inflate(R.layout.fragment_courier, container, false)
         ivBack = currentView.findViewById(R.id.ivBack)
@@ -156,7 +137,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         mapView = mapFragment!!.view
 
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
         Places.initialize(context!!, context!!.getString(R.string.google_maps_key))
         placesClient = Places.createClient(context!!)
         val token = AutocompleteSessionToken.newInstance()
@@ -275,15 +255,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
         ///////////////////////////////////////////////////
 
-//        ivBack.setOnClickListener {
-//            if (searchMode)
-//                listener?.onBottomSheetSelectedItem(6)
-//            else
-//                listener?.onBottomSheetSelectedItem(2)
-//        }
-//        btnConfirmLocation.setOnClickListener {
-//            getFullLocationData(selectedLatLng.latitude, selectedLatLng.longitude)
-//        }
 
         if (searchMode) {
             btnConfirmLocation.visibility = View.VISIBLE
@@ -298,130 +269,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        init()
 
-//        var mapFragment =
-//            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-//        mapFragment?.getMapAsync(this)
-//        mapView = mapFragment!!.view
-//
-//
-//
-//        Places.initialize(context!!, getString(R.string.google_maps_key))
-//        placesClient = Places.createClient(context!!)
-//        val token = AutocompleteSessionToken.newInstance()
-//
-//
-//        materialSearchBar!!.setOnSearchActionListener(object :
-//            MaterialSearchBar.OnSearchActionListener {
-//            override fun onSearchStateChanged(enabled: Boolean) {
-//
-//            }
-//
-//            override fun onSearchConfirmed(text: CharSequence) {
-//                activity!!.startSearch(text.toString(), true, null, true)
-//            }
-//
-//            override fun onButtonClicked(buttonCode: Int) {
-//                if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
-//                    //opening or closing a navigation drawer
-//                } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-//                    materialSearchBar!!.disableSearch()
-//                }
-//            }
-//        })
-//
-//        materialSearchBar!!.addTextChangeListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-//
-//            }
-//
-//            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-//                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-//                    .setTypeFilter(TypeFilter.ADDRESS)
-//                    .setSessionToken(token!!)
-//                    .setQuery(s.toString())
-//                    .build()
-//                placesClient!!.findAutocompletePredictions(predictionsRequest)
-//                    .addOnCompleteListener { task ->
-//                        if (task.isSuccessful) {
-//                            val predictionsResponse = task.result
-//                            if (predictionsResponse != null) {
-//                                predictionList = predictionsResponse.autocompletePredictions
-//                                val suggestionsList = ArrayList<String>()
-//                                for (i in predictionList!!.indices) {
-//                                    val prediction = predictionList!!.get(i)
-//                                    suggestionsList.add(prediction.getFullText(null).toString())
-//                                }
-//                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
-//                                if (!materialSearchBar!!.isSuggestionsVisible) {
-//                                    materialSearchBar!!.showSuggestionsList()
-//                                }
-//                            }
-//                        } else {
-//                            Log.i("mytag", "prediction fetching task unsuccessful")
-//                        }
-//                    }
-//            }
-//
-//            override fun afterTextChanged(s: Editable) {
-//
-//            }
-//        })
-//
-//
-//        materialSearchBar!!.setSuggstionsClickListener(object :
-//            SuggestionsAdapter.OnItemViewClickListener {
-//            override fun OnItemClickListener(position: Int, v: View) {
-//                if (position >= predictionList!!.size) {
-//                    return
-//                }
-//                val selectedPrediction = predictionList!![position]
-//                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-//                materialSearchBar!!.text = suggestion
-//
-//                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-//                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-//                imm?.hideSoftInputFromWindow(
-//                    materialSearchBar!!.windowToken,
-//                    InputMethodManager.HIDE_IMPLICIT_ONLY
-//                )
-//                val placeId = selectedPrediction.placeId
-//                val placeFields = listOf(Place.Field.LAT_LNG)
-//
-//                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
-//                placesClient!!.fetchPlace(fetchPlaceRequest)
-//                    .addOnSuccessListener { fetchPlaceResponse ->
-//                        val place = fetchPlaceResponse.place
-//                        if (place.name != null)
-//                            Log.i("mytag", "Place found: " + place.name)
-//                        else
-//                            Log.i("mytag", "Place found: " + "No Name is found")
-//
-//                        val latLngOfPlace = place.latLng
-//                        if (latLngOfPlace != null) {
-//                            ivSearchMarker.visibility = View.VISIBLE
-//                            mMap.moveCamera(
-//                                CameraUpdateFactory.newLatLngZoom(
-//                                    latLngOfPlace,
-//                                    DEFAULT_ZOOM
-//                                )
-//                            )
-//                        }
-//                    }.addOnFailureListener { e ->
-//                        if (e is ApiException) {
-//                            e.printStackTrace()
-//                            val statusCode = e.statusCode
-//                            Log.i("mytag", "place not found: " + e.message)
-//                            Log.i("mytag", "status code: $statusCode")
-//                        }
-//                    }
-//            }
-//
-//            override fun OnItemDeleteListener(position: Int, v: View) {
-//
-//            }
-//        })
     }
 
 
@@ -456,33 +304,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             layoutParams.setMargins(0, 0, 40, 180)
         }
 
-        //check if gps is enabled or not and then request user to enable it
-        val locationRequest = LocationRequest.create()
-        locationRequest.interval = 10000
-        locationRequest.fastestInterval = 5000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-
-        val settingsClient = LocationServices.getSettingsClient(activity!!)
-        val task = settingsClient.checkLocationSettings(builder.build())
-
-        task.addOnSuccessListener(activity!!,
-            OnSuccessListener<LocationSettingsResponse> { getDeviceLocation()
-            })
-
-        task.addOnFailureListener(activity!!,
-            OnFailureListener { e ->
-                if (e is ResolvableApiException) {
-                    try {
-                        e.startResolutionForResult(activity!!, 51)
-                    } catch (e1: IntentSender.SendIntentException) {
-
-                        e1.printStackTrace()
-                    }
-
-                }
-            })
 
         if (searchMode) {
 
@@ -491,22 +313,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             btnConfirmLocation.visibility = View.VISIBLE
             ivSearchMarker.visibility = View.VISIBLE
 
-            if (lastLocation != null) {
-//                val googlePlex = CameraPosition.builder()
-//                    .target(LatLng(lastLocation!!.latitude, lastLocation!!.longitude))
-//                    .zoom(12f)
-//                    .bearing(0f)
-//                    .tilt(45f)
-//                    .build()
-//
-//                mMap.animateCamera(
-//                    CameraUpdateFactory.newCameraPosition(googlePlex),
-//                    1000,
-//                    null
-//                )
-
-                selectedLatLng = mMap.cameraPosition.target
-            }
+//            selectedLatLng = mMap.cameraPosition.target
 
             mMap.setOnCameraIdleListener {
 
@@ -543,34 +350,18 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         return false
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 51) {
-            if (resultCode == RESULT_OK) {
-                getDeviceLocation()
-            }
-        }
-    }
-
-
-
 
     override fun onPause() {
         super.onPause()
-//        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     public override fun onResume() {
         super.onResume()
-//        if (!locationUpdateState) {
-//            startLocationUpdates()
-//        }
     }
 
     override fun onStart() {
         super.onStart()
-//        if (!checkPermissions())
-//            requestPermissions()
+
     }
 
 
@@ -594,89 +385,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     override fun onDetach() {
         super.onDetach()
         listener = null
-    }
-
-
-    //region Helper Function
-    private fun init() {
-
-
-
-
-        //prepare for update the current location
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult) {
-                super.onLocationResult(p0)
-
-                lastLocation = p0.lastLocation
-                //todo move the marker position
-//                placeMarkerOnMap(LatLng(lastLocation.latitude, lastLocation.longitude))
-            }
-        }
-        createLocationRequest()
-    }
-
-    //update the current location
-    private fun startLocationUpdates() {
-        //1
-        if (ActivityCompat.checkSelfPermission(
-                activity!!,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                activity!!,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-            return
-        }
-        //2
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            null /* Looper */
-        )
-    }
-
-    private fun createLocationRequest() {
-        // 1
-        locationRequest = LocationRequest()
-        // 2
-        locationRequest.interval = 10000
-        // 3
-        locationRequest.fastestInterval = 5000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest)
-
-        // 4
-        val client = LocationServices.getSettingsClient(activity!!)
-        val task = client.checkLocationSettings(builder.build())
-
-        // 5
-        task.addOnSuccessListener {
-            locationUpdateState = true
-            startLocationUpdates()
-        }
-        task.addOnFailureListener { e ->
-            // 6
-            if (e is ResolvableApiException) {
-                // Location settings are not satisfied, but this can be fixed
-                // by showing the user a dialog.
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    e.startResolutionForResult(
-                        activity!!,
-                        REQUEST_CHECK_SETTINGS
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
-            }
-        }
     }
 
 
@@ -815,91 +523,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         )
     }
 
-    private fun checkLocationPermission() {
-        Dexter.withActivity(activity!!)
-            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-            .withListener(object : PermissionListener {
-                override fun onPermissionGranted(response: PermissionGrantedResponse) {
-                    //request location update
-
-                }
-
-                override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                    if (response.isPermanentlyDenied) {
-                        val builder = androidx.appcompat.app.AlertDialog.Builder(context!!)
-                        builder.setTitle(getString(R.string.permission_denied))
-                            .setMessage(getString(R.string.error_permission))
-                            .setNegativeButton(getString(R.string.cancel), null)
-                            .setPositiveButton(getString(R.string.ok)) { _, _ ->
-                                val intent = Intent()
-                                intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                intent.data = Uri.fromParts("package", context!!.packageName, null)
-                            }
-                            .show()
-                    } else {
-                        Toast.makeText(
-                            context!!,
-                            getString(R.string.permission_denied),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permission: PermissionRequest,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            })
-            .check()
-    }
-
-    private fun requestPermissions() {
-        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-            activity!!,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-
-        // Provide an additional rationale to the user. This would happen if the user denied the
-        // request previously, but didn't check the "Don't ask again" checkbox.
-        if (shouldProvideRationale) {
-            Log.i(TAG, "Displaying permission rationale to provide additional context.")
-            Snackbar.make(
-                currentView.findViewById(R.id.rlParent),
-                R.string.permission_rationale,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.ok) {
-                    // Request permission
-                    ActivityCompat.requestPermissions(
-                        activity!!,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        LOCATION_PERMISSION_REQUEST_CODE
-                    )
-                }
-                .show()
-
-        } else {
-            Log.i(TAG, "Requesting permission")
-            // Request permission. It's possible this can be auto answered if device policy
-            // sets the permission in a given state or the user denied the permission
-            // previously and checked "Never ask again".
-            ActivityCompat.requestPermissions(
-                activity!!,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-        }
-    }
-
-    private fun checkPermissions(): Boolean {
-        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
-            activity!!,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-
 
     private fun loadAllCouriersFromFB() {
         var marker: Marker? = null
@@ -911,8 +534,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 if (success) {
                     mMap.clear()
                     data!!.forEach {
-                        if(!it.location.lat.isNullOrEmpty()&&!it.location.long.isNullOrEmpty())
-                        {
+                        if (!it.location.lat.isNullOrEmpty() && !it.location.long.isNullOrEmpty()) {
                             currentLatLng =
                                 LatLng(it.location.lat.toDouble(), it.location.long.toDouble())
 
@@ -940,38 +562,20 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                             markers[marker!!.id] = it
 
                         }
-                        }
+                    }
 
+                    if (markersList!!.size > 0)
+                        prepareGetAllCourierView(markersList)
 
                 }
-
-
-//                val googlePlex = CameraPosition.builder()
-//                    .target(currentLatLng)
-//                    .zoom(14f)
-//                    .bearing(0f)
-//                    .tilt(45f)
-//                    .build()
-
-//                mMap.animateCamera(
-//                    CameraUpdateFactory.newCameraPosition(googlePlex),
-//                    1000,
-//                    null
-//                )
-
-
-                //get all the couriers on the mMap
-//                if (markersList!!.size > 0)
-//                    prepareGetAllCourierView(markersList)
-
             }
-            if (markersList!!.size > 0)
-                prepareGetAllCourierView(markersList)
+
 
         } else
             Alert.showMessage(context!!, getString(R.string.no_internet))
 
     }
+
     private fun setCameraView() {
 
 //        // Set a boundary to start
@@ -1008,56 +612,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     }
 
-    private fun getDeviceLocation() {
-        fusedLocationClient.lastLocation
-            .addOnCompleteListener(OnCompleteListener<Location> { task ->
-                if (task.isSuccessful) {
-                    lastLocation = task.result
-                    if (lastLocation != null) {
-                        mMap.isMyLocationEnabled = true
-                        mMap.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(
-                                    lastLocation!!.latitude,
-                                    lastLocation!!.longitude
-                                ), DEFAULT_ZOOM
-                            )
-                        )
-                    } else {
-                        val locationRequest = LocationRequest.create()
-                        locationRequest.interval = 10000
-                        locationRequest.fastestInterval = 5000
-                        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-                        locationCallback = object : LocationCallback() {
-                            override fun onLocationResult(locationResult: LocationResult?) {
-                                super.onLocationResult(locationResult)
-                                if (locationResult == null) {
-                                    return
-                                }
-                                lastLocation = locationResult.lastLocation
-                                mMap.moveCamera(
-                                    CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(
-                                            lastLocation!!.latitude,
-                                            lastLocation!!.longitude
-                                        ), DEFAULT_ZOOM
-                                    )
-                                )
-                                fusedLocationClient.removeLocationUpdates(locationCallback)
-                            }
-                        }
-                        fusedLocationClient.requestLocationUpdates(
-                            locationRequest,
-                            locationCallback,
-                            null
-                        )
 
-                    }
-                } else {
-                    Alert.showMessage(context!!,"unable to get last location")
-
-                }
-            })
-    }
     //endregion
 }

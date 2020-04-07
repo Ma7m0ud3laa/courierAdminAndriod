@@ -16,6 +16,11 @@ object Alert {
     var mLoadingDialog: Dialog? = null
 
     fun showProgress(context: Context) {
+        if(mLoadingDialog!=null)
+        {
+            mLoadingDialog?.dismiss()
+            mLoadingDialog=null
+        }
         mLoadingDialog = Dialog(context)
         mLoadingDialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
         mLoadingDialog?.setContentView(R.layout.progress_bar)

@@ -37,7 +37,7 @@ class NotificatinService : FirebaseMessagingService() {
 
     override fun onNewToken(s: String) {
         super.onNewToken(s)
-//        sendToken(s)
+        sendToken(s)
     }
 
     fun sendToken(token: String) {
@@ -298,6 +298,8 @@ class NotificatinService : FirebaseMessagingService() {
         }
 
     }
+
+
 
     companion object {
 

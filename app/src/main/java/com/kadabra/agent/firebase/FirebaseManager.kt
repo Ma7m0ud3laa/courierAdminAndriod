@@ -119,6 +119,30 @@ object FirebaseManager {
         dbCourier.addListenerForSingleValueEvent(valueListener)
     }
 
+    fun getCurrentActiveTask(courieId: String, listener: IFbOperation) {
+        var task = Task()
+        val query = dbCourierTaskHistory
+        dbCourierTaskHistory.keepSynced(true)
+        var valueEventListener = query.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError) {
+                listener.onFailure(p0.message)
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (currentTask in dataSnapshot.children) {
+                    task = currentTask.getValue(Task::class.java)!!
+                    if (task.isActive && task.CourierID == courieId.toInt()&&!task.TaskId.isNullOrEmpty()) {
+                        task.TaskId = currentTask.key!!
+                        listener.onSuccess(1)
+                    }
+                }
+            }
+
+        })
+
+        dbCourierTaskHistory.addListenerForSingleValueEvent(valueEventListener)
+
+    }
 
     //endregion
 

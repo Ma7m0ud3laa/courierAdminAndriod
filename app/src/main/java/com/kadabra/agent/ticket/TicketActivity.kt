@@ -25,9 +25,6 @@ import com.kadabra.agent.notification.NotificationFragment
 import kotlinx.android.synthetic.main.activity_ticket.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.crashlytics.android.Crashlytics
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
@@ -47,10 +44,9 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 
 
-
 class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback {
     //  region Members
-    private var TAG=this.javaClass.simpleName
+    private var TAG = this.javaClass.simpleName
     private var ticketFragment: TicketFragment = TicketFragment()
     private var newTaskFragment: NewTaskFragment = NewTaskFragment()
     private var newTicketFragment: NewTicketFragment = NewTicketFragment()
@@ -61,12 +57,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     private var active = BaseFragment()
     val bottomSheetDialogFragment = BottomSheetNavigationFragment.newInstance()
     private var locationUpdateState = false
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallback: LocationCallback
-    private var lastLocation: Location? = null
-    private  val LOCATION_PERMISSION_REQUEST_CODE = 1
-    private  val REQUEST_CHECK_SETTINGS = 2
+
     private var lastVerion = 0
     //endregion
 
@@ -75,6 +66,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ticket)
 //        Crashlytics.getInstance().crash()
+
         FirebaseManager.setUpFirebase()
         init()
         forceUpdate()
@@ -104,8 +96,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
                 if (courierFragment.searchMode) //TASK VIEW
                 {
-//                    fm.beginTransaction()
-//                        .replace(R.id.layout_container, newTaskFragment, "newTaskFragment")
+
 
                     fm.beginTransaction().show(newTaskFragment)
                         .commit()
@@ -130,11 +121,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 active = ticketFragment
                 fab.visibility = View.VISIBLE
 
-//                fm.beginTransaction()
-//                    .detach(newTicketFragment)
-//                    .attach(newTicketFragment)
-//                    .commit()
-//                active = ticketFragment
+
 
             }
 
@@ -283,7 +270,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             }
             3 -> //open ticket details from adapter
             {
-                newTicketFragment=NewTicketFragment()
+                newTicketFragment = NewTicketFragment()
                 fm.beginTransaction()
                     .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
                     .addToBackStack(null)
@@ -314,17 +301,14 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             }
             6 -> // open tasks view in edit mode
             {
-                if(courierFragment.searchMode)
-                {
+                if (courierFragment.searchMode) {
                     fm.beginTransaction().show(newTaskFragment)
                         .commit()
                     //remove courier view
-                    courierFragment.searchMode=false
+                    courierFragment.searchMode = false
                     fm.beginTransaction().remove(courierFragment).commit()
 
-                }
-                else
-                {
+                } else {
                     newTaskFragment = NewTaskFragment()
                     newTaskFragment.editMode = true
                     fm.beginTransaction()
@@ -355,7 +339,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 courierFragment.searchMode = true
 
 //                if (fm.findFragmentByTag("newTaskFragment") != null) {
-                if (active==newTaskFragment) {
+                if (active == newTaskFragment) {
 
                     //hide new task view
                     fm.beginTransaction().hide(active).commit()
@@ -460,18 +444,6 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     //region Helper Functions
     @SuppressLint("RestrictedApi")
     private fun init() {
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult) {
-                super.onLocationResult(p0)
-
-                lastLocation = p0.lastLocation
-
-//                placeMarkerOnMap(LatLng(lastLocation.latitude, lastLocation.longitude))
-            }
-        }
-        createLocationRequest()
 
 
         setUpBottomAppBar()
@@ -606,7 +578,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 R.id.action_find_couriers -> {
 //                    toggleFabMode()
                     if (NetworkManager().isNetworkAvailable(this)) {
-                        courierFragment= CourierFragment()
+                        courierFragment = CourierFragment()
                         fm.beginTransaction()
                             .replace(R.id.layout_container, courierFragment, "courierFragment")
                             .addToBackStack(null)
@@ -673,49 +645,10 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //        }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        Log.i(TAG, "onRequestPermissionResult")
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.size <= 0) {
-                // If user interaction was interrupted, the permission request is cancelled and you
-                // receive empty arrays.
-                Log.i(TAG, "User interaction was cancelled.")
-            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission was granted.
-                if (!locationUpdateState) {
-                    startLocationUpdates()
-                }
-            } else {
-                // Permission denied.
-//                setButtonsState(false)
-                Snackbar.make(
-                    findViewById(R.id.rlParent),
-                    R.string.permission_denied_explanation,
-                    Snackbar.LENGTH_INDEFINITE
-                )
-                    .setAction(R.string.settings) {
-                        // Build intent that displays the App settings screen.
-                        val intent = Intent()
-                        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        val uri = Uri.fromParts(
-                            "package",
-                            BuildConfig.APPLICATION_ID, null
-                        )
-                        intent.data = uri
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        startActivity(intent)
-                    }
-                    .show()
-            }
-        }
-    }
     private fun startLocationUpdates() {
         //1
         if (ActivityCompat.checkSelfPermission(
-              this,
+                this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -727,109 +660,20 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             return
         }
         //2
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            null /* Looper */
-        )
-    }
 
-    private fun checkPermissions(): Boolean {
-        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-    private fun requestPermissions() {
-        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-
-        // Provide an additional rationale to the user. This would happen if the user denied the
-        // request previously, but didn't check the "Don't ask again" checkbox.
-        if (shouldProvideRationale) {
-            Log.i(TAG, "Displaying permission rationale to provide additional context.")
-            Snackbar.make(
-                findViewById(R.id.coordinatorLayout),
-                R.string.permission_rationale,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.ok) {
-                    // Request permission
-                    ActivityCompat.requestPermissions(
-                        this@TicketActivity,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        LOCATION_PERMISSION_REQUEST_CODE
-                    )
-                }
-                .show()
-        } else {
-            Log.i(TAG, "Requesting permission")
-            // Request permission. It's possible this can be auto answered if device policy
-            // sets the permission in a given state or the user denied the permission
-            // previously and checked "Never ask again".
-            ActivityCompat.requestPermissions(
-                this@TicketActivity,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-        }
     }
 
 
     override fun onPause() {
         super.onPause()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+
     }
 
     public override fun onResume() {
         super.onResume()
-//        if (!locationUpdateState) {
-//            startLocationUpdates()
-//        }
 //        forceUpdate()
     }
 
-    private fun createLocationRequest() {
-        // 1
-        locationRequest = LocationRequest()
-        // 2
-        locationRequest.interval = 10000
-        // 3
-        locationRequest.fastestInterval = 5000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest)
-
-        // 4
-        val client = LocationServices.getSettingsClient(this)
-        val task = client.checkLocationSettings(builder.build())
-
-        // 5
-        task.addOnSuccessListener {
-            locationUpdateState = true
-            startLocationUpdates()
-        }
-        task.addOnFailureListener { e ->
-            // 6
-            if (e is ResolvableApiException) {
-                // Location settings are not satisfied, but this can be fixed
-                // by showing the user a dialog.
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    e.startResolutionForResult(
-                        this,
-                        REQUEST_CHECK_SETTINGS
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
-            }
-        }
-    }
 
     private fun forceUpdate() {
 //        Alert.showProgress(this)
@@ -905,6 +749,8 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             alertDialog.show()
         }
     }
+
+
 
 //endregion
 
