@@ -275,7 +275,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
                     .addToBackStack(null)
                     .commit()
-                newTicketFragment.editMode = AppConstants.CurrentLoginAdmin.IsSuperAdmin
+                newTicketFragment.editMode =true// AppConstants.CurrentLoginAdmin.IsSuperAdmin
                 active = newTicketFragment
                 fab.visibility = View.INVISIBLE
 

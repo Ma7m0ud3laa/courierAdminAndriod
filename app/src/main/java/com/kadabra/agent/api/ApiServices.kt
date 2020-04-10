@@ -14,7 +14,7 @@ interface ApiServices {
 
 
     @GET(AppConstants.URL_LOGIN)
-    fun logIn(@Query("userName") userName: String, @Query("password") password: String)
+    fun logIn(@Query("userName") userName: String, @Query("password") password: String, @Query("deviceType") deviceType: Int)
             : Call<ApiResponse<Admin>>
 
 
@@ -28,6 +28,13 @@ interface ApiServices {
             : Call<ApiResponse<ArrayList<Ticket>>>
     @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO)
     fun getAllTicketsByPage(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
+            : Call<ApiResponse<ArrayList<Ticket>>>
+
+    @GET(AppConstants.URL_GET_ALL_TICKETS_SIMPLE)
+    fun getAllTicketsNormal()
+            : Call<ApiResponse<ArrayList<Ticket>>>
+    @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO_SIMPLE)
+    fun getAllTicketsByPageNormal(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @POST(AppConstants.URL_GET_TICKET_BY_ID)
@@ -67,7 +74,7 @@ interface ApiServices {
 
     @POST(AppConstants.URL_EDIT_TASK)
     fun editTask(
-        @Body tasModel: TaskModel
+        @Body tasModel: TaskModelEdit
     )
             : Call<ApiResponse<ArrayList<Task>>>
 

@@ -107,6 +107,8 @@
     <string name="task_description">Task Description</string>
 
     <string name="amount">Amount</string>
+    <string name="pickup_time">Pickup Time</string>
+
     <string name="add_stop">Add Stop</string>
     <string name="show">Show</string>
     <string name="clear">Clear</string>

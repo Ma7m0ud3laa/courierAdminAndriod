@@ -166,9 +166,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             }
 
             R.id.btnSaveServiceCost -> {
+
                 if (NetworkManager().isNetworkAvailable(context!!)) {
                     if (alertDialog != null) {
                         if (validateServiceCost()) {
+
                             var serviceCost = TicketServiceCost(
                                 etServiceCost!!.text.toString(),
                                 etCost!!.text.toString().toDouble()
@@ -177,6 +179,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             prepareTicketServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
                             alertDialog!!.dismiss()
 
+
                         }
                     }
                 } else
@@ -184,16 +187,20 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
             }
             R.id.btnSave -> {
-                if (NetworkManager().isNetworkAvailable(context!!)) {
-                    if (validateAll()) {
-                        prepareTicketData()
-                        if (!editMode)
-                            addTicket(ticketModel)
-                        else
-                            editTicket(ticketModel)
-                    }
+                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
+                    if (NetworkManager().isNetworkAvailable(context!!)) {
+                        if (validateAll()) {
+                            prepareTicketData()
+                            if (!editMode)
+                                addTicket(ticketModel)
+                            else
+                                editTicket(ticketModel)
+                        }
+                    } else
+                        Alert.showMessage(context!!, getString(R.string.no_internet))
                 } else
-                    Alert.showMessage(context!!, getString(R.string.no_internet))
+                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
+
 
             }
         }
@@ -282,7 +289,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         refresh.setOnRefreshListener {
             if (editMode)
                 getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
-
             else
                 refresh.isRefreshing = false
         }
@@ -865,15 +871,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        }
-        else if(!validatePhone(ccp,etMobile)&&!editMode)
-        {
-            Alert.showMessage(context!!,getString(R.string.error_invalid_phone))
+        } else if (!validatePhone(ccp, etMobile) && !editMode) {
+            Alert.showMessage(context!!, getString(R.string.error_invalid_phone))
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        }
-        else if (selectedCategory.CategoryId.isNullOrEmpty()) {
+        } else if (selectedCategory.CategoryId.isNullOrEmpty()) {
             Alert.showMessage(context!!, "Category is required.")
             AnimateScroll.scrollToView(scroll, etMobile)
             sCategory.showDropDown()
@@ -883,10 +886,17 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, sStatus)
             sStatus.showDropDown()
             return false
-        } else if (selectedPaymentMethod.paymentId == null) {
+        }
+        else if (selectedPaymentMethod.paymentId == null) {
             Alert.showMessage(context!!, "Payment is required.")
             AnimateScroll.scrollToView(scroll, sPayment)
             sPayment.showDropDown()
+            return false
+        }
+        else if (selectedPriority.PriorityId == null) {
+            Alert.showMessage(context!!, "Prirotiy is required.")
+            AnimateScroll.scrollToView(scroll, sPriority)
+            sPriority.showDropDown()
             return false
         }
 
@@ -1026,5 +1036,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         mPhone.registerCarrierNumberEditText(mPhoneEdit)
         return mPhone.isValidFullNumber
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Alert.hideProgress()
     }
 }// Required empty public constructor

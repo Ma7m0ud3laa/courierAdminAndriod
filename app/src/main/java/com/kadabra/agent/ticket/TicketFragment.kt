@@ -137,7 +137,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         if (NetworkManager().isNetworkAvailable(context!!)) {
             ivNoInternet!!.visibility = View.INVISIBLE
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllTickets()
+            var endPoint = request.getAllTicketsNormal()
             NetworkManager().request(
                 endPoint,
                 object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
@@ -149,16 +149,18 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
                     override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            sRefresh!!.isRefreshing = false
-                            tvEmptyData!!.visibility = View.INVISIBLE
+
                             ticketList = response.ResponseObj!!
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
                                 prepareTicketData(ticketList)
                                 AppConstants.GetALLTicket=ticketList
+//                                getAllCouriers()
                                 Alert.hideProgress()
-                                getAllCouriers()
+                                sRefresh!!.isRefreshing = false
+                                tvEmptyData!!.visibility = View.INVISIBLE
                             } else {//no taskModel
+                                sRefresh!!.isRefreshing = false
                                 tvEmptyData!!.visibility = View.VISIBLE
                                 Alert.hideProgress()
                             }
@@ -272,6 +274,9 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         } else {
         }
     }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        Alert.hideProgress()
+    }
 
 }// Required empty public constructor

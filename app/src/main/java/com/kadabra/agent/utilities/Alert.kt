@@ -9,13 +9,19 @@ import android.view.Window
 import android.widget.RelativeLayout
 import android.widget.Toast
 import com.kadabra.agent.R
+import android.app.Activity
+
+
+
 
 
 object Alert {
 
     var mLoadingDialog: Dialog? = null
 
+
     fun showProgress(context: Context) {
+
         if(mLoadingDialog!=null)
         {
             mLoadingDialog?.dismiss()
@@ -23,7 +29,7 @@ object Alert {
         }
         mLoadingDialog = Dialog(context)
         mLoadingDialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        mLoadingDialog?.setContentView(R.layout.progress_bar)
+        mLoadingDialog?.setContentView(com.kadabra.agent.R.layout.progress_bar)
         mLoadingDialog?.window!!.setLayout(
             RelativeLayout.LayoutParams.MATCH_PARENT,
             RelativeLayout.LayoutParams.MATCH_PARENT
@@ -34,11 +40,11 @@ object Alert {
     }
 
     fun hideProgress() {
-////        if (mLoadingDialog != null) {
-//            mLoadingDialog?.dismiss()
-//            mLoadingDialog = null
-////        }
-        mLoadingDialog!!.hide()
+        if (mLoadingDialog != null) {
+            mLoadingDialog?.dismiss()
+            mLoadingDialog = null
+        }
+//        mLoadingDialog!!.hide()
     }
 
     fun showMessage(context: Context, message: String) {
@@ -49,7 +55,7 @@ object Alert {
         AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)
-            .setIcon(R.drawable.ic_launcher_background)
+            .setIcon(com.kadabra.agent.R.drawable.ic_launcher_background)
             .setPositiveButton("ok", null)
             .show()
 

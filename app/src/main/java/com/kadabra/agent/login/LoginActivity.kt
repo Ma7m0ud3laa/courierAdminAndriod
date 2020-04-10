@@ -64,7 +64,7 @@ class LoginActivity : AppCompatActivity() {
 //        showProgress()
         if (NetworkManager().isNetworkAvailable(this)) {
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.logIn(usreName, password)
+            var endPoint = request.logIn(usreName, password,1)
             NetworkManager().request(endPoint, object : INetworkCallBack<ApiResponse<Admin>> {
                 override fun onFailed(error: String) {
                     Alert.hideProgress()
@@ -163,6 +163,11 @@ class LoginActivity : AppCompatActivity() {
 
     private fun hideProgress() {
         avi.smoothToHide()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Alert.hideProgress()
     }
     //endregion
 }

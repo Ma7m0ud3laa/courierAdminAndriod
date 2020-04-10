@@ -3,7 +3,7 @@ package com.kadabra.agent.model
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class TaskModel {
+class TaskModelEdit {
 
     @SerializedName("TaskId")
     @Expose
@@ -14,15 +14,14 @@ class TaskModel {
     @SerializedName("TaskDescription")
     @Expose
     var TaskDescription: String? = null
-    @SerializedName("Amount")
     @Expose
     var amount: Double? = null
-    @SerializedName("PickUpTime")
+    @SerializedName("PickupTime")
     @Expose
     var pickupTime: String? = null
-    @SerializedName("AddedBy")
+    @SerializedName("ModifiedBy")
     @Expose
-    var addedBy: String? = null
+    var modifiedBy: String? = null
 
     @SerializedName("TicketID")
     @Expose
@@ -40,13 +39,15 @@ class TaskModel {
         amount: Double,
         addedBy: String,
         ticketId: String,
+        taskId: String,
         courierId: Int,
         stopList: ArrayList<Stopsmodel>
     ) {
         this.taskName = taskName
         this.amount = amount
-        this.addedBy = addedBy
+        this.modifiedBy = addedBy
         this.ticketID = ticketId
+        this.taskId=taskId
         this.courierId = courierId
         this.stopsmodels = stopList
 

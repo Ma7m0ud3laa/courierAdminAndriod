@@ -64,6 +64,10 @@ object AppConstants {
     const val URL_REASSIGN_TASK_TO_COURIER = "ReassignTaskToCourier"
     const val URL_GET_ALL_TICKETS = "GetAllTickets"
     const val URL_GET_ALL_TICKETS_BY_PAGE_NO = "GetAllTicketsByPageNo"
+    const val URL_GET_ALL_TICKETS_SIMPLE = "GetAllTicketsSimpleData"
+    const val URL_GET_ALL_TICKETS_BY_PAGE_NO_SIMPLE = "GetAllTicketsByPageNoSimpleData"
+
+
     const val URL_GET_TICKET_BY_ID = "GetTicketById"
     const val URL_GET_ALL_COURIERS = "GetAllCourier"
     const val URL_ADD_TASK_STOP = "AddTaskStop"

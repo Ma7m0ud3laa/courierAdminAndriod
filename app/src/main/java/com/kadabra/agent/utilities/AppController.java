@@ -10,7 +10,7 @@ import com.kadabra.agent.R;
 import java.util.Locale;
 
 import io.fabric.sdk.android.Fabric;
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+
 
 public class AppController extends Application {
     private static AppController mContext;
@@ -25,11 +25,6 @@ public class AppController extends Application {
         else
             LanguageUtil.changeLanguageType(mContext, new Locale(AppConstants.INSTANCE.getARABIC()));
 
-//        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-//                .setDefaultFontPath("font/avenir_book.ttf")
-//                .setFontAttrId(R.attr.fontPath)
-//                .build()
-//        );
     }
 
 

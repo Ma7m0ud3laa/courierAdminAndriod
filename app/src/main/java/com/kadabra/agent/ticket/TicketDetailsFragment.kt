@@ -337,5 +337,10 @@ class TicketDetailsFragment : BaseFragment(), IBottomSheetCallback, ITaskCallbac
         //            return fragment
         //        }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Alert.hideProgress()
+    }
 }// Required empty public constructor
 

@@ -4,293 +4,104 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     android:focusableInTouchMode="true"
     tools:context=".task.NewTaskFragment">
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    <ScrollView
-        android:id="@+id/scroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="30dp"
-        android:fillViewport="true"
-        android:fitsSystemWindows="true"
-        android:scrollbars="none">
 
-        <RelativeLayout
+        <ScrollView
+            android:id="@+id/scroll"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_marginBottom="30dp"
+            android:fillViewport="true"
+            android:fitsSystemWindows="true"
+            android:scrollbars="none">
 
             <RelativeLayout
-                android:id="@+id/rlBack"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="@color/colorSecondary"
-                android:padding="10dp">
+                android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/ivBack"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="12dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    app:srcCompat="@drawable/ic_back" />
+                <RelativeLayout
+                    android:id="@+id/rlBack"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@color/colorSecondary"
+                    android:padding="10dp">
+
+                    <ImageView
+                        android:id="@+id/ivBack"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="12dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        app:srcCompat="@drawable/ic_back" />
+
+                    <TextView
+                        android:id="@+id/tvTaskDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginLeft="95.5dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginRight="128.5dp"
+                        android:text="@string/task_details"
+                        android:textAllCaps="false"
+                        android:textColor="@color/colorLabel"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvDeleteTask"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginEnd="24dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:fontFamily="ArialMT"
+                        android:gravity="center"
+                        android:text="@string/delete"
+                        android:textColor="@color/error"
+                        android:textSize="15sp"
+                        android:visibility="invisible" />
+
+                </RelativeLayout>
 
                 <TextView
-                    android:id="@+id/tvTaskDetails"
+                    android:id="@+id/tvStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginLeft="95.5dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginRight="128.5dp"
-                    android:text="@string/task_details"
-                    android:textAllCaps="false"
-                    android:textColor="@color/colorLabel"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/tvDeleteTask"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/rlBack"
                     android:layout_alignParentEnd="true"
-                    android:layout_marginTop="12dp"
+                    android:layout_centerHorizontal="true"
+
+                    android:layout_marginTop="10dp"
                     android:layout_marginEnd="24dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:fontFamily="ArialMT"
-                    android:gravity="center"
-                    android:text="@string/delete"
-                    android:textColor="@color/error"
-                    android:textSize="15sp"
-                    android:visibility="invisible" />
-
-            </RelativeLayout>
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_below="@+id/rlBack"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerHorizontal="true"
-
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:layout_marginBottom="10dp"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/status"
-                android:textColor="@color/colorApp"
-                android:textSize="18sp"
-                android:textStyle="bold|italic"
-                 />
-            <LinearLayout
-                android:id="@+id/llTicketData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/tvStatus"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginRight="10dp"
-                    android:text="Ticket"
-                    android:textSize="15sp" />
-
-                <AutoCompleteTextView
-                    android:id="@+id/sTicket"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
                     android:layout_marginBottom="10dp"
-                    android:background="@color/transparent"
-                    android:clickable="true"
-                    android:cursorVisible="false"
-                    android:drawableRight="@drawable/ic_down"
-                    android:editable="false"
-                    android:focusable="false"
-                    android:fontFamily="Poppins-Regular"
-                    android:gravity="center|left"
-                    android:imeOptions="actionNext"
-                    android:inputType="none"
+                    android:ellipsize="end"
+                    android:gravity="center"
                     android:maxLines="1"
-                    android:text="@string/select_ticket"
-                    android:textColor="@color/colorLabel"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-            <EditText
-                android:id="@+id/etTaskName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/llTicketData"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:hint="@string/task_name"
-                android:imeOptions="actionNext"
-                android:inputType="text"
-                android:selectAllOnFocus="true"
-                android:textSize="15sp" />
-
-            <EditText
-                android:id="@+id/etTaskDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/etTaskName"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:hint="@string/task_description"
-                android:imeOptions="actionNext"
-                android:inputType="text"
-                android:selectAllOnFocus="true"
-                android:textSize="15sp" />
-
-
-
-            <EditText
-                android:id="@+id/etAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/etTaskDescription"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:hint="@string/amount"
-                android:imeOptions="actionNext"
-                android:inputType="text|numberDecimal"
-                android:selectAllOnFocus="true"
-                android:textSize="15sp" />
-
-            <LinearLayout
-                android:id="@+id/llCourier"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/etAmount"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginRight="10dp"
-                    android:text="Courier"
-                    android:textSize="15sp" />
-
-                <AutoCompleteTextView
-                    android:id="@+id/sCourier"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/transparent"
-                    android:clickable="true"
-                    android:cursorVisible="false"
-                    android:drawableRight="@drawable/ic_down"
-                    android:editable="false"
-                    android:focusable="false"
-                    android:fontFamily="Poppins-Regular"
-                    android:gravity="center|left"
-                    android:imeOptions="actionNext"
-                    android:inputType="none"
-                    android:maxLines="1"
-                    android:text="@string/select_courier"
-                    android:textColor="@color/colorLabel"
-                    android:textSize="15sp" />
-            </LinearLayout>
-
-            <RelativeLayout
-                android:id="@+id/rlStopsAdd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/llCourier"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp">
-
-                <TextView
-                    android:id="@+id/tvStops"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="Poppins-Regular"
-                    android:text="@string/stops"
-                    android:textColor="@color/title_color"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/tvAddStop"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBaseline="@+id/tvTasks"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginBottom="0dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:gravity="center"
-                    android:text="@string/add_new"
-                    android:textColor="@color/colorApp"
-                    android:textSize="15sp" />
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/rlStops"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/rlStopsAdd"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="24dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/tvGetLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:gravity="center"
-                    android:text="Select Location"
+                    android:text="@string/status"
                     android:textColor="@color/colorApp"
                     android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <EditText
-                    android:id="@+id/etStopName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvGetLocation"
-                    android:layout_marginTop="10dp"
-                    android:hint="@string/stop_name"
-                    android:imeOptions="actionNext"
-                    android:inputType="text"
-                    android:selectAllOnFocus="true"
-                    android:textSize="15sp" />
+                    android:textStyle="bold|italic" />
 
                 <LinearLayout
-                    android:id="@+id/llStopType"
+                    android:id="@+id/llTicketData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/etStopName"
+                    android:layout_below="@+id/tvStatus"
+                    android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
                     android:orientation="horizontal">
 
                     <TextView
@@ -298,102 +109,314 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:layout_marginRight="10dp"
-                        android:text="Stop Type"
+                        android:text="Ticket"
                         android:textSize="15sp" />
 
-                    <Spinner
-                        android:id="@+id/sStopType"
+                    <AutoCompleteTextView
+                        android:id="@+id/sTicket"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:layout_marginBottom="10dp"
-                        android:gravity="center"
+                        android:background="@color/transparent"
+                        android:clickable="true"
+                        android:cursorVisible="false"
+                        android:drawableRight="@drawable/ic_down"
+                        android:editable="false"
+                        android:focusable="false"
+                        android:fontFamily="Poppins-Regular"
+                        android:gravity="center|left"
                         android:imeOptions="actionNext"
-                        android:selectAllOnFocus="true"
-                        android:textAlignment="center"
+                        android:inputType="none"
+                        android:maxLines="1"
+                        android:text="@string/select_ticket"
+                        android:textColor="@color/colorLabel"
                         android:textSize="15sp" />
                 </LinearLayout>
 
                 <EditText
-                    android:id="@+id/etLatitude"
+                    android:id="@+id/etTaskName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/llStopType"
+                    android:layout_below="@+id/llTicketData"
+                    android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:hint="@string/latitude"
-                    android:inputType="numberDecimal"
+                    android:layout_marginEnd="24dp"
+                    android:hint="@string/task_name"
+                    android:imeOptions="actionNext"
+                    android:inputType="text"
+                    android:selectAllOnFocus="true"
                     android:textSize="15sp" />
 
                 <EditText
-                    android:id="@+id/etLongitude"
+                    android:id="@+id/etTaskDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/etLatitude"
+                    android:layout_below="@+id/etTaskName"
+                    android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:hint="@string/longitude"
-                    android:inputType="numberDecimal"
+                    android:layout_marginEnd="24dp"
+                    android:hint="@string/task_description"
+                    android:imeOptions="actionNext"
+                    android:inputType="text"
+                    android:selectAllOnFocus="true"
                     android:textSize="15sp" />
 
-                <Button
-                    android:id="@+id/btnAddStopLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/etLongitude"
-                    android:layout_centerInParent="true"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="20dp"
-                    android:background="@drawable/rounded_button"
-                    android:textColor="@color/colorSecondary"
-                    android:text="@string/add_new"/>
 
-                <TextView
-                    android:id="@+id/tvClearStop"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/etLongitude"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:gravity="center"
-                    android:text="@string/clear"
-                    android:textColor="@color/colorApp"
-                    android:textSize="18sp"
-                    android:visibility="invisible"/>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvStops"
+                <EditText
+                    android:id="@+id/etAmount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvClearStop"
+                    android:layout_below="@+id/etTaskDescription"
                     android:layout_marginStart="24dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="10dp"
                     android:layout_marginEnd="24dp"
-                    android:scrollbars="vertical" />
+                    android:hint="@string/amount"
+                    android:imeOptions="actionNext"
+                    android:inputType="text|numberDecimal"
+                    android:selectAllOnFocus="true"
+                    android:textSize="15sp" />
+
+
+                <EditText
+                    android:id="@+id/etPickupTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/etAmount"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:editable="false"
+                    android:hint="@string/pickup_time"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:fontFamily="Poppins-Regular"
+                    android:imeOptions="actionDone"
+                    android:inputType="date|textNoSuggestions"
+                    android:lines="1"
+                    android:maxLines="1" />
+
+
+                <LinearLayout
+                    android:id="@+id/llCourier"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/etPickupTime"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginRight="10dp"
+                        android:text="Courier"
+                        android:textSize="15sp" />
+
+                    <AutoCompleteTextView
+                        android:id="@+id/sCourier"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:background="@color/transparent"
+                        android:clickable="true"
+                        android:cursorVisible="false"
+                        android:drawableRight="@drawable/ic_down"
+                        android:editable="false"
+                        android:focusable="false"
+                        android:fontFamily="Poppins-Regular"
+                        android:gravity="center|left"
+                        android:imeOptions="actionNext"
+                        android:inputType="none"
+                        android:maxLines="1"
+                        android:text="@string/select_courier"
+                        android:textColor="@color/colorLabel"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rlStopsAdd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/llCourier"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp">
+
+                    <TextView
+                        android:id="@+id/tvStops"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="Poppins-Regular"
+                        android:text="@string/stops"
+                        android:textColor="@color/title_color"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvAddStop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBaseline="@+id/tvTasks"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginBottom="0dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:text="@string/add_new"
+                        android:textColor="@color/colorApp"
+                        android:textSize="15sp" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rlStops"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/rlStopsAdd"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginBottom="10dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvGetLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:text="Select Location"
+                        android:textColor="@color/colorApp"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etStopName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tvGetLocation"
+                        android:layout_marginTop="10dp"
+                        android:hint="@string/stop_name"
+                        android:imeOptions="actionNext"
+                        android:inputType="text"
+                        android:selectAllOnFocus="true"
+                        android:textSize="15sp" />
+
+                    <LinearLayout
+                        android:id="@+id/llStopType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/etStopName"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginRight="10dp"
+                            android:text="Stop Type"
+                            android:textSize="15sp" />
+
+                        <Spinner
+                            android:id="@+id/sStopType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:gravity="center"
+                            android:imeOptions="actionNext"
+                            android:selectAllOnFocus="true"
+                            android:textAlignment="center"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <EditText
+                        android:id="@+id/etLatitude"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/llStopType"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:hint="@string/latitude"
+                        android:inputType="numberDecimal"
+                        android:textSize="15sp" />
+
+                    <EditText
+                        android:id="@+id/etLongitude"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/etLatitude"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:hint="@string/longitude"
+                        android:inputType="numberDecimal"
+                        android:textSize="15sp" />
+
+                    <Button
+                        android:id="@+id/btnAddStopLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/etLongitude"
+                        android:layout_centerInParent="true"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="15dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@drawable/rounded_button"
+                        android:text="@string/add_new"
+                        android:textColor="@color/colorSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvClearStop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/etLongitude"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:text="@string/clear"
+                        android:textColor="@color/colorApp"
+                        android:textSize="18sp"
+                        android:visibility="invisible" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvStops"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tvClearStop"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginEnd="24dp"
+                        android:scrollbars="vertical" />
+                </RelativeLayout>
+
+
+                <Button
+                    android:id="@+id/btnSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/rlStops"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="40dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginBottom="60dp"
+                    android:background="@drawable/rounded_button"
+                    android:text="@string/save"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorSecondary"
+                    android:textSize="20sp" />
+
             </RelativeLayout>
 
-
-            <Button
-                android:id="@+id/btnSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/rlStops"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginEnd="24dp"
-                android:layout_marginBottom="60dp"
-                android:background="@drawable/rounded_button"
-                android:text="@string/save"
-                android:textAllCaps="false"
-                android:textColor="@color/colorSecondary"
-                android:textSize="20sp" />
-
-        </RelativeLayout>
-
-    </ScrollView>
+        </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </FrameLayout>

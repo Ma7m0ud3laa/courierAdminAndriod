@@ -82,22 +82,32 @@ class TicketAdapter(
 //            holder.tvPrice.text = "0 " + context.getString(R.string.le)
 
 
-        if (taskList.count() > 0) {
-            totalTasksAmount = 0.0
-            holder.tvTotalTasks.text =
-                taskList.count().toString()
-            taskList.forEach {
-                totalTasksAmount += it.Amount
-            }
+//        if (taskList.count() > 0) {
+//            totalTasksAmount = 0.0
+//            holder.tvTotalTasks.text =
+//                taskList.count().toString()
+//            taskList.forEach {
+//                totalTasksAmount += it.Amount
+//            }
+//
+//        }
+
+        holder.tvTotalTasks.text =ticket.TotalTasks
+
+//        if (totalTasksAmount > 0) {
+//            holder.tvPrice.text =
+//                totalTasksAmount.toString() + " " + context.getString(R.string.le)
+//        } else
+//            holder.tvPrice.text = "0 " + context.getString(R.string.le)
 
 
-        }
-
-        if (totalTasksAmount > 0) {
+        if (!ticket.TotalTasksAmount.isNullOrEmpty()) {
             holder.tvPrice.text =
-                totalTasksAmount.toString() + " " + context.getString(R.string.le)
+                ticket.TotalTasksAmount + " " + context.getString(R.string.le)
         } else
             holder.tvPrice.text = "0 " + context.getString(R.string.le)
+
+
 
 
         when (ticket.Status) {

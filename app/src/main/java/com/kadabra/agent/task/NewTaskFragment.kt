@@ -34,6 +34,19 @@ import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.Alert.hideProgress
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.*
+import kotlin.collections.ArrayList
+
+import android.widget.TimePicker
+import android.app.TimePickerDialog
+import android.widget.DatePicker
+import android.app.DatePickerDialog
+
+import android.util.Log
+import com.google.android.libraries.places.internal.df
+import com.google.android.libraries.places.internal.it
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 
 class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, View.OnClickListener {
@@ -54,6 +67,16 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var adapterCourier: CourierListAdapter? = null
     private var task = Task()
     private var taskModel = TaskModel()
+    private var taskModelEdit = TaskModelEdit()
+
+    var date: Calendar? = null
+    var dateEdit: Calendar? = null
+
+    private var mYear = 0
+    private var mMonth = 0
+    private var mDay = 0
+    private var mHour = 0
+    private var mMinute = 0
 
     var editMode = false
     var taskAddMode = false
@@ -69,6 +92,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var etTaskDescription: EditText
 
     private lateinit var etAmount: EditText
+    private lateinit var etPickupTime: EditText
+
     private lateinit var sTicket: AutoCompleteTextView
     private lateinit var sCourier: AutoCompleteTextView
     private lateinit var tvAddStop: TextView
@@ -84,6 +109,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var btnSave: Button
     private lateinit var tvStatus: TextView
     private lateinit var refresh: SwipeRefreshLayout
+    private var dateValue = ""
     //endregion
 
     //region Events
@@ -139,7 +165,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (!stop!!.StopID.isNullOrEmpty()) {
             AlertDialog.Builder(context)
                 .setTitle(AppConstants.WARNING)
-                .setMessage(getString(R.string.message_delete) + " " + stop.StopName + " ?")
+                .setMessage(getString(com.kadabra.agent.R.string.message_delete) + " " + stop.StopName + " ?")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(AppConstants.OK) { _, _ ->
                     removeStop(stop)
@@ -173,15 +199,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     override fun onClick(view: View?) {
         when (view!!.id) {
-            R.id.ivBack -> {
+            com.kadabra.agent.R.id.ivBack -> {
                 listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
-            R.id.tvDeleteTask -> {
+            com.kadabra.agent.R.id.tvDeleteTask -> {
                 if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != "In progress") {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
-                        .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+                        .setMessage(getString(com.kadabra.agent.R.string.message_delete) + " " + task.TaskName + " ?")
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(AppConstants.OK) { dialog, which ->
                             deleteTask(task)
@@ -220,6 +246,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 //to do open map and get selected location
                 listener!!.onBottomSheetSelectedItem(8)
             }
+            R.id.etPickupTime -> {
+                showDateTimePicker()
+            }
 
             R.id.btnAddStopLocation -> {
                 context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
@@ -233,6 +262,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     var latitude = etLatitude.text.toString().toDouble()
                     var longitude = etLongitude.text.toString().toDouble()
 
+
                     var stop = Stop(
                         AppConstants.CurrentSelectedTask.TaskId,
                         AppConstants.CurrentLoginAdmin.AdminId,
@@ -244,7 +274,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         "", 0 //new
                     )
 
-                    addStopToStopList(stop)
+                    if (validateStopType(stop)) {
+                        addStopToStopList(stop)
+                    } else
+                        Alert.showMessage(
+                            context!!,
+                            "The task must include only one Pickup and DropOff Stops."
+                        )
+
 
                 }
 
@@ -252,15 +289,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             R.id.btnSave -> {
-                if (validateAll()) {
-                    hideKeyboard(btnSave)
-                    prepareTaskData()
-                    if (!editMode) {
-                        addTask(taskModel)
-                    } else {
-                        editTask(taskModel)
+                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
+                    if (validateAll()) {
+                        hideKeyboard(btnSave)
+                        prepareTaskData()
+                        if (!editMode) {
+                            addTask(taskModel)
+                        } else {
+                            editTask(taskModelEdit)
+                        }
                     }
-                }
+                } else
+                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
+
 
             }
         }
@@ -271,30 +312,32 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     //region Helper Functions
     private fun init() {
-        scroll = currentView.findViewById(R.id.scroll)
-        refresh = currentView!!.findViewById(R.id.refresh)
-        ivBack = currentView!!.findViewById(R.id.ivBack)
-        tvTaskDetails = currentView!!.findViewById(R.id.tvTaskDetails)
-        tvDeleteTask = currentView!!.findViewById(R.id.tvDeleteTask)
-        etTaskName = currentView!!.findViewById(R.id.etTaskName)
-        etTaskDescription = currentView!!.findViewById(R.id.etTaskDescription)
-        tvStatus = currentView!!.findViewById(R.id.tvStatus)
+        scroll = currentView.findViewById(com.kadabra.agent.R.id.scroll)
+        refresh = currentView!!.findViewById(com.kadabra.agent.R.id.refresh)
+        ivBack = currentView!!.findViewById(com.kadabra.agent.R.id.ivBack)
+        tvTaskDetails = currentView!!.findViewById(com.kadabra.agent.R.id.tvTaskDetails)
+        tvDeleteTask = currentView!!.findViewById(com.kadabra.agent.R.id.tvDeleteTask)
+        etTaskName = currentView!!.findViewById(com.kadabra.agent.R.id.etTaskName)
+        etTaskDescription = currentView!!.findViewById(com.kadabra.agent.R.id.etTaskDescription)
+        tvStatus = currentView!!.findViewById(com.kadabra.agent.R.id.tvStatus)
 
-        sTicket = currentView!!.findViewById(R.id.sTicket)
-        sCourier = currentView!!.findViewById(R.id.sCourier)
-        etAmount = currentView!!.findViewById(R.id.etAmount)
-        tvAddStop = currentView!!.findViewById(R.id.tvAddStop)
-        tvClearStop = currentView!!.findViewById(R.id.tvClearStop)
-        tvGetLocation = currentView!!.findViewById(R.id.tvGetLocation)
+        sTicket = currentView!!.findViewById(com.kadabra.agent.R.id.sTicket)
+        sCourier = currentView!!.findViewById(com.kadabra.agent.R.id.sCourier)
+        etAmount = currentView!!.findViewById(com.kadabra.agent.R.id.etAmount)
+        etPickupTime = currentView!!.findViewById(com.kadabra.agent.R.id.etPickupTime)
 
-        rlStops = currentView!!.findViewById(R.id.rlStops)
-        etStopName = currentView!!.findViewById(R.id.etStopName)
-        sStopType = currentView!!.findViewById(R.id.sStopType)
-        etLatitude = currentView!!.findViewById(R.id.etLatitude)
-        etLongitude = currentView!!.findViewById(R.id.etLongitude)
-        btnAddStopLocation = currentView!!.findViewById(R.id.btnAddStopLocation)
-        rvStops = currentView!!.findViewById(R.id.rvStops)
-        btnSave = currentView!!.findViewById(R.id.btnSave)
+        tvAddStop = currentView!!.findViewById(com.kadabra.agent.R.id.tvAddStop)
+        tvClearStop = currentView!!.findViewById(com.kadabra.agent.R.id.tvClearStop)
+        tvGetLocation = currentView!!.findViewById(com.kadabra.agent.R.id.tvGetLocation)
+
+        rlStops = currentView!!.findViewById(com.kadabra.agent.R.id.rlStops)
+        etStopName = currentView!!.findViewById(com.kadabra.agent.R.id.etStopName)
+        sStopType = currentView!!.findViewById(com.kadabra.agent.R.id.sStopType)
+        etLatitude = currentView!!.findViewById(com.kadabra.agent.R.id.etLatitude)
+        etLongitude = currentView!!.findViewById(com.kadabra.agent.R.id.etLongitude)
+        btnAddStopLocation = currentView!!.findViewById(com.kadabra.agent.R.id.btnAddStopLocation)
+        rvStops = currentView!!.findViewById(com.kadabra.agent.R.id.rvStops)
+        btnSave = currentView!!.findViewById(com.kadabra.agent.R.id.btnSave)
 
 
 
@@ -303,12 +346,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvAddStop!!.setOnClickListener(this)
         tvClearStop!!.setOnClickListener(this)
         tvGetLocation!!.setOnClickListener(this)
+        etPickupTime.setOnClickListener(this)
 
 
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
 
-//        getAllCouriers()
+        getAllCouriers()
 //        prepareTickets()
         prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
@@ -319,10 +363,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         sTicket.isEnabled = false
 
         if (editMode) {
-            btnSave.text = context!!.getString(R.string.update)
-            tvTaskDetails!!.text = context!!.getString(R.string.task_details)
+            btnSave.text = context!!.getString(com.kadabra.agent.R.string.update)
+            tvTaskDetails!!.text = context!!.getString(com.kadabra.agent.R.string.task_details)
             tvDeleteTask!!.visibility = View.VISIBLE
-            loadTaskData(AppConstants.CurrentSelectedTask)
+            getTaskDetails(AppConstants.CurrentSelectedTask.TaskId)
         } else
             defaultTaskData()
 
@@ -339,8 +383,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private fun defaultTaskData() {
 
 
-        btnSave.text = context!!.getString(R.string.save)
-        tvTaskDetails!!.hint = context!!.getString(R.string.new_task)
+        btnSave.text = context!!.getString(com.kadabra.agent.R.string.save)
+        tvTaskDetails!!.hint = context!!.getString(com.kadabra.agent.R.string.new_task)
 
         tvDeleteTask!!.visibility = View.INVISIBLE
 
@@ -350,6 +394,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 //        sCourier.setText(context!!.getString(R.string.select_courier))
         etAmount!!.hint = context!!.getString(R.string.amount)
+
+        etPickupTime!!.hint = context!!.getString(R.string.pickup_time)
+
+
 
         rvStops.adapter = null
         rlStops.visibility = View.GONE
@@ -368,7 +416,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             etTaskName.setText(task.TaskName)
 
 
-            tvStatus.text = task.Status
+        tvStatus.text = task.Status
 
         if (task.TaskDescription != null && !task.TaskDescription.isNullOrEmpty())
             etTaskDescription.setText(task.TaskDescription)
@@ -380,6 +428,26 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         if (!task.Amount.toString().trim().isNullOrEmpty())
             etAmount!!.setText(task.Amount.toString())
+
+
+        if (!task.PickUpTime.trim().isNullOrEmpty()) {
+
+            var t = "yyyy-MM-dd'T'HH:mm:ss"
+
+            var myFormat = "EEE, MMM d, yyyy   hh:mm a" //
+
+            var sdf = SimpleDateFormat(t, Locale.US)
+            var tf = SimpleDateFormat(myFormat, Locale.US)
+            var dateObj = sdf.parse(task.PickUpTime)
+            dateEdit = Calendar.getInstance()
+            dateEdit?.time = dateObj
+
+            etPickupTime?.setText(tf.format(dateObj!!.time))
+
+
+        }
+
+
 
         if (task.stopsmodel.count() > 0) {
 
@@ -397,35 +465,63 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun prepareTaskModelData(task: Task) {
 
-        taskModel.taskName = task.TaskName
-        taskModel.TaskDescription = task.TaskDescription
-        taskModel.amount = task.Amount
-        taskModel.ticketID = task.TicketId
-        taskModel.courierId = task.CourierID
+        if (editMode == false) {
+            taskModel.taskName = task.TaskName
+            taskModel.TaskDescription = task.TaskDescription
+            taskModel.amount = task.Amount
+            taskModel.ticketID = task.TicketId
+            taskModel.courierId = task.CourierID
+            taskModel.pickupTime = task.PickUpTime
 
-        if (!editMode) { // new
             taskModel.addedBy = task.AddedBy
 
-        } else { //edit
-            taskModel.taskId = task.TaskId
-            taskModel.modifiedBy = task.AddedBy
-        }
+            taskModel.stopsmodels.clear()
+            task.stopsmodel.forEach {
 
-        taskModel.stopsmodels.clear()
-        task.stopsmodel.forEach {
 
-            //            if (it.status == 0) // new
-//            {
-            taskModel.stopsmodels!!.add(
-                Stopsmodel(
-                    it.StopName,
-                    it.Latitude!!,
-                    it.Longitude!!,
-                    task.AddedBy,
-                    it.StopTypeID
+                taskModel.stopsmodels!!.add(
+                    Stopsmodel(
+                        it.StopName,
+                        it.Latitude!!,
+                        it.Longitude!!,
+                        task.AddedBy,
+                        it.StopTypeID
+                    )
                 )
-            )
 //            }
+            }
+
+        } else {
+
+
+            taskModelEdit.taskId = task.TaskId
+            taskModelEdit.modifiedBy = task.AddedBy
+
+            taskModelEdit.taskName = task.TaskName
+            taskModelEdit.TaskDescription = task.TaskDescription
+            taskModelEdit.amount = task.Amount
+            taskModelEdit.ticketID = task.TicketId
+            taskModelEdit.courierId = task.CourierID
+            taskModelEdit.pickupTime = task.PickUpTime
+
+            taskModelEdit.modifiedBy = task.AddedBy
+
+            taskModelEdit.stopsmodels.clear()
+            task.stopsmodel.forEach {
+
+
+                taskModelEdit.stopsmodels!!.add(
+                    Stopsmodel(
+                        it.StopName,
+                        it.Latitude!!,
+                        it.Longitude!!,
+                        task.AddedBy,
+                        it.StopTypeID
+                    )
+                )
+//            }
+            }
+
         }
 
     }
@@ -447,12 +543,17 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             AnimateScroll.scrollToView(scroll, etAmount)
             etAmount.requestFocus()
             return false
+        } else if (etPickupTime.text.toString().isNullOrEmpty()) {
+            Alert.showMessage(context!!, "Pickup Time is required.")
+            AnimateScroll.scrollToView(scroll, etPickupTime)
+            etPickupTime.requestFocus()
+            return false
         } else if (selectedCourier.CourierId == null) {
             Alert.showMessage(context!!, "Courier is required.")
             AnimateScroll.scrollToView(scroll, sCourier)
             sCourier.showDropDown()
             return false
-        } else if (rlStops.isVisible &&
+        } else if (rlStops.isVisible && stopsList.size <= 0 &&
             etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
         ) {
 
@@ -460,7 +561,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             AnimateScroll.scrollToView(scroll, etLongitude)
             btnAddStopLocation.requestFocus()
             return false
+        } else if (stopsList.size < 2) {
+            Alert.showMessage(context!!, "Cant save task without  Pickup and Dropoff stops.")
+            rlStops.visibility = View.VISIBLE
+            AnimateScroll.scrollToView(scroll, etStopName)
+            etStopName.requestFocus()
+
+            return false
         }
+
 
 
         return true
@@ -472,6 +581,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var taskDescription = etTaskDescription.text.toString()
 
         var amount = etAmount.text.toString().toDouble()
+        var pickupTime = dateValue//date!!.time//etPickupTime.text.toString() as Date
+
         var addedBY = AppConstants.CurrentLoginAdmin.AdminId
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var taskId = AppConstants.CurrentSelectedTask.TaskId
@@ -481,6 +592,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             taskName,
             taskDescription,
             amount,
+            pickupTime,
             addedBY,
             ticketId!!,
             taskId,
@@ -543,7 +655,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
 
-    private fun editTask(taskModel: TaskModel) {
+    private fun editTask(taskModel: TaskModelEdit) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var request = NetworkManager().create(ApiServices::class.java)
@@ -563,7 +675,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            Alert.hideProgress()
+
 
                             var tasks = response.ResponseObj!!
                             var task = tasks[0]
@@ -571,7 +683,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                                 AppConstants.CurrentSelectedTicket.taskModel.indexOf(AppConstants.CurrentSelectedTicket.taskModel.find { it.TaskId == task.TaskId })
                             AppConstants.CurrentSelectedTicket.taskModel[selectedTaskIndex] = task
                             AppConstants.CurrentSelectedTask = task
-
+                            Alert.hideProgress()
                             listener!!.onBottomSheetSelectedItem(3)
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -999,15 +1111,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun addStopToStopList(stop: Stop) {
         stopsList.add(stop)
-//        stopsModelList.add(
-//            Stopsmodel(
-//                stop.StopName,
-//                stop.Latitude!!,
-//                stop.Longitude!!,
-//                stop.addedBy,
-//                stop.StopTypeID
-//            )
-//        )
+
 
         var adapter = StopAdapter(context!!, stopsList, this)
         rvStops.adapter = adapter
@@ -1051,6 +1155,20 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         return true
     }
+
+    private fun validateStopType(stop: Stop): Boolean {
+
+        var pick = stopsList.count { it.StopTypeID == 1 }
+        var drop = stopsList.count { it.StopTypeID == 2 }
+
+        if (pick == 1 && stop.StopTypeID == 1 || drop == 1 && stop.StopTypeID == 2)
+            return false
+
+        return true
+
+
+    }
+
 
     private fun deleteTask(task: Task) {
         Alert.showProgress(context!!)
@@ -1160,12 +1278,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     override fun onSuccess(response: ApiResponse<Task>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            hideProgress()
-                            refresh.isRefreshing = false
+
                             task = response.ResponseObj!!
                             AppConstants.CurrentSelectedTask = task
                             loadTaskData(task)
-
+                            hideProgress()
+                            refresh.isRefreshing = false
                         } else {
                             hideProgress()
                             refresh.isRefreshing = false
@@ -1188,6 +1306,96 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         }
 
 
+    }
+
+    fun showDateTimePicker() {
+
+        if (editMode) {
+
+            val currentDate = Calendar.getInstance()
+            date = Calendar.getInstance()
+
+            mMonth = dateEdit!!.get(Calendar.MONTH)
+            mDay = dateEdit!!.get(Calendar.DATE)
+            mYear = dateEdit!!.get(Calendar.YEAR)
+            mHour = dateEdit!!.get(Calendar.HOUR_OF_DAY)
+            mMinute = dateEdit!!.get(Calendar.MINUTE)
+
+
+            date!!.set(mYear, mMonth, mDay)
+
+            DatePickerDialog(
+                context,
+                DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                    date!!.set(year, monthOfYear, dayOfMonth)
+                    TimePickerDialog(
+                        context,
+                        TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
+                            date!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            date!!.set(Calendar.MINUTE, minute)
+                            Log.d("Date", "The choosen one ." + date!!.time)
+
+                            var df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") //.SSSXXX
+
+                            var tf = SimpleDateFormat("EEE, MMM d, yyyy  hh:mm a")
+
+                            dateValue = df.format(date!!.time)
+                            var displayText = tf.format(date!!.time)
+
+                            etPickupTime.setText(displayText)
+
+                        },
+                        currentDate.get(Calendar.HOUR_OF_DAY),
+                        currentDate.get(Calendar.MINUTE),
+                        false
+                    ).show()
+                },
+                currentDate.get(Calendar.YEAR),
+                currentDate.get(Calendar.MONTH),
+                currentDate.get(Calendar.DATE)
+            ).show()
+
+        } else {
+            val currentDate = Calendar.getInstance()
+            date = Calendar.getInstance()
+
+
+            DatePickerDialog(
+                context,
+                DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                    date!!.set(year, monthOfYear, dayOfMonth)
+                    TimePickerDialog(
+                        context,
+                        TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
+                            date!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            date!!.set(Calendar.MINUTE, minute)
+                            Log.d("Date", "The choosen one ." + date!!.time)
+
+                            var df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") //.SSSXXX
+
+                            var tf = SimpleDateFormat("EEE, MMM d, yyyy  hh:mm a")
+
+                            dateValue = df.format(date!!.time)
+                            var displayText = tf.format(date!!.time)
+
+                            etPickupTime.setText(displayText)
+
+                        },
+                        currentDate.get(Calendar.HOUR_OF_DAY),
+                        currentDate.get(Calendar.MINUTE),
+                        false
+                    ).show()
+                },
+                currentDate.get(Calendar.YEAR),
+                currentDate.get(Calendar.MONTH),
+                currentDate.get(Calendar.DATE)
+            ).show()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Alert.hideProgress()
     }
 
 //endregion

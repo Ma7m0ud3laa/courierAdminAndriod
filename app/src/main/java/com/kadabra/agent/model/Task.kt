@@ -1,9 +1,11 @@
 package com.kadabra.agent.model
 
 import com.google.firebase.database.Exclude
+import java.util.*
+import kotlin.collections.ArrayList
 
 class Task {
-//    var TaskId: String = ""
+    //    var TaskId: String = ""
 //    var TicketId: String = ""
 //    var TaskName: String = ""
 //    var TaskDescription: String = ""
@@ -16,10 +18,10 @@ class Task {
 //    var stopDropOff = Stop()
 //    var defaultStops = ArrayList<Stop>()
 //    var AddedBy: String = ""
-@Exclude
-@set:Exclude
-@get:Exclude
-var TaskId: String = ""
+    @Exclude
+    @set:Exclude
+    @get:Exclude
+    var TaskId: String = ""
     @Exclude
     @set:Exclude
     @get:Exclude
@@ -31,8 +33,8 @@ var TaskId: String = ""
     @Exclude
     @set:Exclude
     @get:Exclude
-    var TaskDescription: String ?=null
-    var CourierID: Int ? = null
+    var TaskDescription: String? = null
+    var CourierID: Int? = null
     @Exclude
     @set:Exclude
     @get:Exclude
@@ -41,6 +43,8 @@ var TaskId: String = ""
     @set:Exclude
     @get:Exclude
     var Amount = 0.0
+    var PickUpTime=""
+
     @Exclude
     @set:Exclude
     @get:Exclude
@@ -75,13 +79,13 @@ var TaskId: String = ""
     var Status = ""
 
 
-
     constructor() {}
 
     constructor(
         taskName: String,
-        taskDescription:String,
+        taskDescription: String,
         amount: Double,
+        pickUpTime: String,
         addedBy: String,
         ticketId: String,
         taskId: String,
@@ -89,8 +93,9 @@ var TaskId: String = ""
         stopList: ArrayList<Stop>
     ) {
         this.TaskName = taskName
-        this.TaskDescription=taskDescription
+        this.TaskDescription = taskDescription
         this.Amount = amount
+        this.PickUpTime=pickUpTime
         this.AddedBy = addedBy
         this.TicketId = ticketId
         this.TaskId = taskId

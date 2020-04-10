@@ -103,7 +103,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var polylines: List<Polyline>
     private var currentPolyline: Polyline? = null
     private var placesClient: PlacesClient? = null
-    private var materialSearchBar: MaterialSearchBar? = null
+    //    private var materialSearchBar: MaterialSearchBar? = null
     private var predictionList: List<AutocompletePrediction>? = null
     private val DEFAULT_ZOOM = 15f
     private var mapView: View? = null
@@ -126,7 +126,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         ivBack = currentView.findViewById(R.id.ivBack)
         ivSearchMarker = currentView.findViewById(R.id.ivSearchMarker)
         btnConfirmLocation = currentView.findViewById(R.id.btnConfirmLocation)
-        materialSearchBar = currentView.findViewById(R.id.searchBar)
+//        materialSearchBar = currentView.findViewById(R.id.searchBar)
         ivBack.setOnClickListener(this)
         btnConfirmLocation.setOnClickListener(this)
 
@@ -142,116 +142,116 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         val token = AutocompleteSessionToken.newInstance()
 
 
-        materialSearchBar!!.setOnSearchActionListener(object :
-            MaterialSearchBar.OnSearchActionListener {
-            override fun onSearchStateChanged(enabled: Boolean) {
-
-            }
-
-            override fun onSearchConfirmed(text: CharSequence) {
-                activity!!.startSearch(text.toString(), true, null, true)
-            }
-
-            override fun onButtonClicked(buttonCode: Int) {
-                if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
-                    //opening or closing a navigation drawer
-                } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-                    materialSearchBar!!.disableSearch()
-                }
-            }
-        })
-
-        materialSearchBar!!.addTextChangeListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-                    .setTypeFilter(TypeFilter.ADDRESS)
-                    .setSessionToken(token!!)
-                    .setQuery(s.toString())
-                    .build()
-                placesClient!!.findAutocompletePredictions(predictionsRequest)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val predictionsResponse = task.result
-                            if (predictionsResponse != null) {
-                                predictionList = predictionsResponse.autocompletePredictions
-                                val suggestionsList = ArrayList<String>()
-                                for (i in predictionList!!.indices) {
-                                    val prediction = predictionList!!.get(i)
-                                    suggestionsList.add(prediction.getFullText(null).toString())
-                                }
-                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
-                                if (!materialSearchBar!!.isSuggestionsVisible) {
-                                    materialSearchBar!!.showSuggestionsList()
-                                }
-                            }
-                        } else {
-                            Log.i("mytag", "prediction fetching task unsuccessful")
-                        }
-                    }
-            }
-
-            override fun afterTextChanged(s: Editable) {
-
-            }
-        })
-
-
-        materialSearchBar!!.setSuggstionsClickListener(object :
-            SuggestionsAdapter.OnItemViewClickListener {
-            override fun OnItemClickListener(position: Int, v: View) {
-                if (position >= predictionList!!.size) {
-                    return
-                }
-                val selectedPrediction = predictionList!![position]
-                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-                materialSearchBar!!.text = suggestion
-
-                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                imm?.hideSoftInputFromWindow(
-                    materialSearchBar!!.windowToken,
-                    InputMethodManager.HIDE_IMPLICIT_ONLY
-                )
-                val placeId = selectedPrediction.placeId
-                val placeFields = listOf(Place.Field.LAT_LNG)
-
-                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
-                placesClient!!.fetchPlace(fetchPlaceRequest)
-                    .addOnSuccessListener { fetchPlaceResponse ->
-                        val place = fetchPlaceResponse.place
-                        if (place.name != null)
-                            Log.i("mytag", "Place found: " + place.name)
-                        else
-                            Log.i("mytag", "Place found: " + "No Name is found")
-
-                        val latLngOfPlace = place.latLng
-                        if (latLngOfPlace != null) {
-                            ivSearchMarker.visibility = View.VISIBLE
-                            mMap.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    latLngOfPlace,
-                                    DEFAULT_ZOOM
-                                )
-                            )
-                        }
-                    }.addOnFailureListener { e ->
-                        if (e is ApiException) {
-                            e.printStackTrace()
-                            val statusCode = e.statusCode
-                            Log.i("mytag", "place not found: " + e.message)
-                            Log.i("mytag", "status code: $statusCode")
-                        }
-                    }
-            }
-
-            override fun OnItemDeleteListener(position: Int, v: View) {
-
-            }
-        })
+//        materialSearchBar!!.setOnSearchActionListener(object :
+//            MaterialSearchBar.OnSearchActionListener {
+//            override fun onSearchStateChanged(enabled: Boolean) {
+//
+//            }
+//
+//            override fun onSearchConfirmed(text: CharSequence) {
+//                activity!!.startSearch(text.toString(), true, null, true)
+//            }
+//
+//            override fun onButtonClicked(buttonCode: Int) {
+//                if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
+//                    //opening or closing a navigation drawer
+//                } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
+//                    materialSearchBar!!.disableSearch()
+//                }
+//            }
+//        })
+//
+//        materialSearchBar!!.addTextChangeListener(object : TextWatcher {
+//            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+//
+//            }
+//
+//            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+//                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
+//                    .setTypeFilter(TypeFilter.ADDRESS)
+//                    .setSessionToken(token!!)
+//                    .setQuery(s.toString())
+//                    .build()
+//                placesClient!!.findAutocompletePredictions(predictionsRequest)
+//                    .addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            val predictionsResponse = task.result
+//                            if (predictionsResponse != null) {
+//                                predictionList = predictionsResponse.autocompletePredictions
+//                                val suggestionsList = ArrayList<String>()
+//                                for (i in predictionList!!.indices) {
+//                                    val prediction = predictionList!!.get(i)
+//                                    suggestionsList.add(prediction.getFullText(null).toString())
+//                                }
+//                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
+//                                if (!materialSearchBar!!.isSuggestionsVisible) {
+//                                    materialSearchBar!!.showSuggestionsList()
+//                                }
+//                            }
+//                        } else {
+//                            Log.i("mytag", "prediction fetching task unsuccessful")
+//                        }
+//                    }
+//            }
+//
+//            override fun afterTextChanged(s: Editable) {
+//
+//            }
+//        })
+//
+//
+//        materialSearchBar!!.setSuggstionsClickListener(object :
+//            SuggestionsAdapter.OnItemViewClickListener {
+//            override fun OnItemClickListener(position: Int, v: View) {
+//                if (position >= predictionList!!.size) {
+//                    return
+//                }
+//                val selectedPrediction = predictionList!![position]
+//                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+//                materialSearchBar!!.text = suggestion
+//
+//                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+//                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+//                imm?.hideSoftInputFromWindow(
+//                    materialSearchBar!!.windowToken,
+//                    InputMethodManager.HIDE_IMPLICIT_ONLY
+//                )
+//                val placeId = selectedPrediction.placeId
+//                val placeFields = listOf(Place.Field.LAT_LNG)
+//
+//                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
+//                placesClient!!.fetchPlace(fetchPlaceRequest)
+//                    .addOnSuccessListener { fetchPlaceResponse ->
+//                        val place = fetchPlaceResponse.place
+//                        if (place.name != null)
+//                            Log.i("mytag", "Place found: " + place.name)
+//                        else
+//                            Log.i("mytag", "Place found: " + "No Name is found")
+//
+//                        val latLngOfPlace = place.latLng
+//                        if (latLngOfPlace != null) {
+//                            ivSearchMarker.visibility = View.VISIBLE
+//                            mMap.moveCamera(
+//                                CameraUpdateFactory.newLatLngZoom(
+//                                    latLngOfPlace,
+//                                    DEFAULT_ZOOM
+//                                )
+//                            )
+//                        }
+//                    }.addOnFailureListener { e ->
+//                        if (e is ApiException) {
+//                            e.printStackTrace()
+//                            val statusCode = e.statusCode
+//                            Log.i("mytag", "place not found: " + e.message)
+//                            Log.i("mytag", "status code: $statusCode")
+//                        }
+//                    }
+//            }
+//
+//            override fun OnItemDeleteListener(position: Int, v: View) {
+//
+//            }
+//        })
 
         ///////////////////////////////////////////////////
 
@@ -333,10 +333,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 //            loadAllCouriers()  //this from db
 
         mMap.setOnMyLocationButtonClickListener {
-            if (materialSearchBar!!.isSuggestionsVisible)
-                materialSearchBar!!.clearSuggestions()
-            if (materialSearchBar!!.isSearchEnabled)
-                materialSearchBar!!.disableSearch()
+            //            if (materialSearchBar!!.isSuggestionsVisible)
+//                materialSearchBar!!.clearSuggestions()
+//            if (materialSearchBar!!.isSearchEnabled)
+//                materialSearchBar!!.disableSearch()
             false
         }
 
@@ -603,8 +603,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
         }
         var bounds = builder.build()
-        var padding = 0 // offset from edges of the mMap in pixels
-        var cu = CameraUpdateFactory.newLatLngBounds(bounds, padding)
+        // begin new code:
+        var width = resources.displayMetrics.widthPixels;
+        var height = resources.displayMetrics.heightPixels;
+        var padding = (width * 0.12).toInt()
+//        var padding = 0 // offset from edges of the mMap in pixels
+        var cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding)
 //        mMap.setMaxZoomPreference(18.0F)
         mMap.setMaxZoomPreference(12.0F)
         mMap.animateCamera(cu)

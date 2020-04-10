@@ -70,7 +70,7 @@ object FirebaseManager {
                     var courier = currentCourier.getValue(Courier::class.java)!!
                     courier.CourierId = currentCourier.key!!.toInt()
 
-                    if (AppConstants.ALL_COURIERS_FIREBASE.find { it.CourierId == courier.CourierId } == null)
+                    if (AppConstants.ALL_COURIERS_FIREBASE.find { it.CourierId == courier.CourierId } == null&&courier.isActive)
                         AppConstants.ALL_COURIERS_FIREBASE.add(courier)
 
 

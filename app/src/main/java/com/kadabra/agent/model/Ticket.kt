@@ -7,7 +7,8 @@ class Ticket {
     var TicketName: String = ""
     var TicketDescription: String = ""
     var UserMobile: String = ""
-
+    var TotalTasks = ""
+    var TotalTasksAmount=""
     var PickUpName: String = ""
 
     var PickUpLongitude: Double? = null
@@ -19,10 +20,10 @@ class Ticket {
     var DropOffLongitude: Double? = null
 
     var DropOffLatitude: Double? = null
-    var StatusId: Int ?=null
+    var StatusId: Int? = null
 
     var Status: String? = null
-    var CategoryId: String=""
+    var CategoryId: String = ""
 
     var Category: String = ""
 
@@ -47,7 +48,7 @@ class Ticket {
     var ticketStatus: ArrayList<TicketStatus>? = null
     var ticketPriority: ArrayList<TicketPriority>? = null
     var ticketPaymetMethods: ArrayList<TicketPaymentMethod>? = null
-    var serviceCosts= ArrayList<TicketServiceCost>()
+    var serviceCosts = ArrayList<TicketServiceCost>()
 
 
     constructor() {}
@@ -79,7 +80,7 @@ class Ticket {
         this.StatusId = statusId
         this.PaymentMethodId = paymentId
         this.NeedCourier = needCourier
-        this.serviceCosts= serviceCostList
+        this.serviceCosts = serviceCostList
         this.AdminId = adminId
     }
 
