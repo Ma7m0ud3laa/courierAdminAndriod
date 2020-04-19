@@ -77,6 +77,11 @@ object AppConstants {
     const val URL_SET_USER_TOKEN = "UpdateAdminToken"
     const val URL_GET_VERSION_CODE = "GetVersionCodeForAndroidAdmin"
     const val URL_GET_TAKS_DETAILS = "GetTaskByID"
+    const val URL_UPDATE_TASK_COURIER_FEES = "UpdateTaskCourierFees"
+    const val URL_GET_ALL_COMPLETED_TASKS = "GetAllCompletedTaskForAdmin"
+    const val URL_GET_ALL_NOTIFICATIONS = "GetAllAdminNotification"
+        const val URL_GET_ALL_READED_NOTIFICATIONS = "UpdateAdminReadedNotification"
+
 
     //endregion
 

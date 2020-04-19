@@ -3,11 +3,18 @@ package com.kadabra.agent.intro
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.kadabra.Networking.NetworkManager
 import com.reach.plus.admin.util.UserSessionManager
 import com.kadabra.agent.ticket.TicketActivity
 
@@ -16,8 +23,10 @@ import com.kadabra.agent.exception.CrashActivity
 import com.kadabra.agent.exception.CrashHandeller
 import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.login.LoginActivity
+import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import kotlinx.android.synthetic.main.activity_splash.*
+import java.util.ArrayList
 
 class SplashActivity : AppCompatActivity() {
 
@@ -30,7 +39,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        FirebaseManager.setUpFirebase()
+//        FirebaseManager.setUpFirebase()
         init()
 
     }
@@ -91,6 +100,8 @@ class SplashActivity : AppCompatActivity() {
 
         }
     }
+
+
 
     //endregion
 }

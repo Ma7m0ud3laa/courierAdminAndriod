@@ -279,7 +279,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     } else
                         Alert.showMessage(
                             context!!,
-                            "The task must include only one Pickup and DropOff Stops."
+                            "The task must include at least one Pickup and one Drop Off Stops."
                         )
 
 
@@ -562,7 +562,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             btnAddStopLocation.requestFocus()
             return false
         } else if (stopsList.size < 2) {
-            Alert.showMessage(context!!, "Cant save task without  Pickup and Dropoff stops.")
+            Alert.showMessage(context!!, "Cant save task without  Pickup and Drop off stops.")
             rlStops.visibility = View.VISIBLE
             AnimateScroll.scrollToView(scroll, etStopName)
             etStopName.requestFocus()
@@ -570,7 +570,20 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             return false
         }
 
-
+//        else if (stopsList.size >= 2) {
+//            var pick = stopsList.count { it.StopTypeID == 1 }
+//            var drop = stopsList.count { it.StopTypeID == 2 }
+//
+//             if (pick == 1 || drop == 1) {
+//                Alert.showMessage(
+//                    context!!, "The task must include at least one Pickup and one Drop Off Stops.")
+//
+//                return false
+//
+//            }
+//            return true
+//
+//        }
 
         return true
 
@@ -1118,7 +1131,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         rvStops.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
         adapter.notifyDataSetChanged()
-
+        Alert.showMessage(context!!, "Stop ${stop.StopName} is added successfully.")
         clearStopControlsData()
 
     }
@@ -1164,7 +1177,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (pick == 1 && stop.StopTypeID == 1 || drop == 1 && stop.StopTypeID == 2)
             return false
 
-        return true
+
+
+            return true
 
 
     }

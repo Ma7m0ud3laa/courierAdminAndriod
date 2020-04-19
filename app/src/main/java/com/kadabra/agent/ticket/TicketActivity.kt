@@ -67,7 +67,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
         setContentView(R.layout.activity_ticket)
 //        Crashlytics.getInstance().crash()
 
-        FirebaseManager.setUpFirebase()
+//        FirebaseManager.setUpFirebase()
         init()
         forceUpdate()
 

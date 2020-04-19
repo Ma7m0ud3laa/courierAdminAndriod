@@ -10,21 +10,14 @@ class Ticket {
     var TotalTasks = ""
     var TotalTasksAmount=""
     var PickUpName: String = ""
-
     var PickUpLongitude: Double? = null
-
     var PickUpLatitude: Double? = null
-
     var DropOffName: String = ""
-
     var DropOffLongitude: Double? = null
-
     var DropOffLatitude: Double? = null
     var StatusId: Int? = null
-
     var Status: String? = null
     var CategoryId: String = ""
-
     var Category: String = ""
 
     var price: Double? = null

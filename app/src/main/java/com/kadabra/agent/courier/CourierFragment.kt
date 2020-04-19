@@ -1,6 +1,7 @@
 package com.kadabra.agent.courier
 
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.content.DialogInterface
@@ -21,6 +22,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.ImageView
@@ -51,6 +53,7 @@ import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
 import com.kadabra.agent.firebase.FirebaseManager
+import com.kadabra.agent.firebase.LatLngInterpolator
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.utilities.Alert
@@ -78,6 +81,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var ivBack: ImageView
     private lateinit var ivSearchMarker: ImageView
     private lateinit var btnConfirmLocation: Button
+    private  var currentSelectedCourier= Courier()
 
     private var firstTimeFlag = true
     private var listener: IBottomSheetCallback? = null
@@ -90,30 +94,25 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     var geoCoder: Geocoder? = null
     var addresList: List<Address>? = null
     private lateinit var selectedLatLng: LatLng
-    var markers = HashMap<String, Courier>()
+    var markers = WeakHashMap <String, Courier>()
+    var currentSelectedMarker: Marker? = null
     private val TAG = CourierFragment::class.java!!.simpleName
-    private val COLORS: IntArray = intArrayOf(
-        R.color.colorPrimary,
-        R.color.colorAccent,
-        R.color.colorApp,
-        R.color.colorLabel,
-        R.color.primary_dark_material_light
-    )
 
     private lateinit var polylines: List<Polyline>
     private var currentPolyline: Polyline? = null
     private var placesClient: PlacesClient? = null
     //    private var materialSearchBar: MaterialSearchBar? = null
     private var predictionList: List<AutocompletePrediction>? = null
-    private val DEFAULT_ZOOM = 15f
+    private var DEFAULT_ZOOM = 15f
     private var mapView: View? = null
     //endregion
+    private var currentSelectedCourierId = 0
 
 
     //region Events
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseManager.setUpFirebase()
+        AppConstants.isMoving=false //required for reget all the couriers data from firebase
     }
 
     override fun onCreateView(
@@ -290,6 +289,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     override fun onMapReady(googleMap: GoogleMap) {
 
         mMap = googleMap
+        mMap.setOnMarkerClickListener(this)
+
 
         mMap.uiSettings.isMyLocationButtonEnabled = true
 
@@ -329,8 +330,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 loadAllCouriersFromFB()
         }
 
-        //couriers points
-//            loadAllCouriers()  //this from db
+
 
         mMap.setOnMyLocationButtonClickListener {
             //            if (materialSearchBar!!.isSuggestionsVisible)
@@ -344,24 +344,22 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     override fun onMarkerClick(courierMarker: Marker?): Boolean {
 
-        var currentCourier = markers[courierMarker!!.id]
-        AppConstants.isMoving = true
-        getCurrentCourierLocation(currentCourier!!.CourierId!!.toInt())
+
+        if (!searchMode &&DEFAULT_ZOOM<20) {
+
+            var currentCourier = courierMarker?.tag as Courier
+            if (currentCourier != null && currentCourier.CourierId!! > 0) {
+                AppConstants.isMoving = true
+                if (currentSelectedCourierId != currentCourier.CourierId) {
+                    firstTimeFlag = true
+                    getCurrentCourierLocation(currentCourier.CourierId!!)
+                }
+            }
+
+        }
+
+
         return false
-    }
-
-
-    override fun onPause() {
-        super.onPause()
-    }
-
-    public override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onStart() {
-        super.onStart()
-
     }
 
 
@@ -425,17 +423,14 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
     private fun getCurrentCourierLocation(courierId: Int) {
-
         if (NetworkManager().isNetworkAvailable(context!!)) {
             FirebaseManager.getCurrentCourierLocation(courierId.toString()) { success, location ->
                 if (success) {
-//                    mMap.clear()
+                    mMap.clear()
+                    currentSelectedCourierId = courierId
 
-//                    placeMarkerOnMap(LatLng(location!!.lat.toDouble(), location!!.long.toDouble()))
-//                    showMarker(LatLng(location!!.lat.toDouble(), location!!.long.toDouble()))
                     if (firstTimeFlag && mMap != null) {
                         animateCamera(LatLng(location!!.lat.toDouble(), location!!.long.toDouble()))
-//                        moveCamera(LatLng(location!!.lat.toDouble(), location!!.long.toDouble()))
                         mMap.moveCamera(
                             CameraUpdateFactory.newLatLngZoom(
                                 LatLng(
@@ -464,16 +459,15 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                             )
                         )
                         currentMarker = mMap.addMarker(markerOptions)
+                        markers[currentMarker!!.id] = currentSelectedCourier
 
+//                        currentMarker!!.position = latLng
                         //move mMap camera
-//                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18F))
+                        moveCamera(latLng)
                     }
-//                        showMarker(LatLng(location!!.lat.toDouble(), location!!.long.toDouble()))
-
-                } else {
-
 
                 }
+
             }
         } else {
             Alert.showMessage(context!!, getString(R.string.no_internet))
@@ -496,12 +490,13 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     private fun moveCamera(latLng: LatLng) {
 
-        val zoom = mMap.cameraPosition.zoom
+        DEFAULT_ZOOM = mMap.cameraPosition.zoom
+
         mMap.moveCamera(
             CameraUpdateFactory.newCameraPosition(
                 CameraPosition.fromLatLngZoom(
                     latLng,
-                    20F
+                    DEFAULT_ZOOM
                 )
             )
         )
@@ -532,7 +527,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         if (NetworkManager().isNetworkAvailable(context!!)) {
             FirebaseManager.getAllCouriers { success, data ->
                 if (success) {
+
                     mMap.clear()
+                    markersList?.clear()
+                    markers.clear()
+
                     data!!.forEach {
                         if (!it.location.lat.isNullOrEmpty() && !it.location.long.isNullOrEmpty()) {
                             currentLatLng =
@@ -558,8 +557,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                         )
                                     )
                             )
-                            markersList!!.add(marker!!)
-                            markers[marker!!.id] = it
+
+                            if (markersList!!.size < data.size) {
+                                marker?.tag = it
+                                markersList!!.add(marker!!)
+                                markers[marker!!.id] = it
+                            }
 
                         }
                     }
@@ -567,6 +570,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     if (markersList!!.size > 0)
                         prepareGetAllCourierView(markersList)
 
+                } else {
+                    Log.d(TAG, data.toString())
                 }
             }
 
@@ -600,6 +605,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         var builder = LatLngBounds.builder()
         markersList.forEach { marker ->
             builder.include(marker.position)
+//            marker.showInfoWindow()
 
         }
         var bounds = builder.build()
@@ -609,13 +615,82 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         var padding = (width * 0.12).toInt()
 //        var padding = 0 // offset from edges of the mMap in pixels
         var cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding)
-//        mMap.setMaxZoomPreference(18.0F)
-        mMap.setMaxZoomPreference(12.0F)
-        mMap.animateCamera(cu)
+
+//        mMap.setMaxZoomPreference(12.0F)
+        if (!AppConstants.isMoving)
+            mMap.animateCamera(cu)
 
 
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        AppConstants.isMoving = false
+    }
 
+//    public fun animateMarker( destination:Location,  marker:Marker) {
+//    if (marker != null) {
+//        var startPosition = marker.getPosition();
+//        var endPosition =  LatLng(destination.getLatitude(), destination.getLongitude());
+//
+//        var startRotation = marker.getRotation();
+//
+//        var latLngInterpolator =  LatLngInterpolator.LinearFixed();
+//        var valueAnimator = ValueAnimator.ofFloat(0F, 1F);
+//        valueAnimator.setDuration(1000); // duration 1 second
+//        valueAnimator.setInterpolator( LinearInterpolator());
+//        valueAnimator.addUpdateListener( ValueAnimator.AnimatorUpdateListener() {
+//            @Override fun onAnimationUpdate( animation:ValueAnimator) {
+//                try {
+//                    var v = animation.getAnimatedFraction();
+//                    var newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
+//                    marker.setPosition(newPosition);
+////                    marker.setRotation(computeRotation(v, startRotation, destination.getBearing()));
+//                } catch ( ex:Exception) {
+//                    // I don't care atm..
+//                }
+//            }
+//
+//
+//        });
+//
+//        valueAnimator.start();
+//    }
+//}
+
+
+//private  fun computeRotation( fraction:Float,  start:Float,  end:Float):Float {
+//    var normalizeEnd = end - start; // rotate start to 0
+//    var normalizedEndAbs = (normalizeEnd + 360) % 360;
+//
+//    var direction = (normalizedEndAbs > 180) ? -1 : 1; // -1 = anticlockwise, 1 = clockwise
+//     var rotation=0;
+//    if (direction > 0) {
+//        rotation = normalizedEndAbs;
+//    } else {
+//        rotation = normalizedEndAbs - 360;
+//    }
+//
+//    var result = fraction * rotation + start;
+//    return (result + 360) % 360;
+//}
+
+//    private interface LatLngInterpolator {
+//    LatLng interpolate(float fraction, LatLng a, LatLng b);
+//
+//    class LinearFixed implements LatLngInterpolator {
+//        @Override
+//        public LatLng interpolate(float fraction, LatLng a, LatLng b) {
+//            double lat = (b.latitude - a.latitude) * fraction + a.latitude;
+//            double lngDelta = b.longitude - a.longitude;
+//            // Take the shortest path across the 180th meridian.
+//            if (Math.abs(lngDelta) > 180) {
+//                lngDelta -= Math.signum(lngDelta) * 360;
+//            }
+//            double lng = lngDelta * fraction + a.longitude;
+//            return new LatLng(lat, lng);
+//        }
+//    }
+//}
     //endregion
 }

@@ -187,7 +187,8 @@
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
                         android:layout_marginEnd="24dp"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:visibility="gone">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -223,7 +224,7 @@
                         android:id="@+id/llStatusData"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@+id/llCategoryData"
+                        android:layout_below="@+id/lPhone"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="15dp"
                         android:layout_marginEnd="24dp"
@@ -342,21 +343,21 @@
 
 
 
-                    <CheckBox
-                        android:id="@+id/cbNeedCourier"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/llPriorityData"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:imeOptions="actionDone"
-                        android:text="@string/need_courier" />
+<!--                    <CheckBox-->
+<!--                        android:id="@+id/cbNeedCourier"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_below="@+id/llPriorityData"-->
+<!--                        android:layout_marginStart="24dp"-->
+<!--                        android:layout_marginTop="15dp"-->
+<!--                        android:imeOptions="actionDone"-->
+<!--                        android:text="@string/need_courier" />-->
 
                     <TextView
                         android:id="@+id/tvServiceCost"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/cbNeedCourier"
+                        android:layout_below="@id/llPriorityData"
                         android:layout_marginStart="24dp"
                         android:layout_marginTop="20dp"
                         android:fontFamily="Poppins-Regular"

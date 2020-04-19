@@ -19,10 +19,10 @@ import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Ticket
+import com.kadabra.agent.model.TicketData
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
-
 
 
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
@@ -116,7 +116,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
 
         sRefresh?.setOnRefreshListener {
-            loadTickets()
+            loadTickets(AppConstants.CurrentLoginAdmin.AdminId)
 
         }
 //
@@ -127,34 +127,33 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 //
 //        }
 
-        loadTickets()
+        loadTickets(AppConstants.CurrentLoginAdmin.AdminId)
     }
 
 
-
-    private fun loadTickets() {
+    private fun loadTickets(adminID: String) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             ivNoInternet!!.visibility = View.INVISIBLE
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllTicketsNormal()
+            var endPoint = request.getAllTicketsNormal(adminID)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
+                object : INetworkCallBack<ApiResponse<TicketData>> {
                     override fun onFailed(error: String) {
                         sRefresh!!.isRefreshing = false
                         Alert.hideProgress()
                         Alert.showMessage(context!!, getString(R.string.error_login_server_error))
                     }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
+                    override fun onSuccess(response: ApiResponse<TicketData>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-
-                            ticketList = response.ResponseObj!!
+                            var ticketsData = response.ResponseObj!!
+                            ticketList = ticketsData.simpleTicketmodels
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
                                 prepareTicketData(ticketList)
-                                AppConstants.GetALLTicket=ticketList
+                                AppConstants.GetALLTicket = ticketList
 //                                getAllCouriers()
                                 Alert.hideProgress()
                                 sRefresh!!.isRefreshing = false
@@ -187,12 +186,12 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
     }
 
-    private fun loadTicketsPerPge( noOfItems:Int,pageNo:Int) {
+    private fun loadTicketsPerPge(noOfItems: Int, pageNo: Int) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             ivNoInternet!!.visibility = View.INVISIBLE
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllTicketsByPage(noOfItems ,pageNo)
+            var endPoint = request.getAllTicketsByPage(noOfItems, pageNo)
             NetworkManager().request(
                 endPoint,
                 object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
@@ -210,7 +209,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
                                 prepareTicketData(ticketList)
-                                AppConstants.GetALLTicket=ticketList
+                                AppConstants.GetALLTicket = ticketList
                                 Alert.hideProgress()
 //                                getAllCouriers()
                             } else {//no taskModel
@@ -274,6 +273,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         } else {
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
         Alert.hideProgress()

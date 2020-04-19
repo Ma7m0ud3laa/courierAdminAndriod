@@ -64,19 +64,21 @@ object FirebaseManager {
                 completion(false, null)
             }
 
+
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 AppConstants.ALL_COURIERS_FIREBASE.clear()
                 for (currentCourier in dataSnapshot.children) {
                     var courier = currentCourier.getValue(Courier::class.java)!!
                     courier.CourierId = currentCourier.key!!.toInt()
 
-                    if (AppConstants.ALL_COURIERS_FIREBASE.find { it.CourierId == courier.CourierId } == null&&courier.isActive)
+//                    if (AppConstants.ALL_COURIERS_FIREBASE.find { it.CourierId == courier.CourierId } == null&&courier.isActive)
+                    if (courier.isActive)
                         AppConstants.ALL_COURIERS_FIREBASE.add(courier)
 
 
                 }
-                if(AppConstants.ALL_COURIERS_FIREBASE.size>0)
-                completion(true, AppConstants.ALL_COURIERS_FIREBASE)
+                if (AppConstants.ALL_COURIERS_FIREBASE.size > 0)
+                    completion(true, AppConstants.ALL_COURIERS_FIREBASE)
                 else
                     completion(false, null)
 
@@ -102,15 +104,15 @@ object FirebaseManager {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (currentTask in dataSnapshot.children) {
-                try {
-                    var location = dataSnapshot.getValue(location::class.java)!!
-                    if (!location.lat.isNullOrEmpty() && !location.long.isNullOrEmpty()) {
-                        AppConstants.CurrentCourierLocation = location!!
-                        completion(true, location)
+                    try {
+                        var location = dataSnapshot.getValue(location::class.java)!!
+                        if (!location.lat.isNullOrEmpty() && !location.long.isNullOrEmpty()) {
+                            AppConstants.CurrentCourierLocation = location!!
+                            completion(true, location)
+                        }
+                    } catch (ex: Exception) {
+                        Log.e(TAG,ex.message)
                     }
-                }
-                catch(ex:Exception)
-                {}
                 }
             }
 
@@ -131,7 +133,7 @@ object FirebaseManager {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (currentTask in dataSnapshot.children) {
                     task = currentTask.getValue(Task::class.java)!!
-                    if (task.isActive && task.CourierID == courieId.toInt()&&!task.TaskId.isNullOrEmpty()) {
+                    if (task.isActive && task.CourierID == courieId.toInt() && !task.TaskId.isNullOrEmpty()) {
                         task.TaskId = currentTask.key!!
                         listener.onSuccess(1)
                     }

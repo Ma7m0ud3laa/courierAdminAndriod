@@ -56,11 +56,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private lateinit var etMobile: EditText
     private lateinit var ccp: CountryCodePicker
 
-    private lateinit var sCategory: AutoCompleteTextView
+    //    private lateinit var sCategory: AutoCompleteTextView
     private lateinit var sPriority: AutoCompleteTextView
     private lateinit var sStatus: AutoCompleteTextView
     private lateinit var sPayment: AutoCompleteTextView
-    private lateinit var cbNeedCourier: CheckBox
+    //    private lateinit var cbNeedCourier: CheckBox
     private lateinit var ivBack: ImageView
     private lateinit var btnSave: Button
     private lateinit var refresh: SwipeRefreshLayout
@@ -109,7 +109,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var subData = UserSessionManager.getInstance(context!!).getTicketSubData()
             if (subData != null) {
-                prepareCategories(subData.CategoriesModels!!)
+//                prepareCategories(subData.CategoriesModels!!)
                 prepareStatus(subData.StatusModels!!)
                 preparePriorities(subData.PrioritiesModels!!)
                 preparePaymentMethods(subData.paymentMethodModels!!)
@@ -131,11 +131,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        if (editMode)
-//            getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
-//        else
-//            defaultTicketData()
 
 
     }
@@ -247,11 +242,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         etMobile = currentView!!.findViewById(R.id.etMobile)
         ccp = currentView!!.findViewById(R.id.ccp)
 
-        sCategory = currentView!!.findViewById(R.id.sCategory)
+//        sCategory = currentView!!.findViewById(R.id.sCategory)
         sPriority = currentView!!.findViewById(R.id.sPriority)
         sStatus = currentView!!.findViewById(R.id.sStatus)
         sPayment = currentView!!.findViewById(R.id.sPayment)
-        cbNeedCourier = currentView!!.findViewById(R.id.cbNeedCourier)
+//        cbNeedCourier = currentView!!.findViewById(R.id.cbNeedCourier)
         btnSave = currentView!!.findViewById(R.id.btnSave)
 
         //service cost region
@@ -295,54 +290,54 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     }
 
-    private fun prepareCategories(categoryList: ArrayList<TicketCategory>) {
-        dummyTicketCategoryList.clear()
-        if (categoryList.size > 0) {
-            var newArray = categoryList
-
-            var firstItem =
-                TicketCategory("", getString(R.string.select_category))
-            dummyTicketCategoryList.add(firstItem)
-
-            for (c in newArray.indices) {
-                dummyTicketCategoryList.add(newArray[c])
-            }
-        }
-
-
-        ticketCategoryAdapter = TicketCategoryAdapter(
-            context!!,
-            android.R.layout.simple_spinner_dropdown_item,
-            dummyTicketCategoryList
-        )
-        sCategory.setAdapter(ticketCategoryAdapter)
-        sCategory.isCursorVisible = false
-
-        sCategory.onItemClickListener =
-            AdapterView.OnItemClickListener { parent, _, position, _ ->
-                sCategory.showDropDown()
-                var category = parent.getItemAtPosition(position) as TicketCategory
-
-
-                if (!category.CategoryId.trim().isNullOrEmpty()) {
-                    selectedCategory = category
-                    sCategory.setText(category.Category)
-                } else {
-                    selectedCategory =
-                        TicketCategory("", getString(R.string.select_category))
-                    sCategory.setText(selectedCategory.Category)
-                }
-
-
-            }
-
-        sCategory.setOnClickListener(View.OnClickListener {
-            sCategory.showDropDown()
-
-        })
-
-
-    }
+//    private fun prepareCategories(categoryList: ArrayList<TicketCategory>) {
+//        dummyTicketCategoryList.clear()
+//        if (categoryList.size > 0) {
+//            var newArray = categoryList
+//
+//            var firstItem =
+//                TicketCategory("", getString(R.string.select_category))
+//            dummyTicketCategoryList.add(firstItem)
+//
+//            for (c in newArray.indices) {
+//                dummyTicketCategoryList.add(newArray[c])
+//            }
+//        }
+//
+//
+//        ticketCategoryAdapter = TicketCategoryAdapter(
+//            context!!,
+//            android.R.layout.simple_spinner_dropdown_item,
+//            dummyTicketCategoryList
+//        )
+//        sCategory.setAdapter(ticketCategoryAdapter)
+//        sCategory.isCursorVisible = false
+//
+//        sCategory.onItemClickListener =
+//            AdapterView.OnItemClickListener { parent, _, position, _ ->
+//                sCategory.showDropDown()
+//                var category = parent.getItemAtPosition(position) as TicketCategory
+//
+//
+//                if (!category.CategoryId.trim().isNullOrEmpty()) {
+//                    selectedCategory = category
+//                    sCategory.setText(category.Category)
+//                } else {
+//                    selectedCategory =
+//                        TicketCategory("", getString(R.string.select_category))
+//                    sCategory.setText(selectedCategory.Category)
+//                }
+//
+//
+//            }
+//
+//        sCategory.setOnClickListener(View.OnClickListener {
+//            sCategory.showDropDown()
+//
+//        })
+//
+//
+//    }
 
     private fun preparePriorities(prioritiesList: ArrayList<TicketPriority>) {
         dummyTicketPriorityList.clear()
@@ -490,11 +485,28 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             }
 
         sStatus.setOnClickListener(View.OnClickListener {
-            sStatus.showDropDown()
+            if (!ticketChangeToCompleteStatus(ticket.taskModel))
+                sStatus.showDropDown()
+            else
+                Alert.showAlertMessage(
+                    context!!,
+                    AppConstants.WARNING,
+                    "Can't change this ticket status because it has In Progress tasks."
+                )
 
         })
 
 
+    }
+
+    fun ticketChangeToCompleteStatus(tasksList: ArrayList<Task>): Boolean {
+        var prevent = false
+        tasksList.forEach {
+            if (it.Status == "In progress")
+                prevent = true
+            return prevent
+        }
+        return prevent
     }
 
     private fun prepareTicketSubData() {
@@ -516,7 +528,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         var subData = response.ResponseObj!!
                         if (subData != null) {
                             UserSessionManager.getInstance(context!!).setTicketSubData(subData)
-                            prepareCategories(subData.CategoriesModels!!)
+//                            prepareCategories(subData.CategoriesModels!!)
                             prepareStatus(subData.StatusModels!!)
                             preparePriorities(subData.PrioritiesModels!!)
                             preparePaymentMethods(subData.paymentMethodModels!!)
@@ -594,10 +606,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 //        ccp.isEnabled=false
         ccp.setCcpClickable(false)
 
-        if (ticket.CategoryId != null) {
-            sCategory.setText(ticket.Category)
-            selectedCategory = TicketCategory(ticket.CategoryId!!, ticket.Category)
-        }
+//        if (ticket.CategoryId != null) {
+//            sCategory.setText(ticket.Category)
+//            selectedCategory = TicketCategory(ticket.CategoryId!!, ticket.Category)
+//        }
         if (ticket.PriorityId != null) {
             sPriority.setText(ticket.Priority)
             selectedPriority = TicketPriority(ticket.PriorityId!!, ticket.Priority!!)
@@ -613,7 +625,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         }
 
 
-        cbNeedCourier.isChecked = ticket.NeedCourier
+//        cbNeedCourier.isChecked = ticket.NeedCourier
         //ticket service cost
         if (ticket.serviceCosts != null && ticket.serviceCosts.size > 0) {
             rvServiceCost!!.visibility = View.VISIBLE
@@ -876,24 +888,24 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        } else if (selectedCategory.CategoryId.isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Category is required.")
-            AnimateScroll.scrollToView(scroll, etMobile)
-            sCategory.showDropDown()
-            return false
-        } else if (selectedStatus.StatusId == null) {
+        }
+//        else if (selectedCategory.CategoryId.isNullOrEmpty()) {
+//            Alert.showMessage(context!!, "Category is required.")
+//            AnimateScroll.scrollToView(scroll, etMobile)
+//            sCategory.showDropDown()
+//            return false
+//        }
+        else if (selectedStatus.StatusId == null) {
             Alert.showMessage(context!!, "Status is required.")
             AnimateScroll.scrollToView(scroll, sStatus)
             sStatus.showDropDown()
             return false
-        }
-        else if (selectedPaymentMethod.paymentId == null) {
+        } else if (selectedPaymentMethod.paymentId == null) {
             Alert.showMessage(context!!, "Payment is required.")
             AnimateScroll.scrollToView(scroll, sPayment)
             sPayment.showDropDown()
             return false
-        }
-        else if (selectedPriority.PriorityId == null) {
+        } else if (selectedPriority.PriorityId == null) {
             Alert.showMessage(context!!, "Prirotiy is required.")
             AnimateScroll.scrollToView(scroll, sPriority)
             sPriority.showDropDown()
@@ -910,11 +922,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         var mobile = ccp.fullNumber//"2" + etMobile.text.toString()
 
 
-        var categoryId = selectedCategory.CategoryId
+        var categoryId = "" //selectedCategory.CategoryId
         var priorityId = selectedPriority.PriorityId
         var statusId = selectedStatus.StatusId
         var paymentId = selectedPaymentMethod.paymentId
-        var needCourier = cbNeedCourier.isChecked
+        var needCourier = true
         var adminId = AppConstants.CurrentLoginAdmin.AdminId
 
 
@@ -990,41 +1002,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     }
 
-    private fun defaultTicketData() {
-        tvTasks!!.visibility = View.INVISIBLE
-        tvAddTask!!.visibility = View.INVISIBLE
-        rvTasks!!.visibility = View.INVISIBLE
-        tvTicketDetails!!.text = getString(R.string.new_ticket)
-        etMobile.isEnabled = false
-        btnSave.text = getString(R.string.save)
-
-        etTicketName.text.clear()
-        etTicketName.hint = getString(R.string.ticket_name)
-        etTicketDescription.text.clear()
-        etTicketDescription.hint = getString(R.string.ticket_description)
-        etMobile.text.clear()
-        etMobile.hint = getString(R.string.user_mobile)
-        etMobile.isEnabled = true
-
-        sCategory.setText(getString(R.string.select_category))
-        sPriority.setText(getString(R.string.select_priority))
-
-        sStatus.setText(getString(R.string.select_status))
-
-        sPayment.setText(getString(R.string.select_payment_method))
-
-        cbNeedCourier.isChecked = false
-        //ticket service cost
-
-        rvServiceCost!!.adapter = null
-        rvServiceCost!!.visibility = View.VISIBLE
-
-
-        rvTasks!!.adapter = null
-        rvTasks!!.visibility = View.VISIBLE
-
-
-    }
 
     fun hideKeyboard(view: View) {
         val inputMethodManager =

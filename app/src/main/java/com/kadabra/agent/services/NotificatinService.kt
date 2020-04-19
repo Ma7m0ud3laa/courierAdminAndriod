@@ -36,7 +36,6 @@ class NotificatinService : FirebaseMessagingService() {
 
 
     override fun onNewToken(s: String) {
-        super.onNewToken(s)
         sendToken(s)
     }
 

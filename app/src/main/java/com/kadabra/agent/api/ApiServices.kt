@@ -1,6 +1,7 @@
 package com.kadabra.agent.api
 
 
+import android.app.Notification
 import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.AppConstants
 import retrofit2.Call
@@ -31,8 +32,8 @@ interface ApiServices {
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @GET(AppConstants.URL_GET_ALL_TICKETS_SIMPLE)
-    fun getAllTicketsNormal()
-            : Call<ApiResponse<ArrayList<Ticket>>>
+    fun getAllTicketsNormal(@Query("Adminid")adminId:String)
+            : Call<ApiResponse<TicketData>>
     @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO_SIMPLE)
     fun getAllTicketsByPageNormal(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
             : Call<ApiResponse<ArrayList<Ticket>>>
@@ -134,6 +135,21 @@ interface ApiServices {
     @GET(AppConstants.URL_GET_TAKS_DETAILS)
     fun getTaskDetails(@Query("taskId") taskID: String)
             : Call<ApiResponse<Task>>
+
+////////////////////////not implemented yet //////////////////
+    @GET(AppConstants.URL_GET_ALL_COMPLETED_TASKS)
+    fun getCompletedTasks()
+            : Call<ApiResponse<ArrayList<Task>>>
+
+  @GET(AppConstants.URL_GET_ALL_NOTIFICATIONS)
+    fun getALlNotifications(@Query("adminId")adminId:String)
+            : Call<ApiResponse<NotifictionData>>
+
+    @GET(AppConstants.URL_GET_ALL_READED_NOTIFICATIONS)
+    fun updateReadedNotification(@Query("notificationId")notificationId:String)
+            : Call<ApiResponse<ArrayList<Task>>>
+
+/////////////////////////////////////////////
 
 
 }
