@@ -108,6 +108,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var rvStops: RecyclerView
     private lateinit var btnSave: Button
     private lateinit var tvStatus: TextView
+    private lateinit var ivDirection: ImageView
+
     private lateinit var refresh: SwipeRefreshLayout
     private var dateValue = ""
     //endregion
@@ -122,6 +124,20 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             R.layout.fragment_new_task, container, false
         )
         init()
+        getAllCouriers()
+        prepareCourier(AppConstants.ALL_COURIERS)
+        prepareStopType()
+        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
+        sTicket.isEnabled = false
+
+        if (editMode) {
+            btnSave.text = context!!.getString(com.kadabra.agent.R.string.update)
+            tvTaskDetails!!.text = context!!.getString(com.kadabra.agent.R.string.task_details)
+            tvDeleteTask!!.visibility = View.VISIBLE
+            getTaskDetails(AppConstants.CurrentSelectedTask.TaskId)
+        } else
+            defaultTaskData()
+
         return currentView
     }
 
@@ -162,22 +178,32 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
     override fun onStopDelete(stop: Stop?) {
-        if (!stop!!.StopID.isNullOrEmpty()) {
-            AlertDialog.Builder(context)
-                .setTitle(AppConstants.WARNING)
-                .setMessage(getString(com.kadabra.agent.R.string.message_delete) + " " + stop.StopName + " ?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(AppConstants.OK) { _, _ ->
-                    removeStop(stop)
-                }
-                .setNegativeButton(AppConstants.CANCEL) { _, _ -> }
-                .show()
 
-        } else
-            stopsList.remove(stop)
-        loadTaskStops(stopsList)
-//        var stopModel = stopsModelList.find { it.stopName == stop.StopName }
-//        stopsModelList.remove(stopModel)
+        if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+            if (!stop!!.StopID.isNullOrEmpty()) {
+                AlertDialog.Builder(context)
+                    .setTitle(AppConstants.WARNING)
+                    .setMessage(getString(com.kadabra.agent.R.string.message_delete) + " " + stop.StopName + " ?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton(AppConstants.OK) { _, _ ->
+                        removeStop(stop)
+                    }
+                    .setNegativeButton(AppConstants.CANCEL) { _, _ -> }
+                    .show()
+
+            } else {
+                stopsList.remove(stop)
+                loadTaskStops(stopsList)
+            }
+        } else {
+            Alert.showAlertMessage(
+                context!!,
+                AppConstants.WARNING,
+                "Can't delete this Stop this task is In progress."
+            )
+        }
+
+
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -185,11 +211,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (!hidden) {
             //todo set the selected stop data
             var stop = AppConstants.CurrentTempStop
-            etStopName.setText(stop.StopName)
-            sStopType.setSelection(0)
-            sStopType.setSelection(0)
-            etLatitude.setText(stop.Latitude.toString())
-            etLongitude.setText(stop.Longitude.toString())
+            if (!stop.Latitude.toString().isNullOrEmpty()) {
+                etStopName.setText(stop.StopName)
+                sStopType.setSelection(0)
+                sStopType.setSelection(0)
+                etLatitude.setText(stop.Latitude.toString())
+                etLongitude.setText(stop.Longitude.toString())
+            }
 
         } else {
 //            stopsList.clear()
@@ -199,11 +227,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     override fun onClick(view: View?) {
         when (view!!.id) {
-            com.kadabra.agent.R.id.ivBack -> {
+            R.id.ivBack -> {
+                AppConstants.CurrentSelectedTask = Task()  //reset selected task
                 listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
-            com.kadabra.agent.R.id.tvDeleteTask -> {
-                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != "In progress") {
+            R.id.tvDeleteTask -> {
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
@@ -223,91 +252,129 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     )
             }
             R.id.tvAddStop -> {
-                if (!rlStops.isVisible)
-                    rlStops.visibility = View.VISIBLE
-
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                    if (!rlStops.isVisible)
+                        rlStops.visibility = View.VISIBLE
+                } else
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't edit this task it's In progress."
+                    )
             }
+
 
             R.id.tvClearStop -> {
                 if (rlStops.isVisible) {
-                    // todo  empty stop list
                     rlStops.visibility = View.GONE
-
-//                    stopsList.clear()
-//                    stopsModelList.clear()
-//                    rvStops.adapter = null
 
                 }
 
             }
 
             R.id.tvGetLocation -> {
-                hideKeyboard(tvGetLocation)
-                //to do open map and get selected location
-                listener!!.onBottomSheetSelectedItem(8)
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                    hideKeyboard(tvGetLocation)
+                    //to do open map and get selected location
+                    listener!!.onBottomSheetSelectedItem(8)
+                } else
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't edit this task it's in progress."
+                    )
             }
             R.id.etPickupTime -> {
                 showDateTimePicker()
             }
 
             R.id.btnAddStopLocation -> {
-                context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
-                if (validateStopData()) {
-                    hideKeyboard(btnAddStopLocation)
-                    etStopName.requestFocus()
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                    context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
+                    if (validateStopData()) {
+                        hideKeyboard(btnAddStopLocation)
+                        etStopName.requestFocus()
 
-                    var stopName = etStopName.text.toString()
-                    var stopTypeId = sStopType.selectedItemPosition + 1
-                    var stopType = sStopType.selectedItem.toString()
-                    var latitude = etLatitude.text.toString().toDouble()
-                    var longitude = etLongitude.text.toString().toDouble()
+                        var stopName = etStopName.text.toString()
+                        var stopTypeId = sStopType.selectedItemPosition + 1
+                        var stopType = sStopType.selectedItem.toString()
+                        var latitude = etLatitude.text.toString().toDouble()
+                        var longitude = etLongitude.text.toString().toDouble()
 
 
-                    var stop = Stop(
-                        AppConstants.CurrentSelectedTask.TaskId,
-                        AppConstants.CurrentLoginAdmin.AdminId,
-                        stopName,
-                        latitude,
-                        longitude,
-                        stopTypeId,
-                        stopType,
-                        "", 0 //new
-                    )
-
-                    if (validateStopType(stop)) {
-                        addStopToStopList(stop)
-                    } else
-                        Alert.showMessage(
-                            context!!,
-                            "The task must include at least one Pickup and one Drop Off Stops."
+                        var stop = Stop(
+                            AppConstants.CurrentSelectedTask.TaskId,
+                            AppConstants.CurrentLoginAdmin.AdminId,
+                            stopName,
+                            latitude,
+                            longitude,
+                            stopTypeId,
+                            stopType,
+                            "", 0 //new
                         )
 
+                        if (validateStopType(stop)) {
+                            addStopToStopList(stop)
+                        } else
+                            Alert.showMessage(
+                                context!!,
+                                "The task must include at least one Pickup and one Drop Off Stops."
+                            )
 
-                }
+
+                    }
+                } else
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't edit this task it's in progress."
+                    )
+Log.d("d","New")
 
             }
 
 
             R.id.btnSave -> {
-                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
+                //                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) { //
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
                     if (validateAll()) {
                         hideKeyboard(btnSave)
                         prepareTaskData()
                         if (!editMode) {
                             addTask(taskModel)
-                        } else {
+                        } else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
                             editTask(taskModelEdit)
-                        }
+                        else
+                            Alert.showMessage(
+                                context!!,
+                                "This task is InProgress and can't be edited."
+                            )
                     }
                 } else
-                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't edit this task it's in progress."
+                    )
+
+            }
+            R.id.ivDirection -> //get current courier direction if task is accepted
+            {
+//                if (AppConstants.CurrentSelectedTask.Status == AppConstants.IN_PROGRESS) {
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
+                    listener?.onBottomSheetSelectedItem(17)//navigate to courier map
+
+//                }
 
 
             }
+
+
         }
     }
 
-    //endregion
+
+//endregion
 
 
     //region Helper Functions
@@ -320,6 +387,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         etTaskName = currentView!!.findViewById(com.kadabra.agent.R.id.etTaskName)
         etTaskDescription = currentView!!.findViewById(com.kadabra.agent.R.id.etTaskDescription)
         tvStatus = currentView!!.findViewById(com.kadabra.agent.R.id.tvStatus)
+        ivDirection = currentView!!.findViewById(com.kadabra.agent.R.id.ivDirection)
 
         sTicket = currentView!!.findViewById(com.kadabra.agent.R.id.sTicket)
         sCourier = currentView!!.findViewById(com.kadabra.agent.R.id.sCourier)
@@ -347,28 +415,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvClearStop!!.setOnClickListener(this)
         tvGetLocation!!.setOnClickListener(this)
         etPickupTime.setOnClickListener(this)
-
+        ivDirection.setOnClickListener(this)
 
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
 
-        getAllCouriers()
-//        prepareTickets()
-        prepareCourier(AppConstants.ALL_COURIERS)
-        prepareStopType()
-
-
-        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
-
-        sTicket.isEnabled = false
-
-        if (editMode) {
-            btnSave.text = context!!.getString(com.kadabra.agent.R.string.update)
-            tvTaskDetails!!.text = context!!.getString(com.kadabra.agent.R.string.task_details)
-            tvDeleteTask!!.visibility = View.VISIBLE
-            getTaskDetails(AppConstants.CurrentSelectedTask.TaskId)
-        } else
-            defaultTaskData()
 
 
         refresh.setOnRefreshListener {
@@ -423,7 +474,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         if (task.CourierID != null) {
             sCourier.setText(task.CourierName)
-            selectedCourier = AppConstants.ALL_COURIERS.find { it.CourierId == task.CourierID }!!
+            selectedCourier = Courier(task.CourierID, task.CourierName)
         }
 
         if (!task.Amount.toString().trim().isNullOrEmpty())
@@ -528,6 +579,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun validateAll(): Boolean {
 
+        var pick = stopsList.count { it.StopTypeID == 1 }
+        var drop = stopsList.count { it.StopTypeID == 2 }
+
         if (etTaskName.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "TaskName Name is required.")
             AnimateScroll.scrollToView(scroll, etTaskName)
@@ -562,10 +616,26 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             btnAddStopLocation.requestFocus()
             return false
         } else if (stopsList.size < 2) {
-            Alert.showMessage(context!!, "Cant save task without  Pickup and Drop off stops.")
+            Alert.showMessage(context!!, "Cant save task without Pickup and Drop off stops.")
             rlStops.visibility = View.VISIBLE
             AnimateScroll.scrollToView(scroll, etStopName)
             etStopName.requestFocus()
+
+            return false
+        } else if (stopsList.size >= 2 && pick == 0 || drop == 0) {
+            AnimateScroll.scrollToView(scroll, etStopName)
+            etStopName.requestFocus()
+            if (pick < 1)
+                Alert.showMessage(
+                    context!!,
+                    "The task must include one Pickup Stop ."
+                )
+            if (drop < 1)
+                Alert.showMessage(
+                    context!!,
+                    "The task must include one Drop Off Stop ."
+                )
+
 
             return false
         }
@@ -594,7 +664,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var taskDescription = etTaskDescription.text.toString()
 
         var amount = etAmount.text.toString().toDouble()
-        var pickupTime = dateValue//date!!.time//etPickupTime.text.toString() as Date
+
+        if (dateValue.isNullOrEmpty())
+            dateValue = AppConstants.CurrentSelectedTask.PickUpTime
+
+        var pickupTime = dateValue
 
         var addedBY = AppConstants.CurrentLoginAdmin.AdminId
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
@@ -1179,7 +1253,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
 
-            return true
+        return true
 
 
     }

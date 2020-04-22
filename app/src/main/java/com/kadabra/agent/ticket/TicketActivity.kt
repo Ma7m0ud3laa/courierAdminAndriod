@@ -69,7 +69,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
 //        FirebaseManager.setUpFirebase()
         init()
-        forceUpdate()
+
 
     }
 
@@ -427,6 +427,45 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 finish()
             }
 
+            15-> // NOTIFICATION
+            {
+
+                //show courier view
+                fm.beginTransaction()
+                    .add(R.id.layout_container, notificationFragment, "notificationFragment")
+                    .addToBackStack(null)
+                    .commit()
+                active = notificationFragment
+            }
+
+            16-> // NOTIFICATION DETAILS
+            {
+
+                //show courier view
+                fm.beginTransaction()
+                    .add(R.id.layout_container, notificationFragment, "notificationFragment")
+                    .addToBackStack(null)
+                    .commit()
+                active = notificationFragment
+            }
+
+             17-> // COURIER FRAGMENT _SHOW COURIER DIRECTION OVER TASK PATH
+            {
+
+                if (NetworkManager().isNetworkAvailable(this)) {
+                    courierFragment = CourierFragment()
+                    courierFragment.directionMode=true
+                    fm.beginTransaction()
+                        .replace(R.id.layout_container, courierFragment, "courierFragment")
+                        .addToBackStack(null)
+                        .commit()
+                    active = courierFragment
+                } else
+                    Alert.showMessage(this, getString(R.string.no_internet))
+            }
+
+
+
 
         }
     }
@@ -456,7 +495,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
         fab.setOnClickListener {
 
-            if (AppConstants.CurrentLoginAdmin.IsSuperAdmin && active != newTicketFragment) {
+//            if (AppConstants.CurrentLoginAdmin.IsSuperAdmin && active != newTicketFragment) {
                 newTicketFragment = NewTicketFragment()
                 fm.beginTransaction()
                     .replace(
@@ -469,7 +508,8 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 active = newTicketFragment
 
                 fab.visibility = View.INVISIBLE
-            }
+//            }
+
 //            else if (active == newTicketFragment && newTicketFragment.editMode) {
 //                newTaskFragment.editMode = false
 //                newTaskFragment.taskAddMode = true
@@ -671,7 +711,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
     public override fun onResume() {
         super.onResume()
-//        forceUpdate()
+        forceUpdate()
     }
 
 

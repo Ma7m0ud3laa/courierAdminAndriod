@@ -88,6 +88,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var etCost: EditText? = null
     private var alertDialog: AlertDialog? = null
     var editMode = false
+    var taskInProgress = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,6 +147,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             }
 
             R.id.tvAddTask -> {// add task to the current ticket
+                AppConstants.CurrentSelectedTask=Task()
+                AppConstants.CurrentSelecedNotification= Notification()
+                AppConstants.CurrentSelectedStop=Stop()
                 listener!!.onBottomSheetSelectedItem(7)
             }
 
@@ -182,19 +186,19 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
             }
             R.id.btnSave -> {
-                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
-                    if (NetworkManager().isNetworkAvailable(context!!)) {
-                        if (validateAll()) {
-                            prepareTicketData()
-                            if (!editMode)
-                                addTicket(ticketModel)
-                            else
-                                editTicket(ticketModel)
-                        }
-                    } else
-                        Alert.showMessage(context!!, getString(R.string.no_internet))
+//                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
+                if (NetworkManager().isNetworkAvailable(context!!)) {
+                    if (validateAll()) {
+                        prepareTicketData()
+                        if (!editMode)
+                            addTicket(ticketModel)
+                        else
+                            editTicket(ticketModel)
+                    }
                 } else
-                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
+                    Alert.showMessage(context!!, getString(R.string.no_internet))
+//                } else
+//                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
 
 
             }
@@ -575,18 +579,130 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     }
 
     override fun onTaskDelete(task: Task?) {
-        if (!task!!.TaskId.isNullOrEmpty()) {
-            AlertDialog.Builder(context)
-                .setTitle(AppConstants.WARNING)
-                .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(AppConstants.OK) { dialog, which ->
-                    deleteTask(task)
-                }
-                .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
-                .show()
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getTaskDetails(task!!.TaskId)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<Task>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<Task>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            taskInProgress = true
+                            var task = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTask = task
+                            Alert.hideProgress()
+
+                           if(task.Status!=AppConstants.IN_PROGRESS)
+                           { AlertDialog.Builder(context)
+                               .setTitle(AppConstants.WARNING)
+                               .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+                               .setIcon(android.R.drawable.ic_dialog_alert)
+                               .setPositiveButton(AppConstants.OK) { dialog, which ->
+                                   deleteTask(task)
+                               }
+                               .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                               .show()}
+                            else
+                           {
+                               getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+                               Alert.showAlertMessage(
+                                   context!!,
+                                   AppConstants.WARNING,
+                                   "Can't edit this task it's in progress."
+                               )
+                           }
+
+
+                        } else {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
 
         }
+        else {
+            Alert.hideProgress()
+            Alert.showMessage(
+                context!!,
+                getString(R.string.no_internet)
+            )
+        }
+
+//        if (!task!!.TaskId.isNullOrEmpty()) {
+//            AlertDialog.Builder(context)
+//                .setTitle(AppConstants.WARNING)
+//                .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+//                .setIcon(android.R.drawable.ic_dialog_alert)
+//                .setPositiveButton(AppConstants.OK) { dialog, which ->
+//                    deleteTask(task)
+//                }
+//                .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+//                .show()
+//
+//        }
+    }
+
+    private fun getTaskDetails(taskId: String): Boolean {
+        refresh.isRefreshing = false
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getTaskDetails(taskId)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<Task>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        refresh.isRefreshing = false
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<Task>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            taskInProgress = true
+                            var task = response.ResponseObj!!
+                            AppConstants.CurrentSelectedTask = task
+                            Alert.hideProgress()
+                            refresh.isRefreshing = false
+                        } else {
+                            Alert.hideProgress()
+                            refresh.isRefreshing = false
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            refresh.isRefreshing = false
+            Alert.showMessage(
+                context!!,
+                getString(R.string.no_internet)
+            )
+        }
+
+        return taskInProgress
     }
 
     override fun onStopDelete(stop: Stop?) {

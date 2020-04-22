@@ -139,11 +139,11 @@ class TaskAdapter(
                 //delete the current task
                 val pos = adapterPosition
                 task = tasksList[pos]
-                if (task.Status == "In progress")
+                if (task.Status == AppConstants.IN_PROGRESS)
                     Alert.showAlertMessage(
                         context,
                         AppConstants.WARNING,
-                        "Can't delete this task is in progress."
+                        "Can't delete this task it's in progress."
                     )
                 else
                     deleteTaskListener!!.onTaskDelete(task)

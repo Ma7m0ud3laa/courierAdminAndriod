@@ -42,8 +42,8 @@
     <string name="schedule_tasks">Schedule Tasks</string>
     <string name="log_out">Log out</string>
     <string name="filter">Filter</string>
-    <string name="user_name_email">USER NAME/EMAIL</string>
-    <string name="password">PASSWORD</string>
+    <string name="user_name_email">User Name</string>
+    <string name="password">Password</string>
     <string name="remember_me">REMEMBER ME</string>
     <string name="don_t_have_an_account">Don\'t have an Account</string>
     <string name="sign_up">SIGN UP</string>
@@ -132,7 +132,13 @@
     <string name="error_permission">Permission to access device location is permanently denied. you need to go to setting to allow the permission.</string>
     <string name="please_update">Please Update Your App</string>
     <string name="update_now">Update Now</string>
-
-
+    <string name="beta_version">Beta Version</string>
+    <string name="google_map_key">AIzaSyAjSI0GYuAh0RwtltIluYsds4pU7O_dvtc</string>
+    <string name="duration">Duration: </string>
+    <string name="distance">Distance: </string>
+    <string name="trip">"Trip # </string>
+    <string name="minutes">min</string>
+    <string name="km">km</string>
+    <string name="fastest_route">Fastest route now due to traffic conditions</string>
 </resources>
 

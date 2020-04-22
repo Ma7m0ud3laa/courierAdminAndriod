@@ -1,4 +1,4 @@
-package com.kadabra.courier.model
+package com.kadabra.agent.model
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName

@@ -1,4 +1,4 @@
-package com.kadabra.courier.adapter
+package com.kadabra.agent.adapter
 
 import android.Manifest
 import android.content.Context
@@ -10,17 +10,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.kadabra.courier.model.Stop
-import com.kadabra.courier.model.Notification
-import com.kadabra.courier.utilities.AppConstants
+
 import android.widget.FrameLayout
 import android.view.animation.AnimationUtils
 import androidx.core.app.ActivityCompat
 import com.kadabra.Networking.NetworkManager
-import com.kadabra.courier.R
-import com.kadabra.courier.location.LocationHelper
-import com.kadabra.courier.notifications.NotificationDetailsActivity
-import com.kadabra.courier.utilities.Alert
+import com.kadabra.agent.R
+import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.model.Notification
+import com.kadabra.agent.utilities.AppConstants
+
+
 
 
 /**
@@ -29,19 +29,19 @@ import com.kadabra.courier.utilities.Alert
 
 class NotificationAdapter(
     private val context: Context,
-    private val NotificationsList: ArrayList<Notification>
-) :
+    private val NotificationsList: ArrayList<Notification>, private val _taskListener: IBottomSheetCallback
+    ) :
     RecyclerView.Adapter<NotificationAdapter.MyViewHolder>() {
 
     private val inflater: LayoutInflater = LayoutInflater.from(context)
     private var notification: Notification = Notification()
-
+    private var listener: IBottomSheetCallback? = null
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): NotificationAdapter.MyViewHolder {
-
+        listener = _taskListener
 
         if (viewType == 1)//default layout
         {
@@ -90,8 +90,8 @@ var notification=NotificationsList[position]
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        var tvTitle: TextView = itemView.findViewById(com.kadabra.courier.R.id.tvTitle)
-        var tvSubject: TextView = itemView.findViewById(com.kadabra.courier.R.id.tvSubject)
+        var tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
+        var tvSubject: TextView = itemView.findViewById(R.id.tvSubject)
         var tvDate: TextView =
             itemView.findViewById(R.id.tvDate)
 
@@ -104,7 +104,7 @@ var notification=NotificationsList[position]
                 val pos = adapterPosition
                 notification = NotificationsList[pos]
                AppConstants.CurrentSelecedNotification=notification
-                context.startActivity(Intent(context, NotificationDetailsActivity::class.java))
+//                listener!!.onBottomSheetSelectedItem(15)//go to notification view
 
 
             }

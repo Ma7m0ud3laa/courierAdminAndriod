@@ -31,7 +31,7 @@ class NotificatinService : FirebaseMessagingService() {
     var TAG = "NotificatinService"
 
     var admin = UserSessionManager.getInstance(
-        this
+        AppController.getContext()
     ).getUserData()
 
 

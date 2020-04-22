@@ -80,11 +80,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/rlBack"
-                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentStart="true"
                     android:layout_centerHorizontal="true"
 
+                    android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
-                    android:layout_marginEnd="24dp"
                     android:layout_marginBottom="10dp"
                     android:ellipsize="end"
                     android:gravity="center"
@@ -93,6 +93,20 @@
                     android:textColor="@color/colorApp"
                     android:textSize="18sp"
                     android:textStyle="bold|italic" />
+
+                <ImageView
+                    android:id="@+id/ivDirection"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_below="@+id/rlBack"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="true"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_directions_orange" />
 
                 <LinearLayout
                     android:id="@+id/llTicketData"
@@ -186,11 +200,11 @@
                     android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginEnd="24dp"
-                    android:editable="false"
-                    android:hint="@string/pickup_time"
                     android:clickable="true"
+                    android:editable="false"
                     android:focusable="false"
                     android:fontFamily="Poppins-Regular"
+                    android:hint="@string/pickup_time"
                     android:imeOptions="actionDone"
                     android:inputType="date|textNoSuggestions"
                     android:lines="1"

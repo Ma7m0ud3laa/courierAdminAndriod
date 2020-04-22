@@ -1,33 +1,41 @@
 package com.kadabra.agent.notification
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import com.kadabra.Utilities.Base.BaseFragment
-
-import com.kadabra.agent.R
+import android.widget.*
+import androidx.recyclerview.widget.RecyclerView
+import com.kadabra.Networking.INetworkCallBack
+import com.kadabra.Networking.NetworkManager
+import com.kadabra.agent.api.ApiResponse
+import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
+import com.kadabra.agent.R
+import com.kadabra.agent.utilities.*
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.kadabra.Utilities.Base.BaseFragment
+import com.kadabra.agent.model.*
+import kotlin.collections.ArrayList
+import android.util.Log
+import androidx.recyclerview.widget.GridLayoutManager
+import com.kadabra.agent.adapter.NotificationAdapter
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Activities that contain this fragment must implement the
- * [NotificationFragment.OnFragmentInteractionListener] interface
- * to handle interaction events.
- * Use the [NotificationFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class NotificationFragment : BaseFragment(),IBottomSheetCallback {
+
+class NotificationFragment : BaseFragment(), IBottomSheetCallback {
     private var listener: IBottomSheetCallback? = null
     private var btnBack: ImageView? = null
+    private var rvNotification: RecyclerView? = null
+    private val TAG = "NotificationFragment"
+    private lateinit var refresh: SwipeRefreshLayout
+    private var notificationsList = NotificationData()
+    private var tvTotalNotifications: TextView? = null
+    private var tvEmptyData: TextView? = null
+    private var tvTotalUnread: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,15 +49,27 @@ class NotificationFragment : BaseFragment(),IBottomSheetCallback {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        var view= inflater.inflate(R.layout.fragment_notification, container, false)
-        btnBack = view.findViewById(R.id.btnBack)
+        var view = inflater.inflate(R.layout.fragment_notification, container, false)
+        btnBack = view.findViewById(R.id.ivBack)
+        rvNotification = view.findViewById(R.id.rvNotifications)
+        refresh = view!!.findViewById(com.kadabra.agent.R.id.refresh)
+        tvTotalNotifications = view!!.findViewById(com.kadabra.agent.R.id.tvTotalNotifications)
+        tvEmptyData = view!!.findViewById(com.kadabra.agent.R.id.tvEmptyData)
+        tvTotalUnread = view!!.findViewById(com.kadabra.agent.R.id.tvTotalUnread)
+
         btnBack!!.setOnClickListener {
             listener?.onBottomSheetSelectedItem(2)
         }
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
+        loadAllNotifications()
+
+        refresh.setOnRefreshListener { loadAllNotifications() }
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -66,30 +86,105 @@ class NotificationFragment : BaseFragment(),IBottomSheetCallback {
     }
 
     override fun onBottomSheetClosed(isClosed: Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
     override fun onBottomSheetSelectedItem(index: Int) {
         listener!!.onBottomSheetSelectedItem(2)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NotificationFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            NotificationFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    private fun loadAllNotifications() {
+        Log.d(TAG, "loadNotifications: Enter method")
+
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint =
+                request.getALlNotifications(AppConstants.CurrentLoginAdmin.AdminId)
+            NetworkManager().request(endPoint,
+                object : INetworkCallBack<ApiResponse<NotificationData>> {
+                    override fun onFailed(error: String) {
+                        Log.d(TAG, "onFailed: " + error)
+                        refresh.isRefreshing = false
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<NotificationData>) {
+                        Log.d(TAG, "onSuccess: Enter method")
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Log.d(
+                                TAG,
+                                "onSuccess: AppConstants.STATUS_SUCCESS: " + AppConstants.STATUS_SUCCESS
+                            )
+
+                            notificationsList = response.ResponseObj!!
+
+                            Log.d(
+                                TAG,
+                                "onSuccess" + notificationsList.adminNotificationModels!!.size.toString()
+                            )
+
+                            var notificationsListData = notificationsList.adminNotificationModels
+                            if (notificationsListData!!.size > 0) {
+                                Log.d(TAG, "onSuccess: notificationsList.size > 0: ")
+
+                                tvTotalNotifications?.text =  notificationsList.NoOfUnreadedNotifications.toString()
+                                tvTotalUnread?.text = notificationsList.NoOfUnreadedNotifications.toString()
+//                                UserSessionManager.getInstance(context!!)
+//                                    .setTotalNotification(notificationsList.NoOfUnreadedNotifications)
+                                prepareNotifications(notificationsListData)
+                                refresh.isRefreshing = false
+                                tvEmptyData?.visibility = View.INVISIBLE
+                                Alert.hideProgress()
+                            } else {//no notifications
+                                Log.d(TAG, "no Notifications: ")
+                                refresh.isRefreshing = false
+                                tvEmptyData?.visibility = View.VISIBLE
+                                notificationsListData.clear()
+                                prepareNotifications(notificationsListData)
+                            }
+
+                        } else {
+                            Log.d(TAG, "onSuccess: Enter method")
+                            refresh.isRefreshing = false
+                            Alert.hideProgress()
+                            tvEmptyData?.visibility = View.VISIBLE
+                        }
+
+                    }
+                })
+
+        } else {
+            refresh.isRefreshing = false
+            Alert.hideProgress()
+
+            Alert.showMessage(
+                context!!,
+                getString(R.string.no_internet)
+            )
+        }
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadAllNotifications()
+    }
+    private fun prepareNotifications(Notifications: ArrayList<Notification>) {
+        var adapter = NotificationAdapter(context!!, Notifications, this)
+        rvNotification?.adapter = adapter
+        rvNotification?.layoutManager =
+            GridLayoutManager(
+                context!!,
+                1,
+                GridLayoutManager.VERTICAL,
+                false
+            )
     }
 }

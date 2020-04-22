@@ -143,7 +143,7 @@ interface ApiServices {
 
   @GET(AppConstants.URL_GET_ALL_NOTIFICATIONS)
     fun getALlNotifications(@Query("adminId")adminId:String)
-            : Call<ApiResponse<NotifictionData>>
+          : Call<ApiResponse<NotificationData>>
 
     @GET(AppConstants.URL_GET_ALL_READED_NOTIFICATIONS)
     fun updateReadedNotification(@Query("notificationId")notificationId:String)

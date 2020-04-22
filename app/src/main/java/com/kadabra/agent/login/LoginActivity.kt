@@ -15,6 +15,7 @@ import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.model.Admin
 import com.kadabra.agent.ticket.TicketActivity
 import com.kadabra.agent.utilities.Alert
+import com.kadabra.agent.utilities.AnimateScroll
 import com.kadabra.agent.utilities.AppConstants
 import kotlinx.android.synthetic.main.activity_login.*
 
@@ -31,10 +32,10 @@ class LoginActivity : AppCompatActivity() {
 
 
 
-        btnLogIn.setOnClickListener {
+        btnLogin.setOnClickListener {
 
             if (validateData()) {
-                var userName = etUserName.text.toString()
+                var userName = etUsername.text.toString()
                 var password = etPassword.text.toString()
 
                 logIn(userName, password)
@@ -43,8 +44,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun validateData(): Boolean {
-        var userName = etUserName.text.toString().trim()
+        var userName = etUsername.text.toString().trim()
         if (userName.isNullOrEmpty()) {
+            AnimateScroll.scrollToView(scroll, etUsername)
+            etUsername.requestFocus()
             Alert.showMessage(this, getString(R.string.error_user_name))
             return false
         }
@@ -53,6 +56,8 @@ class LoginActivity : AppCompatActivity() {
 //            return false
 //        }
         if (etPassword.text.toString().trim().isNullOrEmpty()) {
+            AnimateScroll.scrollToView(scroll, etPassword)
+            etPassword.requestFocus()
             Alert.showMessage(this, getString(R.string.error_password))
             return false
         }

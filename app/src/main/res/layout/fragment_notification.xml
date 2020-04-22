@@ -1,58 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".notification.NotificationFragment">
 
+    <RelativeLayout
+        android:id="@+id/rlBack"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/colorSecondary"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="12dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/tvNotificationsDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="95.5dp"
+            android:layout_marginTop="12dp"
+
+            android:text="@string/notification"
+            android:textAllCaps="false"
+            android:textColor="@color/colorLabel"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvTotalNotifications"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignBaseline="@+id/tvNotificationsDetails"
+            android:layout_toEndOf="@+id/tvNotificationsDetails"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/rounded_textview"
+            android:clickable="true"
+            android:fontFamily="Poppins-Medium"
+            android:gravity="center"
+            android:letterSpacing="0"
+            android:text="0"
+            android:textColor="@color/error"
+            android:textSize="12sp" />
+
+
+    </RelativeLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/rlBack"
         android:fillViewport="true"
         android:fitsSystemWindows="true"
-        android:scrollbars="none"
-        android:layout_marginBottom="30dp">
+        android:scrollbars="none">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:background="@color/colorSecondary"
-            android:padding="10dp">
+            android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/btnBack"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="12dp"
-                app:srcCompat="@drawable/ic_back"
-                android:background="?android:attr/selectableItemBackgroundBorderless"/>/>
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/refresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvNotifications"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tvStops"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="vertical" />
+
+                </RelativeLayout>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
             <TextView
-                android:id="@+id/tvNotification"
+                android:id="@+id/tvEmptyData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:elevation="1dp"
+                android:gravity="center"
+                android:text="@string/no_results"
+                android:textColor="@color/colorLabel"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/avi"
+                style="@style/AVLoadingIndicatorView.Large"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginLeft="95.5dp"
-                android:layout_marginRight="128.5dp"
-                android:layout_marginTop="12dp"
-                android:text="Notification"
-                android:textAllCaps="false"
-                android:textColor="@color/colorLabel"
-                android:textSize="18sp" />
+                android:layout_centerInParent="true"
+                android:elevation="1dp"
+                android:visibility="gone"
+                app:indicatorColor="@color/colorPrimary"
+                app:indicatorName="BallScaleRippleIndicator" />
 
-
-
-           <androidx.recyclerview.widget.RecyclerView
-               android:id="@+id/rvNotification"
-               android:layout_width="match_parent"
-               android:layout_height="match_parent"
-               android:layout_marginTop="10dp"
-               android:layout_below="@+id/tvNotification"/>
-
+            <ImageView
+                android:id="@+id/ivNoInternet"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_centerInParent="true"
+                android:elevation="1dp"
+                android:gravity="center"
+                android:src="@drawable/ic_no_internet"
+                android:visibility="gone" />
         </RelativeLayout>
-
     </ScrollView>
+    <RelativeLayout
+        android:id="@+id/rlBottom"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorSecondary"
+        android:elevation="1dp"
+        android:padding="10dp"
+        android:visibility="gone"
+        >
 
-</FrameLayout>
+
+        <TextView
+            android:id="@+id/tvUnRead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="12dp"
+            android:text="UnRead"
+            android:textAllCaps="false"
+            android:textColor="@color/colorLabel"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvTotalUnread"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignBaseline="@+id/tvUnRead"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@+id/tvUnRead"
+            android:background="@drawable/rounded_textview"
+            android:clickable="true"
+            android:fontFamily="Poppins-Medium"
+            android:gravity="center"
+            android:letterSpacing="0"
+            android:text="0"
+            android:textColor="@color/error"
+            android:textSize="12sp" />
+
+
+
+    </RelativeLayout>
+</RelativeLayout>
