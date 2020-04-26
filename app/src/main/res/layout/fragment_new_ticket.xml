@@ -5,453 +5,446 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ticket.NewTicketFragment">
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <ScrollView
-        android:id="@+id/scroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="30dp"
-        android:fillViewport="true"
-        android:fitsSystemWindows="true"
-        android:scrollbars="none">
-
-        <requestFocus />
-
-        <RelativeLayout
+        <ScrollView
+            android:id="@+id/scroll"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_marginBottom="30dp"
+            android:fillViewport="true"
+            android:fitsSystemWindows="true"
+            android:scrollbars="none">
 
+            <requestFocus />
 
             <RelativeLayout
-                android:id="@+id/rlParent"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="@color/colorSecondary"
-                android:padding="10dp">
+                android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/ivBack"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="12dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    app:srcCompat="@drawable/ic_back" />/>
 
-                <TextView
-                    android:id="@+id/tvTicketDetails"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginLeft="95.5dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginRight="128.5dp"
-                    android:text="@string/new_ticket"
-                    android:textAllCaps="false"
-                    android:textColor="@color/colorLabel"
-                    android:textSize="18sp" />
+                <RelativeLayout
+                    android:id="@+id/rlParent"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@color/colorSecondary"
+                    android:padding="10dp">
+
+                    <ImageView
+                        android:id="@+id/ivBack"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="12dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        app:srcCompat="@drawable/ic_back" />/>
+
+                    <TextView
+                        android:id="@+id/tvTicketDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginLeft="95.5dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginRight="128.5dp"
+                        android:text="@string/new_ticket"
+                        android:textAllCaps="false"
+                        android:textColor="@color/colorLabel"
+                        android:textSize="18sp" />
+
+
+                </RelativeLayout>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/rlParent"
+                    android:fillViewport="true"
+                    android:fitsSystemWindows="true"
+                    android:scrollbars="none">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <EditText
+                            android:id="@+id/etTicketName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:hint="@string/ticket_name"
+                            android:imeOptions="actionNext"
+                            android:inputType="text"
+                            android:selectAllOnFocus="true"
+                            android:textSize="15sp" />
+
+                        <EditText
+                            android:id="@+id/etTicketDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/etTicketName"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:hint="@string/ticket_description"
+                            android:imeOptions="actionNext"
+                            android:inputType="text"
+                            android:selectAllOnFocus="true"
+                            android:textSize="15sp" />
+
+                        <RelativeLayout
+                            android:id="@+id/lPhone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/etTicketDescription"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            >
+
+                            <com.hbb20.CountryCodePicker
+                                android:id="@+id/ccp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+
+                                app:ccpDialog_allowSearch="true"
+                                app:ccpDialog_initialScrollToSelection="true"
+                                app:ccpDialog_keyboardAutoPopup="false"
+                                app:ccpDialog_showCloseIcon="true"
+                                app:ccpDialog_showFastScroller="false"
+                                app:ccpDialog_showFlag="true"
+                                app:ccpDialog_showPhoneCode="true"
+                                app:ccpDialog_showTitle="false"
+                                app:ccp_arrowColor="@color/black"
+                                app:ccp_arrowSize="20dp"
+                                app:ccp_autoDetectCountry="true"
+                                app:ccp_autoDetectLanguage="true"
+                                app:ccp_autoFormatNumber="true"
+                                app:ccp_clickable="true"
+                                app:ccp_countryAutoDetectionPref="SIM_ONLY"
+                                app:ccp_rememberLastSelection="true"
+                                app:ccp_selectionMemoryTag="signupCCP"
+                                app:ccp_showArrow="true"
+                                app:ccp_showFlag="true"
+                                app:ccp_showFullName="false"
+                                app:ccp_showNameCode="false"
+                                app:ccp_showPhoneCode="false"
+                                app:ccp_textGravity="RIGHT"
+                                app:ccp_textSize="16sp" />
+
+                            <EditText
+                                android:id="@+id/etMobile"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:editable="false"
+                                android:hint="@string/user_mobile"
+                                android:imeOptions="actionNext"
+                                android:inputType="phone"
+                                android:selectAllOnFocus="true"
+                                android:singleLine="true"
+                                android:textSize="15sp"
+                                android:layout_toEndOf="@+id/ccp"/>
+
+                            <ImageView
+                                android:id="@+id/ivCheck"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="20dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_check" />
+                        </RelativeLayout>
+
+                        <TextView
+                            android:id="@+id/tvClientName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:visibility="gone"
+                            android:editable="false"
+                            android:layout_below="@+id/lPhone"/>
+
+                        <LinearLayout
+                            android:id="@+id/llCategoryData"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tvClientName"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginRight="10dp"
+                                android:text="@string/category"
+                                android:textSize="15sp" />
+
+                            <AutoCompleteTextView
+                                android:id="@+id/sCategory"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@color/transparent"
+                                android:clickable="true"
+                                android:cursorVisible="false"
+                                android:drawableRight="@drawable/ic_down"
+                                android:editable="false"
+                                android:focusable="false"
+                                android:fontFamily="Poppins-Regular"
+                                android:gravity="center|left"
+                                android:imeOptions="actionNext"
+                                android:inputType="none"
+                                android:maxLines="1"
+                                android:text="@string/select_category"
+                                android:textColor="@color/colorLabel"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/llStatusData"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tvClientName"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginRight="10dp"
+                                android:text="@string/status"
+                                android:textSize="15sp" />
+
+                            <AutoCompleteTextView
+                                android:id="@+id/sStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@color/transparent"
+                                android:clickable="true"
+                                android:cursorVisible="false"
+                                android:drawableRight="@drawable/ic_down"
+                                android:editable="false"
+                                android:focusable="false"
+                                android:fontFamily="Poppins-Regular"
+                                android:gravity="center|left"
+                                android:imeOptions="actionNext"
+                                android:inputType="none"
+                                android:maxLines="1"
+                                android:text="@string/select_status"
+                                android:textColor="@color/colorLabel"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/llPaymentData"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/llStatusData"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginRight="10dp"
+                                android:text="@string/payment_method"
+                                android:textSize="15sp" />
+
+                            <AutoCompleteTextView
+                                android:id="@+id/sPayment"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@color/transparent"
+                                android:clickable="true"
+                                android:cursorVisible="false"
+                                android:drawableRight="@drawable/ic_down"
+                                android:editable="false"
+                                android:focusable="false"
+                                android:fontFamily="Poppins-Regular"
+                                android:gravity="center|left"
+                                android:imeOptions="actionNext"
+                                android:inputType="none"
+                                android:maxLines="1"
+                                android:text="@string/select_payment_method"
+                                android:textColor="@color/colorLabel"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/llPriorityData"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/llPaymentData"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginRight="10dp"
+                                android:text="@string/priority"
+                                android:textSize="15sp" />
+
+                            <AutoCompleteTextView
+                                android:id="@+id/sPriority"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@color/transparent"
+                                android:clickable="true"
+                                android:cursorVisible="false"
+                                android:drawableRight="@drawable/ic_down"
+                                android:editable="false"
+                                android:focusable="false"
+                                android:fontFamily="Poppins-Regular"
+                                android:gravity="center|left"
+                                android:imeOptions="actionNext"
+                                android:inputType="none"
+                                android:maxLines="1"
+                                android:text="@string/select_priority"
+                                android:textColor="@color/colorLabel"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+
+                        <!--                    <CheckBox-->
+                        <!--                        android:id="@+id/cbNeedCourier"-->
+                        <!--                        android:layout_width="wrap_content"-->
+                        <!--                        android:layout_height="wrap_content"-->
+                        <!--                        android:layout_below="@+id/llPriorityData"-->
+                        <!--                        android:layout_marginStart="24dp"-->
+                        <!--                        android:layout_marginTop="15dp"-->
+                        <!--                        android:imeOptions="actionDone"-->
+                        <!--                        android:text="@string/need_courier" />-->
+
+                        <TextView
+                            android:id="@+id/tvServiceCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/llPaymentData"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="20dp"
+                            android:fontFamily="Poppins-Regular"
+                            android:text="@string/service_cost"
+                            android:textColor="@color/title_color"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/tvAddServiceCost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignBaseline="@+id/tvServiceCost"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginEnd="24dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:gravity="center"
+                            android:text="@string/add_new"
+                            android:textColor="@color/colorApp"
+                            android:textSize="18sp" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvServiceCost"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tvAddServiceCost"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:scrollbars="vertical" />
+
+                        <TextView
+                            android:id="@+id/tvTasks"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/rvServiceCost"
+                            android:layout_marginStart="20dp"
+                            android:layout_marginTop="20dp"
+                            android:fontFamily="Poppins-Regular"
+                            android:text="@string/tasks"
+                            android:textColor="@color/title_color"
+                            android:textSize="18sp"
+                            android:visibility="invisible" />
+
+                        <TextView
+                            android:id="@+id/tvAddTask"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/rvServiceCost"
+                            android:layout_alignBaseline="@+id/tvTasks"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginEnd="20dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:gravity="center"
+                            android:text="@string/add_new"
+                            android:textColor="@color/colorApp"
+                            android:textSize="18sp"
+                            android:visibility="invisible" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvTasks"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tvAddTask"
+                            android:layout_centerHorizontal="true"
+                            android:layout_margin="20dp"
+                            android:layout_marginBottom="20dp"
+                            android:scrollbars="vertical"
+                            android:visibility="invisible" />
+
+                        <Button
+                            android:id="@+id/btnSave"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/rvTasks"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="24dp"
+                            android:layout_marginBottom="60dp"
+                            android:background="@drawable/rounded_button"
+                            android:text="@string/save"
+                            android:textAllCaps="false"
+                            android:textColor="@color/colorSecondary"
+                            android:textSize="20sp" />
+                    </RelativeLayout>
+
+                </ScrollView>
 
 
             </RelativeLayout>
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/rlParent"
-                android:fillViewport="true"
-                android:fitsSystemWindows="true"
-                android:scrollbars="none">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <EditText
-                        android:id="@+id/etTicketName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:hint="@string/ticket_name"
-                        android:imeOptions="actionNext"
-                        android:inputType="text"
-                        android:selectAllOnFocus="true"
-                        android:textSize="15sp" />
-
-                    <EditText
-                        android:id="@+id/etTicketDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/etTicketName"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:hint="@string/ticket_description"
-                        android:imeOptions="actionNext"
-                        android:inputType="text"
-                        android:selectAllOnFocus="true"
-                        android:textSize="15sp" />
-<!--                    <com.hbb20.CountryCodePicker-->
-<!--                        android:id="@+id/ccp"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:layout_below="@+id/etTicketDescription"-->
-<!--                        android:layout_marginStart="24dp"-->
-<!--                        android:layout_marginTop="15dp"-->
-<!--                        app:ccp_showFullName="true"-->
-<!--                        app:ccp_showPhoneCode="false"-->
-<!--                        app:ccp_showNameCode="false"/>-->
-<!--                    <EditText-->
-<!--                        android:id="@+id/etMobile"-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:layout_below="@+id/etTicketDescription"-->
-<!--                        android:layout_marginStart="10dp"-->
-<!--                        android:layout_marginTop="15dp"-->
-<!--                        android:layout_marginEnd="24dp"-->
-<!--                        android:layout_toEndOf="@+id/ccp"-->
-<!--                        android:digits="0123456789"-->
-<!--                        android:maxLength="11"-->
-<!--                        android:hint="@string/user_mobile"-->
-<!--                        android:imeOptions="actionNext"-->
-<!--                        android:inputType="phone"-->
-<!--                        android:selectAllOnFocus="true"-->
-<!--                        android:textSize="15sp" />-->
-                    <LinearLayout
-                        android:id="@+id/lPhone"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-
-                        android:layout_below="@+id/etTicketDescription"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp">
-
-                        <com.hbb20.CountryCodePicker
-                            android:id="@+id/ccp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-
-                            app:ccpDialog_allowSearch="true"
-                            app:ccpDialog_initialScrollToSelection="true"
-                            app:ccpDialog_keyboardAutoPopup="false"
-                            app:ccpDialog_showCloseIcon="true"
-                            app:ccpDialog_showFastScroller="false"
-                            app:ccpDialog_showFlag="true"
-                            app:ccpDialog_showPhoneCode="true"
-                            app:ccpDialog_showTitle="false"
-                            app:ccp_arrowColor="@color/black"
-                            app:ccp_arrowSize="20dp"
-                            app:ccp_autoDetectCountry="true"
-                            app:ccp_autoDetectLanguage="true"
-                            app:ccp_autoFormatNumber="true"
-                            app:ccp_clickable="true"
-                            app:ccp_countryAutoDetectionPref="SIM_ONLY"
-                            app:ccp_rememberLastSelection="true"
-                            app:ccp_selectionMemoryTag="signupCCP"
-                            app:ccp_showArrow="true"
-                            app:ccp_showFlag="true"
-                            app:ccp_showFullName="false"
-                            app:ccp_showNameCode="false"
-                            app:ccp_showPhoneCode="false"
-                            app:ccp_textGravity="RIGHT"
-                            app:ccp_textSize="16sp"
-                            />
-
-                        <EditText
-                            android:id="@+id/etMobile"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:editable="false"
-                            android:hint="@string/user_mobile"
-                            android:inputType="phone"
-                            android:singleLine="true"
-                            android:selectAllOnFocus="true"
-                            android:imeOptions="actionNext"
-
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/llCategoryData"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/lPhone"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginRight="10dp"
-                            android:text="@string/category"
-                            android:textSize="15sp" />
-
-                        <AutoCompleteTextView
-                            android:id="@+id/sCategory"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/transparent"
-                            android:clickable="true"
-                            android:cursorVisible="false"
-                            android:drawableRight="@drawable/ic_down"
-                            android:editable="false"
-                            android:focusable="false"
-                            android:fontFamily="Poppins-Regular"
-                            android:gravity="center|left"
-                            android:imeOptions="actionNext"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:text="@string/select_category"
-                            android:textColor="@color/colorLabel"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/llStatusData"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/lPhone"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginRight="10dp"
-                            android:text="@string/status"
-                            android:textSize="15sp" />
-
-                        <AutoCompleteTextView
-                            android:id="@+id/sStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/transparent"
-                            android:clickable="true"
-                            android:cursorVisible="false"
-                            android:drawableRight="@drawable/ic_down"
-                            android:editable="false"
-                            android:focusable="false"
-                            android:fontFamily="Poppins-Regular"
-                            android:gravity="center|left"
-                            android:imeOptions="actionNext"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:text="@string/select_status"
-                            android:textColor="@color/colorLabel"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/llPaymentData"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/llStatusData"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginRight="10dp"
-                            android:text="@string/payment_method"
-                            android:textSize="15sp" />
-
-                        <AutoCompleteTextView
-                            android:id="@+id/sPayment"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/transparent"
-                            android:clickable="true"
-                            android:cursorVisible="false"
-                            android:drawableRight="@drawable/ic_down"
-                            android:editable="false"
-                            android:focusable="false"
-                            android:fontFamily="Poppins-Regular"
-                            android:gravity="center|left"
-                            android:imeOptions="actionNext"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:text="@string/select_payment_method"
-                            android:textColor="@color/colorLabel"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/llPriorityData"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/llPaymentData"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginRight="10dp"
-                            android:text="@string/priority"
-                            android:textSize="15sp" />
-
-                        <AutoCompleteTextView
-                            android:id="@+id/sPriority"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/transparent"
-                            android:clickable="true"
-                            android:cursorVisible="false"
-                            android:drawableRight="@drawable/ic_down"
-                            android:editable="false"
-                            android:focusable="false"
-                            android:fontFamily="Poppins-Regular"
-                            android:gravity="center|left"
-                            android:imeOptions="actionNext"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:text="@string/select_priority"
-                            android:textColor="@color/colorLabel"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-
-
-
-
-<!--                    <CheckBox-->
-<!--                        android:id="@+id/cbNeedCourier"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:layout_below="@+id/llPriorityData"-->
-<!--                        android:layout_marginStart="24dp"-->
-<!--                        android:layout_marginTop="15dp"-->
-<!--                        android:imeOptions="actionDone"-->
-<!--                        android:text="@string/need_courier" />-->
-
-                    <TextView
-                        android:id="@+id/tvServiceCost"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/llPriorityData"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="20dp"
-                        android:fontFamily="Poppins-Regular"
-                        android:text="@string/service_cost"
-                        android:textColor="@color/title_color"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvAddServiceCost"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignBaseline="@+id/tvServiceCost"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="24dp"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:gravity="center"
-                        android:text="@string/add_new"
-                        android:textColor="@color/colorApp"
-                        android:textSize="18sp" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvServiceCost"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/tvAddServiceCost"
-                        android:layout_centerHorizontal="true"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:scrollbars="vertical" />
-
-                    <TextView
-                        android:id="@+id/tvTasks"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/rvServiceCost"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginTop="20dp"
-                        android:fontFamily="Poppins-Regular"
-                        android:text="@string/tasks"
-                        android:textColor="@color/title_color"
-                        android:textSize="18sp"
-                        android:visibility="invisible"/>
-
-                    <TextView
-                        android:id="@+id/tvAddTask"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignBaseline="@+id/tvTasks"
-                        android:layout_below="@id/rvServiceCost"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="20dp"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:gravity="center"
-                        android:text="@string/add_new"
-                        android:textColor="@color/colorApp"
-                        android:textSize="18sp"
-                        android:visibility="invisible"/>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvTasks"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/tvAddTask"
-                        android:layout_centerHorizontal="true"
-                        android:layout_margin="20dp"
-                        android:layout_marginBottom="20dp"
-                        android:scrollbars="vertical"
-                        android:visibility="invisible"/>
-
-                    <Button
-                        android:id="@+id/btnSave"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/rvTasks"
-                        android:layout_marginStart="24dp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginEnd="24dp"
-                        android:layout_marginBottom="60dp"
-                        android:background="@drawable/rounded_button"
-                        android:text="@string/save"
-                        android:textAllCaps="false"
-                        android:textColor="@color/colorSecondary"
-                        android:textSize="20sp" />
-                </RelativeLayout>
-
-            </ScrollView>
-
-
-        </RelativeLayout>
-    </ScrollView>
+        </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </RelativeLayout>

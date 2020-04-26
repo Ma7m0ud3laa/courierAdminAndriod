@@ -592,12 +592,14 @@ Log.d("d","New")
             AnimateScroll.scrollToView(scroll, etTaskDescription)
             etTaskDescription.requestFocus()
             return false
-        } else if (etAmount.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Amount is required.")
-            AnimateScroll.scrollToView(scroll, etAmount)
-            etAmount.requestFocus()
-            return false
-        } else if (etPickupTime.text.toString().isNullOrEmpty()) {
+        }
+//        else if (etAmount.text.toString().isNullOrEmpty()) {
+//            Alert.showMessage(context!!, "Amount is required.")
+//            AnimateScroll.scrollToView(scroll, etAmount)
+//            etAmount.requestFocus()
+//            return false
+//        }
+        else if (etPickupTime.text.toString().isNullOrEmpty()) {
             Alert.showMessage(context!!, "Pickup Time is required.")
             AnimateScroll.scrollToView(scroll, etPickupTime)
             etPickupTime.requestFocus()
@@ -663,7 +665,7 @@ Log.d("d","New")
         var taskName = etTaskName.text.toString()
         var taskDescription = etTaskDescription.text.toString()
 
-        var amount = etAmount.text.toString().toDouble()
+        var amount = 1.0//etAmount.text.toString().toDouble()
 
         if (dateValue.isNullOrEmpty())
             dateValue = AppConstants.CurrentSelectedTask.PickUpTime

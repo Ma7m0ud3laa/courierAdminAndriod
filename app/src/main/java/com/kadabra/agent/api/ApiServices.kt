@@ -27,15 +27,21 @@ interface ApiServices {
     @GET(AppConstants.URL_GET_ALL_TICKETS)
     fun getAllTickets()
             : Call<ApiResponse<ArrayList<Ticket>>>
+
     @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO)
-    fun getAllTicketsByPage(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
+    fun getAllTicketsByPage(@Query("numOfItem") numOfItem: Int, @Query("pageNo") pageNo: Int)
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @GET(AppConstants.URL_GET_ALL_TICKETS_SIMPLE)
-    fun getAllTicketsNormal(@Query("Adminid")adminId:String)
+    fun getAllTicketsNormal(@Query("Adminid") adminId: String)
             : Call<ApiResponse<TicketData>>
+
     @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO_SIMPLE)
-    fun getAllTicketsByPageNormal(@Query ("numOfItem")numOfItem:Int,@Query ("pageNo")pageNo:Int )
+    fun getAllTicketsByPageNormal(
+        @Query("numOfItem") numOfItem: Int, @Query("pageNo") pageNo: Int, @Query(
+            "Adminid"
+        ) adminId: String
+    )
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @POST(AppConstants.URL_GET_TICKET_BY_ID)
@@ -51,15 +57,15 @@ interface ApiServices {
 
     @POST(AppConstants.URL_ADD_TICKET)
     fun addTicket(
-        @Body ticket: TicketModel)
+        @Body ticket: TicketModel
+    )
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @POST(AppConstants.URL_EDIT_TICKET)
     fun editTicket(
-        @Body ticketAdd: TicketModel)
+        @Body ticketAdd: TicketModel
+    )
             : Call<ApiResponse<ArrayList<Ticket>>>
-
-
 
 
     @GET(AppConstants.URL_TICKET_SUB_DATA)
@@ -125,7 +131,7 @@ interface ApiServices {
             : Call<ApiResponse<ArrayList<Stop>>>
 
     @POST(AppConstants.URL_SET_USER_TOKEN)
-    fun setAdminToken(@Query("adminId") adminId:String,@Query("Token") token:String)
+    fun setAdminToken(@Query("adminId") adminId: String, @Query("Token") token: String)
             : Call<ApiResponse<Boolean>>
 
 
@@ -136,18 +142,22 @@ interface ApiServices {
     fun getTaskDetails(@Query("taskId") taskID: String)
             : Call<ApiResponse<Task>>
 
-////////////////////////not implemented yet //////////////////
+    ////////////////////////not implemented yet //////////////////
     @GET(AppConstants.URL_GET_ALL_COMPLETED_TASKS)
     fun getCompletedTasks()
             : Call<ApiResponse<ArrayList<Task>>>
 
-  @GET(AppConstants.URL_GET_ALL_NOTIFICATIONS)
-    fun getALlNotifications(@Query("adminId")adminId:String)
-          : Call<ApiResponse<NotificationData>>
+    @GET(AppConstants.URL_GET_ALL_NOTIFICATIONS)
+    fun getALlNotifications(@Query("adminId") adminId: String)
+            : Call<ApiResponse<NotificationData>>
 
     @GET(AppConstants.URL_GET_ALL_READED_NOTIFICATIONS)
-    fun updateReadedNotification(@Query("notificationId")notificationId:String)
+    fun updateReadedNotification(@Query("notificationId") notificationId: String)
             : Call<ApiResponse<ArrayList<Task>>>
+
+    @GET(AppConstants.URL_GET_CLIENT_NAME)
+    fun getClientName(@Query("mobile") mobileNo: String)
+            : Call<ApiResponse<String?>>
 
 /////////////////////////////////////////////
 

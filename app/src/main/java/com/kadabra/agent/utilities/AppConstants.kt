@@ -80,7 +80,9 @@ object AppConstants {
     const val URL_UPDATE_TASK_COURIER_FEES = "UpdateTaskCourierFees"
     const val URL_GET_ALL_COMPLETED_TASKS = "GetAllCompletedTaskForAdmin"
     const val URL_GET_ALL_NOTIFICATIONS = "GetAllAdminNotification"
-        const val URL_GET_ALL_READED_NOTIFICATIONS = "UpdateAdminReadedNotification"
+    const val URL_GET_ALL_READED_NOTIFICATIONS = "UpdateAdminReadedNotification"
+    const val URL_GET_CLIENT_NAME = "GetUserNameByMobile"
+
 
 
     //endregion

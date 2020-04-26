@@ -87,8 +87,8 @@ dependencies {
     implementation 'com.google.android.libraries.places:places:1.1.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'com.google.android.gms:play-services-places:17.0.0'
-    //directiont
-//    implementation 'com.github.jd-alexander:library:1.1.0'
+    //direction
+    implementation 'com.akexorcist:google-direction-library:1.2.0'
 
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:2.0.3'
 
@@ -111,6 +111,8 @@ dependencies {
     implementation 'com.romandanylyk:pageindicatorview:1.0.2@aar'
 //country phone
     implementation 'com.hbb20:ccp:2.3.8'
+    //Searchable Spinner
+    implementation 'gr.escsoft.michaelprimez.searchablespinner:SearchableSpinner:1.0.9'
 //custom datetime
     implementation 'com.github.tylersuehr7:googlish-datetime-picker:1.1'
     testImplementation 'junit:junit:4.12'

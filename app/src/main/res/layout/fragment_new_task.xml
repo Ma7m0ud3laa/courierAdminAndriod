@@ -189,14 +189,15 @@
                     android:imeOptions="actionNext"
                     android:inputType="text|numberDecimal"
                     android:selectAllOnFocus="true"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:visibility="gone"/>
 
 
                 <EditText
                     android:id="@+id/etPickupTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/etAmount"
+                    android:layout_below="@+id/etTaskDescription"
                     android:layout_marginStart="24dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginEnd="24dp"
@@ -211,45 +212,63 @@
                     android:maxLines="1" />
 
 
-                <LinearLayout
-                    android:id="@+id/llCourier"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/etPickupTime"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="24dp"
-                    android:orientation="horizontal">
+                                <LinearLayout
+                                    android:id="@+id/llCourier"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@+id/etPickupTime"
+                                    android:layout_marginStart="24dp"
+                                    android:layout_marginTop="10dp"
+                                    android:layout_marginEnd="24dp"
+                                    android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginRight="10dp"
-                        android:text="Courier"
-                        android:textSize="15sp" />
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:text="Courier"
+                                        android:textSize="15sp" />
 
-                    <AutoCompleteTextView
-                        android:id="@+id/sCourier"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:background="@color/transparent"
-                        android:clickable="true"
-                        android:cursorVisible="false"
-                        android:drawableRight="@drawable/ic_down"
-                        android:editable="false"
-                        android:focusable="false"
-                        android:fontFamily="Poppins-Regular"
-                        android:gravity="center|left"
-                        android:imeOptions="actionNext"
-                        android:inputType="none"
-                        android:maxLines="1"
-                        android:text="@string/select_courier"
-                        android:textColor="@color/colorLabel"
-                        android:textSize="15sp" />
-                </LinearLayout>
+                                    <AutoCompleteTextView
+                                        android:id="@+id/sCourier"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="10dp"
+                                        android:layout_marginBottom="10dp"
+                                        android:background="@color/transparent"
+                                        android:clickable="true"
+                                        android:cursorVisible="false"
+                                        android:drawableRight="@drawable/ic_down"
+                                        android:editable="false"
+                                        android:focusable="false"
+                                        android:fontFamily="Poppins-Regular"
+                                        android:gravity="center|left"
+                                        android:imeOptions="actionNext"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:text="@string/select_courier"
+                                        android:textColor="@color/colorLabel"
+                                        android:textSize="15sp" />
+                                </LinearLayout>
+<!--                <gr.escsoft.michaelprimez.searchablespinner.SearchableSpinner-->
+<!--                    android:id="@+id/llCourier"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_below="@+id/etPickupTime"-->
+<!--                    android:layout_marginStart="24dp"-->
+<!--                    android:layout_marginLeft="24dp"-->
+<!--                    android:layout_marginTop="10dp"-->
+<!--                    android:layout_marginEnd="24dp"-->
+<!--                    android:layout_marginRight="24dp"-->
+<!--                    android:gravity="center_horizontal"-->
+<!--                    app:DoneSearchTintColor="@android:color/holo_purple"-->
+<!--                    app:RevealEmptyText="Touch to select"-->
+<!--                    app:RevealViewBackgroundColor="@android:color/holo_purple"-->
+<!--                    app:SearchViewBackgroundColor="@android:color/secondary_text_dark"-->
+<!--                    app:ShowBorders="false"-->
+<!--                    app:SpinnerExpandHeight="300dp"-->
+<!--                    app:StartSearchTintColor="@android:color/white" />-->
 
                 <RelativeLayout
                     android:id="@+id/rlStopsAdd"

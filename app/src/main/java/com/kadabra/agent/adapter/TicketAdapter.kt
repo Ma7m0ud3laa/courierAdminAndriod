@@ -1,35 +1,18 @@
 package com.kadabra.agent.adapter
 
-import android.Manifest
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.NonNull
-import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
-import com.kadabra.agent.firebase.LocationHelper
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.Ticket
-import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.single.PermissionListener
 
 
 /**
@@ -73,6 +56,8 @@ class TicketAdapter(
         holder.tvTicketName.text = ticket.TicketName
         if (!ticket.TicketDescription.isNullOrEmpty())
             holder.tvTicketDescription.text = ticket.TicketDescription
+
+        holder.tvAgentName.text=ticket.AgentName
         holder.tvPriority.text = ticket.Priority
 
 
@@ -146,6 +131,8 @@ class TicketAdapter(
 
         var tvTicketName: TextView = itemView.findViewById(R.id.tvTicketName)
         var tvTicketDescription: TextView = itemView.findViewById(R.id.tvTicketDescription)
+        var tvAgentName: TextView = itemView.findViewById(R.id.tvAgentName)
+
         var tvPriority: TextView = itemView.findViewById(R.id.tvPriority)
         var tvPrice: TextView = itemView.findViewById(R.id.tvPrice)
         var tvStatus: TextView = itemView.findViewById(R.id.tvStatus)

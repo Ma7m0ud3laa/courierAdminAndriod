@@ -5,6 +5,8 @@
     <string name="courier_power_by_kadabra">Powered by kadabra</string>
     <string name="no_results">No Data Available.</string>
     <string name="error_login_server_error">Error Occurred.</string>
+    <string name="error_wrong_no">Error Occurred.</string>
+
     <string name="error_mobile_error">User mobile does not Exist.</string>
     <string name="error_login_server_unknown_error">Unknown Error.</string>
     <string name="title_activity_maps">Map</string>

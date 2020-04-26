@@ -6,9 +6,12 @@ class Ticket {
     var AdminName: String? = null
     var TicketName: String = ""
     var TicketDescription: String = ""
+    var AgentName: String? = null
     var UserMobile: String = ""
+    var UserName=""
+    var mobileNo = ""
     var TotalTasks = ""
-    var TotalTasksAmount=""
+    var TotalTasksAmount = ""
     var PickUpName: String = ""
     var PickUpLongitude: Double? = null
     var PickUpLatitude: Double? = null

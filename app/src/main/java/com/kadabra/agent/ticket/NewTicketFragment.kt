@@ -43,7 +43,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var tvTicketDetails: TextView? = null
     private var tvStatus: TextView? = null
     private var tvPriority: TextView? = null
+    private var tvClientName: TextView? = null
     private var tvPrice: TextView? = null
+    private var ivCheck: ImageView? = null
+
     private var tvAddServiceCost: TextView? = null
     private var tvAddTask: TextView? = null
     private var tvTasks: TextView? = null
@@ -138,7 +141,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     override fun onClick(view: View?) {
         when (view?.id) {
-
+            R.id.ivCheck -> {
+                getClientName(AppConstants.CurrentSelectedTicket.UserMobile)
+            }
             R.id.tvAddServiceCost -> {// add task to the current ticket
                 if (NetworkManager().isNetworkAvailable(context!!))
                     showServiceCostWindow()
@@ -147,9 +152,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             }
 
             R.id.tvAddTask -> {// add task to the current ticket
-                AppConstants.CurrentSelectedTask=Task()
-                AppConstants.CurrentSelecedNotification= Notification()
-                AppConstants.CurrentSelectedStop=Stop()
+                AppConstants.CurrentSelectedTask = Task()
+                AppConstants.CurrentSelecedNotification = Notification()
+                AppConstants.CurrentSelectedStop = Stop()
                 listener!!.onBottomSheetSelectedItem(7)
             }
 
@@ -231,6 +236,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         tvTicketName = currentView!!.findViewById(R.id.tvTicketDetails)
         tvTicketDetails = currentView!!.findViewById(R.id.tvTicketDetails)
+        tvClientName = currentView!!.findViewById(R.id.tvClientName)
+        ivCheck = currentView!!.findViewById(R.id.ivCheck)
         tvStatus = currentView!!.findViewById(R.id.tvStatus)
         tvPriority = currentView!!.findViewById(R.id.tvPriority)
         tvPrice = currentView!!.findViewById(R.id.tvPrice)
@@ -269,11 +276,18 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         btnSave.setOnClickListener(this)
         btnSaveServiceCost!!.setOnClickListener(this)
         ivBackServiceCost!!.setOnClickListener(this)
+        ivCheck!!.setOnClickListener(this)
 
 //        AnimateScroll.scrollToView(scroll, tvTicketName!!)
 //        tvTicketName!!.requestFocus()
 
         if (editMode) {
+
+            ivCheck!!.isEnabled = false
+            ivCheck!!.setOnClickListener(null)
+            ivCheck!!.visibility=View.GONE
+            tvClientName!!.visibility=View.VISIBLE
+
             tvTicketDetails!!.text = getString(R.string.ticket_details)
             etMobile.isEnabled = false
             etMobile.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(12))
@@ -281,6 +295,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             tvTasks!!.visibility = View.VISIBLE
             tvAddTask!!.visibility = View.VISIBLE
             rvTasks!!.visibility = View.VISIBLE
+            ivCheck!!.isEnabled = false
             getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
         }
 
@@ -601,25 +616,24 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             AppConstants.CurrentSelectedTask = task
                             Alert.hideProgress()
 
-                           if(task.Status!=AppConstants.IN_PROGRESS)
-                           { AlertDialog.Builder(context)
-                               .setTitle(AppConstants.WARNING)
-                               .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
-                               .setIcon(android.R.drawable.ic_dialog_alert)
-                               .setPositiveButton(AppConstants.OK) { dialog, which ->
-                                   deleteTask(task)
-                               }
-                               .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
-                               .show()}
-                            else
-                           {
-                               getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
-                               Alert.showAlertMessage(
-                                   context!!,
-                                   AppConstants.WARNING,
-                                   "Can't edit this task it's in progress."
-                               )
-                           }
+                            if (task.Status != AppConstants.IN_PROGRESS) {
+                                AlertDialog.Builder(context)
+                                    .setTitle(AppConstants.WARNING)
+                                    .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+                                    .setIcon(android.R.drawable.ic_dialog_alert)
+                                    .setPositiveButton(AppConstants.OK) { dialog, which ->
+                                        deleteTask(task)
+                                    }
+                                    .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                                    .show()
+                            } else {
+                                getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+                                Alert.showAlertMessage(
+                                    context!!,
+                                    AppConstants.WARNING,
+                                    "Can't edit this task it's in progress."
+                                )
+                            }
 
 
                         } else {
@@ -633,8 +647,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                     }
                 })
 
-        }
-        else {
+        } else {
             Alert.hideProgress()
             Alert.showMessage(
                 context!!,
@@ -706,10 +719,17 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     }
 
     override fun onStopDelete(stop: Stop?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
     private fun loadTicketDetails(ticket: Ticket) {
+
+
+        if(!ticket.UserName.trim().isNullOrEmpty())
+        {
+            tvClientName!!.visibility=View.VISIBLE
+            tvClientName?.text = ticket.UserName
+        }
 
         AppConstants.TICKET_SERVICE_COST_LIST.clear()  //clear service cost data
 
@@ -718,9 +738,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         etMobile.setText(ticket.UserMobile)
 
+
         ccp.fullNumber = ticket.UserMobile
 //        ccp.isEnabled=false
         ccp.setCcpClickable(false)
+
+
 
 //        if (ticket.CategoryId != null) {
 //            sCategory.setText(ticket.Category)
@@ -934,6 +957,44 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         }
     }
 
+    private fun getClientName(mobileNo: String) {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getClientName(mobileNo)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<String?>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<String?>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Alert.hideProgress()
+                            tvClientName?.visibility = View.VISIBLE
+                            tvClientName?.text = response.ResponseObj
+                        } else {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                context!!,
+                                getString(R.string.error_mobile_error)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(context!!, getString(R.string.no_internet))
+        }
+    }
+
     private fun editTicket(ticketData: TicketModel) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
@@ -1021,12 +1082,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             AnimateScroll.scrollToView(scroll, sPayment)
             sPayment.showDropDown()
             return false
-        } else if (selectedPriority.PriorityId == null) {
-            Alert.showMessage(context!!, "Prirotiy is required.")
-            AnimateScroll.scrollToView(scroll, sPriority)
-            sPriority.showDropDown()
-            return false
         }
+//        else if (selectedPriority.PriorityId == null) {
+//            Alert.showMessage(context!!, "Prirotiy is required.")
+//            AnimateScroll.scrollToView(scroll, sPriority)
+//            sPriority.showDropDown()
+//            return false
+//        }
 
         return true
     }

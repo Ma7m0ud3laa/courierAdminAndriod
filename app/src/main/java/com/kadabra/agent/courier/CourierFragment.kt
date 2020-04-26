@@ -2,43 +2,57 @@ package com.kadabra.agent.courier
 
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.graphics.*
 import android.location.Address
 import android.location.Geocoder
 import com.google.maps.PendingResult
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.service.autofill.Validators.and
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.content.ContextCompat
+import com.akexorcist.googledirection.BuildConfig
+import com.akexorcist.googledirection.DirectionCallback
+import com.akexorcist.googledirection.GoogleDirection
+import com.akexorcist.googledirection.config.GoogleDirectionConfiguration
+import com.akexorcist.googledirection.constant.TransportMode
+import com.akexorcist.googledirection.model.Direction
+import com.akexorcist.googledirection.model.Leg
+import com.akexorcist.googledirection.model.Route
+import com.akexorcist.googledirection.util.DirectionConverter
+import com.akexorcist.googledirection.util.execute
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.*
 import com.google.android.libraries.places.api.net.*
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
 import com.google.maps.internal.PolylineEncoding
+import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsResult
+import com.google.maps.model.Distance
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
 import com.kadabra.agent.firebase.FirebaseManager
-import com.kadabra.agent.model.Courier
-import com.kadabra.agent.model.PolylineData
-import com.kadabra.agent.model.Stop
-import com.kadabra.agent.model.Task
+import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
+import com.mancj.materialsearchbar.MaterialSearchBar
+import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
 import kotlinx.android.synthetic.main.fragment_courier.*
 import java.lang.Exception
 import java.util.*
@@ -56,7 +70,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var ivSearchMarker: ImageView
     private lateinit var btnConfirmLocation: Button
     private var currentSelectedCourier = Courier()
-
+    var suggestionsList = ArrayList<String>()
     private var firstTimeFlag = true
     private var listener: IBottomSheetCallback? = null
     var searchMode = false
@@ -70,7 +84,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     var currentSelectedMarker: Marker? = null
     private val TAG = CourierFragment::class.java!!.simpleName
     private var placesClient: PlacesClient? = null
-    //    private var materialSearchBar: MaterialSearchBar? = null
+    private var materialSearchBar: MaterialSearchBar? = null
     private var predictionList: List<AutocompletePrediction>? = null
     private var DEFAULT_ZOOM = 15f
     private var MAX_ZOOM = 20F
@@ -86,6 +100,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var currentMarker: Marker? = null
     private var mGeoApiContext: GeoApiContext? = null
     private var mPolyLinesData: ArrayList<PolylineData> = ArrayList()
+    private var mNewPolyLinesData: ArrayList<NewPolylineData> = ArrayList()
+
     private val mTripMarkers = ArrayList<Marker>()
     private var mSelectedMarker: Marker? = null
     private var totalKilometers: Float = 0F
@@ -119,7 +135,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         tvExpectedDistance = currentView.findViewById(R.id.tvExpectedDistance)
 
 
-//        materialSearchBar = currentView.findViewById(R.id.searchBar)
+        materialSearchBar = currentView.findViewById(R.id.searchBar)
         ivBack.setOnClickListener(this)
         btnConfirmLocation.setOnClickListener(this)
 //        polylines = ArrayList()
@@ -136,121 +152,136 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 .build()
         }
 
-//        Places.initialize(context!!, context!!.getString(R.string.google_maps_key))
-//        placesClient = Places.createClient(context!!)
+        Places.initialize(context!!, context!!.getString(R.string.google_map_key))
+        placesClient = Places.createClient(context!!)
         val token = AutocompleteSessionToken.newInstance()
 
 
-//        materialSearchBar!!.setOnSearchActionListener(object :
-//            MaterialSearchBar.OnSearchActionListener {
-//            override fun onSearchStateChanged(enabled: Boolean) {
-//
-//            }
-//
-//            override fun onSearchConfirmed(text: CharSequence) {
-//                activity!!.startSearch(text.toString(), true, null, true)
-//            }
-//
-//            override fun onButtonClicked(buttonCode: Int) {
-//                if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
-//                    //opening or closing a navigation drawer
-//                } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-//                    materialSearchBar!!.disableSearch()
-//                }
-//            }
-//        })
-//
-//        materialSearchBar!!.addTextChangeListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-//
-//            }
-//
-//            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-//                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-//                    .setTypeFilter(TypeFilter.ADDRESS)
-//                    .setSessionToken(token!!)
-//                    .setQuery(s.toString())
-//                    .build()
-//                placesClient!!.findAutocompletePredictions(predictionsRequest)
-//                    .addOnCompleteListener { task ->
-//                        if (task.isSuccessful) {
-//                            val predictionsResponse = task.result
-//                            if (predictionsResponse != null) {
-//                                predictionList = predictionsResponse.autocompletePredictions
-//                                val suggestionsList = ArrayList<String>()
-//                                for (i in predictionList!!.indices) {
-//                                    val prediction = predictionList!!.get(i)
-//                                    suggestionsList.add(prediction.getFullText(null).toString())
-//                                }
-//                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
-//                                if (!materialSearchBar!!.isSuggestionsVisible) {
-//                                    materialSearchBar!!.showSuggestionsList()
-//                                }
-//                            }
-//                        } else {
-//                            Log.i("mytag", "prediction fetching task unsuccessful")
-//                        }
-//                    }
-//            }
-//
-//            override fun afterTextChanged(s: Editable) {
-//
-//            }
-//        })
-//
-//
-//        materialSearchBar!!.setSuggstionsClickListener(object :
-//            SuggestionsAdapter.OnItemViewClickListener {
-//            override fun OnItemClickListener(position: Int, v: View) {
-//                if (position >= predictionList!!.size) {
-//                    return
-//                }
-//                val selectedPrediction = predictionList!![position]
-//                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-//                materialSearchBar!!.text = suggestion
-//
-//                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-//                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-//                imm?.hideSoftInputFromWindow(
-//                    materialSearchBar!!.windowToken,
-//                    InputMethodManager.HIDE_IMPLICIT_ONLY
-//                )
-//                val placeId = selectedPrediction.placeId
-//                val placeFields = listOf(Place.Field.LAT_LNG)
-//
-//                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
-//                placesClient!!.fetchPlace(fetchPlaceRequest)
-//                    .addOnSuccessListener { fetchPlaceResponse ->
-//                        val place = fetchPlaceResponse.place
-//                        if (place.name != null)
-//                            Log.i("mytag", "Place found: " + place.name)
-//                        else
-//                            Log.i("mytag", "Place found: " + "No Name is found")
-//
-//                        val latLngOfPlace = place.latLng
-//                        if (latLngOfPlace != null) {
-//                            ivSearchMarker.visibility = View.VISIBLE
-//                            mMap.moveCamera(
-//                                CameraUpdateFactory.newLatLngZoom(
-//                                    latLngOfPlace,
-//                                    DEFAULT_ZOOM
-//                                )
-//                            )
-//                        }
-//                    }.addOnFailureListener { e ->
-//                        if (e is ApiException) {
-//                            e.printStackTrace()
-//                            val statusCode = e.statusCode
-//                            Log.i("mytag", "place not found: " + e.message)
-//                            Log.i("mytag", "status code: $statusCode")
-//                        }
-//                    }
-//            }
-//
-//            override fun OnItemDeleteListener(position: Int, v: View) {
-//
-//            }
-//        })
+
+        materialSearchBar!!.setOnSearchActionListener(object :
+            MaterialSearchBar.OnSearchActionListener {
+            override fun onSearchStateChanged(enabled: Boolean) {
+
+            }
+
+            override fun onSearchConfirmed(text: CharSequence) {
+                activity!!.startSearch(text.toString(), true, null, true)
+            }
+
+            override fun onButtonClicked(buttonCode: Int) {
+                if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
+                    //opening or closing a navigation drawer
+                    suggestionsList.clear()
+                    materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                    materialSearchBar!!.disableSearch()
+                } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
+                    materialSearchBar!!.disableSearch()
+                }
+                else { //act like press on back icon
+                    if (searchMode)
+                        listener?.onBottomSheetSelectedItem(6)
+                    else
+                        listener?.onBottomSheetSelectedItem(2)
+                }
+            }
+        })
+
+        materialSearchBar!!.addTextChangeListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+
+                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
+                    .setTypeFilter(TypeFilter.ADDRESS)
+                    .setSessionToken(token)
+                    .setQuery(s.toString())
+                    .build();
+                placesClient!!.findAutocompletePredictions(predictionsRequest)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val predictionsResponse = task.result
+                            if (predictionsResponse != null) {
+                                predictionList = predictionsResponse.autocompletePredictions
+                                suggestionsList = ArrayList<String>()
+                                for (i in predictionList!!.indices) {
+                                    val prediction = predictionList!!.get(i)
+                                    suggestionsList.add(prediction.getFullText(null).toString())
+                                }
+                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                                if (!materialSearchBar!!.isSuggestionsVisible) {
+                                    materialSearchBar!!.showSuggestionsList()
+                                }
+                            }
+                        } else {
+                            Log.i("mytag", "prediction fetching task unsuccessful")
+                        }
+                    }
+            }
+
+            override fun afterTextChanged(s: Editable) {
+
+            }
+        })
+
+
+        materialSearchBar!!.setSuggstionsClickListener(object :
+            SuggestionsAdapter.OnItemViewClickListener {
+            override fun OnItemClickListener(position: Int, v: View) {
+                if (position >= predictionList!!.size) {
+                    return
+                }
+                val selectedPrediction = predictionList!![position]
+                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                materialSearchBar!!.text = suggestion
+
+                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm?.hideSoftInputFromWindow(
+                    materialSearchBar!!.windowToken,
+                    InputMethodManager.HIDE_IMPLICIT_ONLY
+                )
+                val placeId = selectedPrediction.placeId
+                val placeFields = listOf(Place.Field.LAT_LNG)
+
+                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
+                placesClient!!.fetchPlace(fetchPlaceRequest)
+                    .addOnSuccessListener { fetchPlaceResponse ->
+                        val place = fetchPlaceResponse.place
+                        if (place.name != null)
+                            Log.i("mytag", "Place found: " + place.name)
+                        else
+                            Log.i("mytag", "Place found: " + "No Name is found")
+
+                        val latLngOfPlace = place.latLng
+                        if (latLngOfPlace != null) {
+                            ivSearchMarker.visibility = View.VISIBLE
+                            mMap.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    latLngOfPlace,
+                                    DEFAULT_ZOOM
+                                )
+                            )
+                        }
+                    }.addOnFailureListener { e ->
+                        if (e is ApiException) {
+                            e.printStackTrace()
+                            val statusCode = e.statusCode
+                            Log.i("mytag", "place not found: " + e.message)
+                            Log.i("mytag", "status code: $statusCode")
+                        }
+                    }
+            }
+
+            override fun OnItemDeleteListener(position: Int, v: View) {
+                if (suggestionsList.size > 0) {
+                    suggestionsList.removeAt(position)
+                    materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                }
+
+            }
+        })
 
         ///////////////////////////////////////////////////
 
@@ -366,7 +397,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             }
 
         } else if (mapView != null && directionMode) {
-            getTAskDirection(AppConstants.CurrentSelectedTask)
+//            getTAskDirection(AppConstants.CurrentSelectedTask)
+//            getDirection(AppConstants.CurrentSelectedTask)
+            requestDirection(AppConstants.CurrentSelectedTask)
+
         }
         // show all couriers on mMap for tracking
         else {
@@ -691,6 +725,59 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     }
 
+    private fun getDirection(task: Task) {
+        directionMode = false
+        var firstStop = task.stopsmodel.first()
+        var lastStop = task.stopsmodel.last()
+
+        var pickUp = LatLng(
+            firstStop.Latitude!!,
+            firstStop.Longitude!!
+        )
+        var dropOff = LatLng(
+            lastStop.Latitude!!,
+            lastStop.Longitude!!
+        )
+
+        var waypoints: ArrayList<LatLng> = ArrayList()
+        task.stopsmodel.forEach {
+            if (it.StopTypeID == 3)
+                waypoints.add(
+                    LatLng(
+                        it.Latitude!!,
+                        it.Longitude!!
+                    )
+                )
+        }
+
+        if (waypoints.size > 0) {
+            GoogleDirection.withServerKey(context!!.getString(R.string.google_maps_key))
+                .from(pickUp)
+                .and(waypoints)
+                .to(dropOff)
+                .transportMode(TransportMode.DRIVING)
+                .execute(object : DirectionCallback {
+                    override fun onDirectionSuccess(direction: Direction?) {
+                        if (direction!!.isOK) {
+                            // Do something
+                        } else {
+                            // Do something
+                        }
+                    }
+
+                    override fun onDirectionFailure(t: Throwable?) {
+
+                    }
+
+
+                });
+        } else {
+
+        }
+
+
+    }
+
     private fun calculateDirections(origin: LatLng, dest: LatLng) {
 //Alert.showProgress(this)
         Log.d(
@@ -822,7 +909,13 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             "( " + polylineData.leg.distance.toString() + "  )"
     }
 
-    //convert vecor to bitmap
+    private fun setTripData(leg: Leg) {
+        tvExpectedTime.text = leg.duration.value.toString()
+        tvExpectedDistance.text =
+            "( " + leg.distance.value.toString() + "  )"
+    }
+
+    //convert vector to bitmap
     private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
         return ContextCompat.getDrawable(context, vectorResId)?.run {
             setBounds(0, 0, intrinsicWidth, intrinsicHeight)
@@ -897,5 +990,185 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 //        }
 //    }
 //}
+
+    private fun setCameraWithCoordinationBounds(route: Route) {
+        val southwest = route.bound.southwestCoordination.coordination
+        val northeast = route.bound.northeastCoordination.coordination
+        val bounds = LatLngBounds(southwest, northeast)
+        mMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+    }
+
+    private fun onDirectionDataSuccess(direction: Direction) {
+
+        var leg = Leg()
+        if (direction.isOK) {
+            val route = direction.routeList[0]
+            val legCount = route.legList.size
+            for (index in 0 until legCount) {
+                leg = route.legList[index]
+                mMap?.addMarker(MarkerOptions().position(leg.startLocation.coordination))
+                if (index == legCount - 1) {
+                    mMap?.addMarker(MarkerOptions().position(leg.endLocation.coordination))
+                }
+                val stepList = leg.stepList
+                val polylineOptionList = DirectionConverter.createTransitPolyline(
+                    context!!,
+                    stepList,
+                    5,
+                    Color.RED,
+                    3,
+                    Color.BLUE
+                )
+                for (polylineOption in polylineOptionList) {
+                    polyline = mMap?.addPolyline(polylineOption)
+                    polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
+                    polyline.isClickable = true
+
+                    mNewPolyLinesData.add(NewPolylineData(polyline, leg))
+                }
+            }
+            setCameraWithCoordinationBounds(route)
+            setTripData(route.legList[0])
+            rlBottom.visibility = View.VISIBLE
+        } else {
+            Alert.showMessage(context!!, direction.status)
+        }
+
+//        newAddPolyLinesToMap(direction)
+    }
+
+    private fun newAddPolyLinesToMap(direction: Direction) {
+        Handler(Looper.getMainLooper()).post {
+            Log.d(
+                TAG,
+                "run: result routes: " + direction.routeList.size
+            )
+            if (mNewPolyLinesData.size > 0) {
+                for (polylineData in mNewPolyLinesData) {
+                    polylineData.getPolyline().remove()
+                }
+                mNewPolyLinesData.clear()
+                mNewPolyLinesData = java.util.ArrayList<NewPolylineData>()
+            }
+            var duration = 999999999.0
+
+            for (route in direction.routeList) {
+
+                var leg = route.legList[0]
+                Log.d(
+                    TAG,
+                    "run: leg: " + route.legList[0].toString()
+                )
+                val decodedPath =
+                    PolylineEncoding.decode(route.overviewPolyline.toString())
+                val newDecodedPath: MutableList<LatLng> =
+                    java.util.ArrayList()
+                // This loops through all the LatLng coordinates of ONE polyline.
+                for (latLng in decodedPath) { //                        Log.d(TAG, "run: latlng: " + latLng.toString());
+                    newDecodedPath.add(
+                        LatLng(
+                            latLng.lat,
+                            latLng.lng
+                        )
+                    )
+                }
+                polyline =
+                    mMap.addPolyline(PolylineOptions().addAll(newDecodedPath)) // add marker
+                polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
+                polyline.isClickable = true
+
+                mNewPolyLinesData.add(NewPolylineData(polyline, leg))
+                // highlight the fastest route and adjust camera
+
+                val tempDuration =
+                    leg.duration.value.toDouble()
+                if (tempDuration < duration) {
+                    duration = tempDuration
+                    onPolylineClick(polyline)
+                    zoomRoute(polyline.points)
+                    setTripData(leg)
+                    rlBottom.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    private fun requestDirection(task: Task) {
+
+        directionMode = false
+        var firstStop = task.stopsmodel.first()
+        var lastStop = task.stopsmodel.last()
+
+        var pickUp = LatLng(
+            firstStop.Latitude!!,
+            firstStop.Longitude!!
+        )
+        var dropOff = LatLng(
+            lastStop.Latitude!!,
+            lastStop.Longitude!!
+        )
+
+        var waypoints: ArrayList<LatLng> = ArrayList()
+        task.stopsmodel.forEach {
+            if (it.StopTypeID == 3)
+                waypoints.add(
+                    LatLng(
+                        it.Latitude!!,
+                        it.Longitude!!
+                    )
+                )
+        }
+
+        if (waypoints.size > 0) {
+            GoogleDirection.withServerKey(context!!.getString(R.string.google_maps_key))
+                .from(pickUp)
+                .and(waypoints)
+                .to(dropOff)
+                .transportMode(TransportMode.DRIVING)
+                .execute(object : DirectionCallback {
+                    override fun onDirectionSuccess(direction: Direction?) {
+                        if (direction!!.isOK) {
+                            onDirectionDataSuccess(direction)
+                        } else {
+                            // Do something
+                        }
+                    }
+
+                    override fun onDirectionFailure(t: Throwable?) {
+                        onDirectionFailure(t)
+                    }
+
+
+                });
+        } else {
+            GoogleDirection.withServerKey(context!!.getString(R.string.google_maps_key))
+                .from(pickUp)
+                .to(dropOff)
+                .transportMode(TransportMode.DRIVING)
+                .execute(object : DirectionCallback {
+                    override fun onDirectionSuccess(direction: Direction?) {
+                        if (direction!!.isOK) {
+                            onDirectionDataSuccess(direction)
+                        } else {
+                            // Do something
+                        }
+                    }
+
+                    override fun onDirectionFailure(t: Throwable?) {
+                        onDirectionFailure(t)
+                    }
+
+
+                });
+        }
+
+
+    }
+
+    private fun onDirectionFailure(t: Throwable) {
+        Alert.showMessage(context!!, t.message!!)
+    }
+
+
     //endregion
 }

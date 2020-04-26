@@ -2,21 +2,20 @@ package com.kadabra.agent.model;
 
 import com.akexorcist.googledirection.model.Leg;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.maps.model.DirectionsLeg;
 
-public class PolylineData {
+public class NewPolylineData {
 
     private Polyline polyline;
-    private DirectionsLeg leg;
+    private Leg leg;
+    
 
-
-    public PolylineData(Polyline polyline, DirectionsLeg leg) {
+    public NewPolylineData(Polyline polyline, Leg leg) {
         this.polyline = polyline;
         this.leg = leg;
     }
 
-
-
+    
+    
 
     public Polyline getPolyline() {
         return polyline;
@@ -26,11 +25,11 @@ public class PolylineData {
         this.polyline = polyline;
     }
 
-    public DirectionsLeg getLeg() {
+    public Leg getLeg() {
         return leg;
     }
 
-    public void setLeg(DirectionsLeg leg) {
+    public void setLeg(Leg leg) {
         this.leg = leg;
     }
 
