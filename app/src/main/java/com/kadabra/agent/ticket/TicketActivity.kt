@@ -619,6 +619,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                    toggleFabMode()
                     if (NetworkManager().isNetworkAvailable(this)) {
                         courierFragment = CourierFragment()
+                        courierFragment.searchOnCourier=true
                         fm.beginTransaction()
                             .replace(R.id.layout_container, courierFragment, "courierFragment")
                             .addToBackStack(null)

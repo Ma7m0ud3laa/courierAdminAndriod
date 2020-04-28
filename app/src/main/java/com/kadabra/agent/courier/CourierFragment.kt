@@ -121,7 +121,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var tvExpectedDistance: TextView
     private var currentCountry = ""
     private var countrygeoCoder: Geocoder? = null
-    private lateinit var locale:Locale
+    private lateinit var locale: Locale
+    private var couriersList=ArrayList<Courier>()
+     var searchOnCourier=false
     //endregion
 
 
@@ -133,7 +135,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
         currentCountry = getUserCountry(context!!)!!
         countrygeoCoder = Geocoder(context!!, Locale.forLanguageTag(currentCountry))
-         locale = Locale("",currentCountry)
+        locale = Locale("", currentCountry)
 
     }
 
@@ -173,6 +175,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         placesClient = Places.createClient(context!!)
         val token = AutocompleteSessionToken.newInstance()
 
+        if(searchMode||directionMode)
+            materialSearchBar!!.setHint("Search a place")
+        else if(searchOnCourier)
+            materialSearchBar!!.setHint("Find a courier")
 
         materialSearchBar!!.setCardViewElevation(10)
         materialSearchBar!!.setOnSearchActionListener(object :
@@ -189,6 +195,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 if (buttonCode == MaterialSearchBar.BUTTON_NAVIGATION) {
                     //opening or closing a navigation drawer
                     suggestionsList.clear()
+                    couriersList.clear()
                     materialSearchBar!!.updateLastSuggestions(suggestionsList)
                     materialSearchBar!!.disableSearch()
                 } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
@@ -209,32 +216,46 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 // region for device for datetime
-                val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-                    .setTypeFilter(TypeFilter.ESTABLISHMENT)
-                    .setCountry(currentCountry)
-                    .setSessionToken(token)
-                    .setQuery(s.toString())
-                    .build()
-                placesClient!!.findAutocompletePredictions(predictionsRequest)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val predictionsResponse = task.result
-                            if (predictionsResponse != null) {
-                                predictionList = predictionsResponse.autocompletePredictions
-                                suggestionsList = ArrayList()
-                                for (i in predictionList!!.indices) {
-                                    val prediction = predictionList!![i]
-                                    suggestionsList.add(prediction.getFullText(null).toString())
+                if (searchMode) {
+                    val predictionsRequest = FindAutocompletePredictionsRequest.builder()
+                        .setTypeFilter(TypeFilter.ESTABLISHMENT)
+                        .setCountry(currentCountry)
+                        .setSessionToken(token)
+                        .setQuery(s.toString())
+                        .build()
+                    placesClient!!.findAutocompletePredictions(predictionsRequest)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val predictionsResponse = task.result
+                                if (predictionsResponse != null) {
+                                    predictionList = predictionsResponse.autocompletePredictions
+                                    suggestionsList = ArrayList()
+                                    for (i in predictionList!!.indices) {
+                                        val prediction = predictionList!![i]
+                                        suggestionsList.add(prediction.getFullText(null).toString())
+                                    }
+                                    materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                                    if (!materialSearchBar!!.isSuggestionsVisible) {
+                                        materialSearchBar!!.showSuggestionsList()
+                                    }
                                 }
-                                materialSearchBar!!.updateLastSuggestions(suggestionsList)
-                                if (!materialSearchBar!!.isSuggestionsVisible) {
-                                    materialSearchBar!!.showSuggestionsList()
-                                }
+                            } else {
+                                Log.i(TAG, "prediction fetching task unsuccessful")
                             }
-                        } else {
-                            Log.i(TAG, "prediction fetching task unsuccessful")
                         }
+                }
+
+                else if(searchOnCourier) { //direction search for courier
+                    suggestionsList.clear()
+                    suggestionsList = ArrayList()
+                    couriersList.forEach { suggestionsList.add(it.name) }
+                    materialSearchBar!!.updateLastSuggestions(suggestionsList)
+
+                    if (!materialSearchBar!!.isSuggestionsVisible) {
+                        materialSearchBar!!.showSuggestionsList()
                     }
+                    print(couriersList)
+                }
             }
 
             override fun afterTextChanged(s: Editable) {
@@ -246,49 +267,80 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         materialSearchBar!!.setSuggstionsClickListener(object :
             SuggestionsAdapter.OnItemViewClickListener {
             override fun OnItemClickListener(position: Int, v: View) {
-                if (position >= predictionList!!.size) {
-                    return
-                }
-                val selectedPrediction = predictionList!![position]
-                val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-                materialSearchBar!!.text = suggestion
 
-                Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-                val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                imm?.hideSoftInputFromWindow(
-                    materialSearchBar!!.windowToken,
-                    InputMethodManager.HIDE_IMPLICIT_ONLY
-                )
-                val placeId = selectedPrediction.placeId
-                val placeFields = listOf(Place.Field.LAT_LNG)
+              if(searchMode)
+              {
+                  if (position >= predictionList!!.size) {
+                      return
+                  }
+                  val selectedPrediction = predictionList!![position]
+                  val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                  materialSearchBar!!.text = suggestion
 
-                val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
-                placesClient!!.fetchPlace(fetchPlaceRequest)
-                    .addOnSuccessListener { fetchPlaceResponse ->
-                        val place = fetchPlaceResponse.place
-                        if (place.name != null)
-                            Log.i("mytag", "Place found: " + place.name)
-                        else
-                            Log.i("mytag", "Place found: " + "No Name is found")
+                  Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+                  val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                  imm?.hideSoftInputFromWindow(
+                      materialSearchBar!!.windowToken,
+                      InputMethodManager.HIDE_IMPLICIT_ONLY
+                  )
+                  val placeId = selectedPrediction.placeId
+                  val placeFields = listOf(Place.Field.LAT_LNG)
 
-                        val latLngOfPlace = place.latLng
-                        if (latLngOfPlace != null) {
-                            ivSearchMarker.visibility = View.VISIBLE
-                            mMap.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    latLngOfPlace,
-                                    DEFAULT_ZOOM
-                                )
-                            )
-                        }
-                    }.addOnFailureListener { e ->
-                        if (e is ApiException) {
-                            e.printStackTrace()
-                            val statusCode = e.statusCode
-                            Log.i("mytag", "place not found: " + e.message)
-                            Log.i("mytag", "status code: $statusCode")
-                        }
-                    }
+                  val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
+                  placesClient!!.fetchPlace(fetchPlaceRequest)
+                      .addOnSuccessListener { fetchPlaceResponse ->
+                          val place = fetchPlaceResponse.place
+                          if (place.name != null)
+                              Log.i("mytag", "Place found: " + place.name)
+                          else
+                              Log.i("mytag", "Place found: " + "No Name is found")
+
+                          val latLngOfPlace = place.latLng
+                          if (latLngOfPlace != null) {
+                              ivSearchMarker.visibility = View.VISIBLE
+                              mMap.moveCamera(
+                                  CameraUpdateFactory.newLatLngZoom(
+                                      latLngOfPlace,
+                                      DEFAULT_ZOOM
+                                  )
+                              )
+                          }
+                      }.addOnFailureListener { e ->
+                          if (e is ApiException) {
+                              e.printStackTrace()
+                              val statusCode = e.statusCode
+                              Log.i("mytag", "place not found: " + e.message)
+                              Log.i("mytag", "status code: $statusCode")
+                          }
+                      }
+              }
+                else if(searchOnCourier)
+              {
+                  if (position >= couriersList!!.size) {
+                      return
+                  }
+                  val selectedCourier = couriersList!![position]
+                  val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                  materialSearchBar!!.text = suggestion
+
+                  Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+                  val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                  imm?.hideSoftInputFromWindow(
+                      materialSearchBar!!.windowToken,
+                      InputMethodManager.HIDE_IMPLICIT_ONLY
+                  )
+//                  var currentCourier=couriersList.find { it.name==selectedCourier.name }
+
+
+
+                  mMap.moveCamera(
+                      CameraUpdateFactory.newLatLngZoom(
+                          LatLng(selectedCourier!!.location.lat.toDouble(),selectedCourier!!.location.long.toDouble())
+                          ,
+                          DEFAULT_ZOOM
+                      )
+                  )
+              }
             }
 
             override fun OnItemDeleteListener(position: Int, v: View) {
@@ -306,7 +358,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         if (searchMode) {
             btnConfirmLocation.visibility = View.VISIBLE
             ivSearchMarker.visibility = View.VISIBLE
-        } else {
+        }
+        else {
             btnConfirmLocation.visibility = View.GONE
             ivSearchMarker.visibility = View.GONE
         }
@@ -625,7 +678,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
     private fun loadAllCouriersFromFB() {
-        var iconFactory =  IconGenerator(context!!)
+        var iconFactory = IconGenerator(context!!)
 
         var marker: Marker? = null
         var markersList: ArrayList<Marker>? = ArrayList()
@@ -634,7 +687,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         if (NetworkManager().isNetworkAvailable(context!!)) {
             FirebaseManager.getAllCouriers { success, data ->
                 if (success) {
-
+                    couriersList = data!!
                     mMap.clear()
 //                    mMap.setInfoWindowAdapter(CustomInfoWindowAdapter(activity!!))
 
@@ -660,7 +713,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                     .icon(
                                         BitmapDescriptorFactory.fromBitmap(
                                             iconFactory.makeIcon(it.name)
-
 
 
 //                                            BitmapFactory.decodeResource(
@@ -722,7 +774,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         var builder = LatLngBounds.builder()
         markersList.forEach { marker ->
             builder.include(marker.position)
-            var courier=marker?.tag as Courier
+            var courier = marker?.tag as Courier
 //            marker!!.title=courier.name
 //            marker.snippet=courier.name
 //            marker.showInfoWindow()

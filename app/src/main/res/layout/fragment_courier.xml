@@ -69,7 +69,7 @@ android:visibility="invisible"
             app:mt_navIconEnabled="true"
             android:elevation="1dp"
             android:outlineProvider="bounds"
-            style="@style/MaterialSearchBarLight"
+
             app:mt_placeholder="Search a place"/>
 
         <RelativeLayout
