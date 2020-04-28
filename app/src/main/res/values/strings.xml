@@ -11,6 +11,8 @@
     <string name="error_login_server_unknown_error">Unknown Error.</string>
     <string name="title_activity_maps">Map</string>
     <string name="no_internet">No internet connection</string>
+    <string name="no_client_phone">Please Enter Client mobile.</string>
+
     <string name="error_user_name">User name can\'t be empty</string>
     <string name="error_email">Enter a valid email.</string>
     <string name="error_incorrect_user_name">Incorrect User Name.</string>

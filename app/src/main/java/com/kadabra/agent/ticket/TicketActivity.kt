@@ -677,7 +677,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
         //check the fab alignment mode and toggle accordingly
 //        if (bottomAppBar?.fabAlignmentMode == BottomAppBar.FAB_ALIGNMENT_MODE_END) {
 //            bottomAppBar?.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
-//            fab.setImageResource(R.drawable.ic_add_black_24dp)
+//            fab.setImageResource(R.drawable.ic_add)
 //
 //        } else {
 //            bottomAppBar?.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END

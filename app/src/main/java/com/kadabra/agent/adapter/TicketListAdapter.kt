@@ -49,6 +49,7 @@ class TicketListAdapter(
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
         val label = super.getDropDownView(position, convertView, parent) as TextView
         label.setTextColor(Color.BLACK)
+
         label.text = values[position].TicketName
 
         return label

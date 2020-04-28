@@ -142,7 +142,18 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.ivCheck -> {
-                getClientName(AppConstants.CurrentSelectedTicket.UserMobile)
+                if (etMobile.text.trim().isNullOrEmpty() ) {
+                    Alert.showMessage(context!!, "User Mobile is required,and must be 11 digit.")
+                    AnimateScroll.scrollToView(scroll, etMobile)
+                    etMobile.requestFocus()
+                 return
+                }
+                else
+                {
+                    var mobileNo=etMobile.text.toString()
+                    getClientName(mobileNo)
+                }
+
             }
             R.id.tvAddServiceCost -> {// add task to the current ticket
                 if (NetworkManager().isNetworkAvailable(context!!))
@@ -174,7 +185,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 if (NetworkManager().isNetworkAvailable(context!!)) {
                     if (alertDialog != null) {
                         if (validateServiceCost()) {
-
                             var serviceCost = TicketServiceCost(
                                 etServiceCost!!.text.toString(),
                                 etCost!!.text.toString().toDouble()
@@ -182,7 +192,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
                             prepareTicketServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
                             alertDialog!!.dismiss()
-
 
                         }
                     }
@@ -910,7 +919,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.addTicket(ticketData)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
+                object : INetworkCallBack<ApiResponse<Boolean?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -919,13 +928,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
+                    override fun onSuccess(response: ApiResponse<Boolean?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
-                            var tickets = response.ResponseObj!!
-                            var ticket = tickets[0]
-                            // add new task to the current ticket
-                            AppConstants.GetALLTicket.add(ticket)
+//                            var tickets = response.ResponseObj!!
+//                            var ticket = tickets[0]
+//                            // add new task to the current ticket
+//                            AppConstants.GetALLTicket.add(ticket)
                             listener!!.onBottomSheetSelectedItem(0)
 
                         } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
@@ -1002,7 +1011,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.editTicket(ticketData)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
+                object : INetworkCallBack<ApiResponse<Ticket>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -1011,11 +1020,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
+                    override fun onSuccess(response: ApiResponse<Ticket>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 
-                            var tickets = response.ResponseObj!!
+//                            var tickets = response.ResponseObj!!
 //                            var ticket = tickets[0]
 //
 //                            AppConstants.CurrentSelectedTicket = ticket

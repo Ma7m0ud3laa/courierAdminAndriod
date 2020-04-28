@@ -3,14 +3,16 @@ package com.kadabra.agent.courier
 
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
-import com.google.maps.PendingResult
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.service.autofill.Validators.and
+import android.telephony.TelephonyManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -18,33 +20,42 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.akexorcist.googledirection.BuildConfig
 import com.akexorcist.googledirection.DirectionCallback
 import com.akexorcist.googledirection.GoogleDirection
-import com.akexorcist.googledirection.config.GoogleDirectionConfiguration
 import com.akexorcist.googledirection.constant.TransportMode
 import com.akexorcist.googledirection.model.Direction
 import com.akexorcist.googledirection.model.Leg
 import com.akexorcist.googledirection.model.Route
 import com.akexorcist.googledirection.util.DirectionConverter
-import com.akexorcist.googledirection.util.execute
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.*
-import com.google.android.libraries.places.api.net.*
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
+import com.google.maps.PendingResult
+import com.google.maps.android.ui.IconGenerator
 import com.google.maps.internal.PolylineEncoding
-import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsResult
-import com.google.maps.model.Distance
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
+import com.kadabra.agent.adapter.CustomInfoWindowAdapter
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
 import com.kadabra.agent.firebase.FirebaseManager
@@ -54,7 +65,6 @@ import com.kadabra.agent.utilities.AppConstants
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
 import kotlinx.android.synthetic.main.fragment_courier.*
-import java.lang.Exception
 import java.util.*
 
 
@@ -88,9 +98,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var predictionList: List<AutocompletePrediction>? = null
     private var DEFAULT_ZOOM = 15f
     private var MAX_ZOOM = 20F
-
     private var mapView: View? = null
-    //endregion
     private var currentSelectedCourierId = 0
     var directionMode = false;
     private lateinit var polylines: List<Polyline>
@@ -101,7 +109,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var mGeoApiContext: GeoApiContext? = null
     private var mPolyLinesData: ArrayList<PolylineData> = ArrayList()
     private var mNewPolyLinesData: ArrayList<NewPolylineData> = ArrayList()
-
     private val mTripMarkers = ArrayList<Marker>()
     private var mSelectedMarker: Marker? = null
     private var totalKilometers: Float = 0F
@@ -112,12 +119,22 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var rlBottom: RelativeLayout
     private lateinit var tvExpectedTime: TextView
     private lateinit var tvExpectedDistance: TextView
+    private var currentCountry = ""
+    private var countrygeoCoder: Geocoder? = null
+    private lateinit var locale:Locale
+    //endregion
 
 
     //region Events
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppConstants.isMoving = false //required for reget all the couriers data from firebase
+
+
+        currentCountry = getUserCountry(context!!)!!
+        countrygeoCoder = Geocoder(context!!, Locale.forLanguageTag(currentCountry))
+         locale = Locale("",currentCountry)
+
     }
 
     override fun onCreateView(
@@ -157,7 +174,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         val token = AutocompleteSessionToken.newInstance()
 
 
-
+        materialSearchBar!!.setCardViewElevation(10)
         materialSearchBar!!.setOnSearchActionListener(object :
             MaterialSearchBar.OnSearchActionListener {
             override fun onSearchStateChanged(enabled: Boolean) {
@@ -176,8 +193,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     materialSearchBar!!.disableSearch()
                 } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
                     materialSearchBar!!.disableSearch()
-                }
-                else { //act like press on back icon
+                } else { //act like press on back icon
                     if (searchMode)
                         listener?.onBottomSheetSelectedItem(6)
                     else
@@ -192,21 +208,22 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-
+                // region for device for datetime
                 val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-                    .setTypeFilter(TypeFilter.ADDRESS)
+                    .setTypeFilter(TypeFilter.ESTABLISHMENT)
+                    .setCountry(currentCountry)
                     .setSessionToken(token)
                     .setQuery(s.toString())
-                    .build();
+                    .build()
                 placesClient!!.findAutocompletePredictions(predictionsRequest)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             val predictionsResponse = task.result
                             if (predictionsResponse != null) {
                                 predictionList = predictionsResponse.autocompletePredictions
-                                suggestionsList = ArrayList<String>()
+                                suggestionsList = ArrayList()
                                 for (i in predictionList!!.indices) {
-                                    val prediction = predictionList!!.get(i)
+                                    val prediction = predictionList!![i]
                                     suggestionsList.add(prediction.getFullText(null).toString())
                                 }
                                 materialSearchBar!!.updateLastSuggestions(suggestionsList)
@@ -215,7 +232,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                 }
                             }
                         } else {
-                            Log.i("mytag", "prediction fetching task unsuccessful")
+                            Log.i(TAG, "prediction fetching task unsuccessful")
                         }
                     }
             }
@@ -351,7 +368,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
                 )
                 mTripMarkers.add(marker)
-                marker.showInfoWindow()
+//                marker.showInfoWindow()
             } else {
                 polylineData.polyline.color =
                     ContextCompat.getColor(context!!, R.color.colorPrimary)
@@ -382,8 +399,16 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
 
+        var adresses = countrygeoCoder?.getFromLocationName(locale.displayCountry, 1)
+        mMap.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                LatLng(adresses?.get(0)?.latitude!!, adresses?.get(0)?.longitude!!),
+                8f
+            )
+        )
 
         if (searchMode) {
+
 
             btnConfirmLocation.visibility = View.VISIBLE
             ivSearchMarker.visibility = View.VISIBLE
@@ -480,6 +505,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             stop.state = addresList!![0].adminArea?.toString() ?: ""
             stop.postalCode = addresList!![0].postalCode?.toString() ?: ""
             stop.knownName = addresList!![0].featureName?.toString() ?: ""
+
 
             if (stop.knownName.isNotEmpty() && stop.city.isNullOrEmpty())
                 stop.StopName = stop.knownName
@@ -599,6 +625,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
     private fun loadAllCouriersFromFB() {
+        var iconFactory =  IconGenerator(context!!)
+
         var marker: Marker? = null
         var markersList: ArrayList<Marker>? = ArrayList()
         var latLngList: ArrayList<LatLng>? = ArrayList()
@@ -608,6 +636,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 if (success) {
 
                     mMap.clear()
+//                    mMap.setInfoWindowAdapter(CustomInfoWindowAdapter(activity!!))
+
                     markersList?.clear()
                     markers.clear()
 
@@ -629,13 +659,21 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                     .title(it.name)
                                     .icon(
                                         BitmapDescriptorFactory.fromBitmap(
-                                            BitmapFactory.decodeResource(
-                                                resources,
-                                                R.mipmap.ic_launcher
-                                            )
+                                            iconFactory.makeIcon(it.name)
+
+
+
+//                                            BitmapFactory.decodeResource(
+//                                                resources,
+//                                                R.mipmap.ic_launcher
+//                                            )
                                         )
                                     )
+
+
                             )
+
+
 
                             if (markersList!!.size < data.size) {
                                 marker?.tag = it
@@ -684,6 +722,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         var builder = LatLngBounds.builder()
         markersList.forEach { marker ->
             builder.include(marker.position)
+            var courier=marker?.tag as Courier
+//            marker!!.title=courier.name
+//            marker.snippet=courier.name
 //            marker.showInfoWindow()
 
         }
@@ -1167,6 +1208,24 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     private fun onDirectionFailure(t: Throwable) {
         Alert.showMessage(context!!, t.message!!)
+    }
+
+    private fun getUserCountry(context: Context): String? {
+        try {
+            var tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            var simCountry = tm.simCountryIso
+            if (simCountry != null && simCountry.length == 2) { // SIM country code is available
+                return simCountry.toLowerCase(Locale.US)
+            } else if (tm.phoneType != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
+                var networkCountry = tm.networkCountryIso
+                if (networkCountry != null && networkCountry.length == 2) { // network country code is available
+                    return networkCountry.toLowerCase(Locale.US)
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, e.message)
+        }
+        return null
     }
 
 

@@ -59,13 +59,13 @@ interface ApiServices {
     fun addTicket(
         @Body ticket: TicketModel
     )
-            : Call<ApiResponse<ArrayList<Ticket>>>
+            : Call<ApiResponse<Boolean?>>
 
     @POST(AppConstants.URL_EDIT_TICKET)
     fun editTicket(
         @Body ticketAdd: TicketModel
     )
-            : Call<ApiResponse<ArrayList<Ticket>>>
+            : Call<ApiResponse<Ticket>>
 
 
     @GET(AppConstants.URL_TICKET_SUB_DATA)

@@ -33,7 +33,7 @@ open class BaseFragment : Fragment(), OnItemClick {
         AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)
-            .setIcon(R.drawable.ic_launcher_background)
+            .setIcon(R.drawable.placeholder)
             .setPositiveButton("ok", null)
             .show()
     }

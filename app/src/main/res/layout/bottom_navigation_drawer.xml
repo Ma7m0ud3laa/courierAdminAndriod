@@ -19,7 +19,7 @@
             android:layout_height="48dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
-            app:srcCompat="@drawable/ic_account_circle_black_24dp" />
+            app:srcCompat="@drawable/ic_profile" />
 
         <TextView
             android:id="@+id/user_name"
@@ -56,7 +56,7 @@
             android:padding="16dp"
             android:visibility="visible"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            app:srcCompat="@drawable/ic_close_black_24dp" />
+            app:srcCompat="@drawable/ic_close" />
 
         <View
             android:id="@+id/divider_one"

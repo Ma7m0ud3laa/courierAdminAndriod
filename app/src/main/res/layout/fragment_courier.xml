@@ -60,7 +60,6 @@ android:visibility="invisible"
             />
         <com.mancj.materialsearchbar.MaterialSearchBar
             app:mt_speechMode="false"
-            app:mt_hint="Search a place"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/searchBar"
@@ -70,7 +69,7 @@ android:visibility="invisible"
             app:mt_navIconEnabled="true"
             android:elevation="1dp"
             android:outlineProvider="bounds"
-            app:mt_maxSuggestionsCount="20"
+            style="@style/MaterialSearchBarLight"
             app:mt_placeholder="Search a place"/>
 
         <RelativeLayout

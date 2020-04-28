@@ -55,7 +55,7 @@ object Alert {
         AlertDialog.Builder(context)
             .setTitle(title)
             .setMessage(message)
-            .setIcon(com.kadabra.agent.R.drawable.ic_launcher_background)
+            .setIcon(com.kadabra.agent.R.drawable.placeholder)
             .setPositiveButton("ok", null)
             .show()
 
