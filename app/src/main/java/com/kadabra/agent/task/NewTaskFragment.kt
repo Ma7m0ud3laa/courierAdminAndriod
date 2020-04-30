@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat
 class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, View.OnClickListener {
 
     //region Members
+    private var TAG = this.javaClass.simpleName
     private var ticketList = ArrayList<Ticket>()
     private var tasks = ArrayList<Task>()
     private var stopsList = ArrayList<Stop>()
@@ -179,7 +180,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     override fun onStopDelete(stop: Stop?) {
 
-        if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+        if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
             if (!stop!!.StopID.isNullOrEmpty()) {
                 AlertDialog.Builder(context)
                     .setTitle(AppConstants.WARNING)
@@ -232,7 +233,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
             R.id.tvDeleteTask -> {
-                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+
+                // if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
@@ -248,18 +251,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     Alert.showAlertMessage(
                         context!!,
                         AppConstants.WARNING,
-                        "Can't delete this task is in progress."
+                        "Can't delete this task."
                     )
             }
             R.id.tvAddStop -> {
-                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS &&
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED) {
                     if (!rlStops.isVisible)
                         rlStops.visibility = View.VISIBLE
                 } else
                     Alert.showAlertMessage(
                         context!!,
                         AppConstants.WARNING,
-                        "Can't edit this task it's In progress."
+                        "Can't edit this task."
                     )
             }
 
@@ -273,7 +277,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.tvGetLocation -> {
-                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
+                    ||AppConstants.CurrentSelectedTask.Status== AppConstants.NEW) {
+                    Log.d(TAG,AppConstants.CurrentSelectedTask.Status)
                     hideKeyboard(tvGetLocation)
                     //to do open map and get selected location
                     listener!!.onBottomSheetSelectedItem(8)
@@ -281,7 +287,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     Alert.showAlertMessage(
                         context!!,
                         AppConstants.WARNING,
-                        "Can't edit this task it's in progress."
+                        "Can't edit this task."
                     )
             }
             R.id.etPickupTime -> {
@@ -289,7 +295,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.btnAddStopLocation -> {
-                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+                if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
+                    ||AppConstants.CurrentSelectedTask.Status== AppConstants.NEW) {
                     context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                     if (validateStopData()) {
                         hideKeyboard(btnAddStopLocation)
@@ -327,43 +334,46 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     Alert.showAlertMessage(
                         context!!,
                         AppConstants.WARNING,
-                        "Can't edit this task it's in progress."
+                        "Can't edit this task."
                     )
-Log.d("d","New")
+                Log.d(TAG, "New")
 
             }
 
 
             R.id.btnSave -> {
                 //                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) { //
-                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
+//                if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
                     if (validateAll()) {
                         hideKeyboard(btnSave)
                         prepareTaskData()
                         if (!editMode) {
                             addTask(taskModel)
-                        } else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
+                        }
+//                        else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
+                        else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW)
                             editTask(taskModelEdit)
                         else
                             Alert.showMessage(
                                 context!!,
-                                "This task is InProgress and can't be edited."
+                                "Can't edit this task."
                             )
                     }
-                } else
-                    Alert.showAlertMessage(
-                        context!!,
-                        AppConstants.WARNING,
-                        "Can't edit this task it's in progress."
-                    )
+//                } else
+//                    Alert.showAlertMessage(
+//                        context!!,
+//                        AppConstants.WARNING,
+//                        "Can't edit this task."
+//                    )
 
             }
             R.id.ivDirection -> //get current courier direction if task is accepted
             {
 //                if (AppConstants.CurrentSelectedTask.Status == AppConstants.IN_PROGRESS) {
-                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
+                if (AppConstants.CurrentSelectedTask.Status == AppConstants.IN_PROGRESS)
                     listener?.onBottomSheetSelectedItem(17)//navigate to courier map
-
+else
+                    Alert.showMessage(context!!,"This task not started yet.")
 //                }
 
 
@@ -665,7 +675,7 @@ Log.d("d","New")
         var taskName = etTaskName.text.toString()
         var taskDescription = etTaskDescription.text.toString()
 
-        var amount = 1.0//etAmount.text.toString().toDouble()
+        var amount = 0.0//etAmount.text.toString().toDouble()
 
         if (dateValue.isNullOrEmpty())
             dateValue = AppConstants.CurrentSelectedTask.PickUpTime
@@ -1268,7 +1278,7 @@ Log.d("d","New")
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Task>>> {
+                object : INetworkCallBack<ApiResponse<Boolean?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -1277,12 +1287,12 @@ Log.d("d","New")
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
+                    override fun onSuccess(response: ApiResponse<Boolean?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
-                            var tasks = response.ResponseObj!!
-                            AppConstants.CurrentSelectedTicket.taskModel = tasks
-                            //  close and go to task details view
+//                            var tasks = response.ResponseObj!!
+//                            AppConstants.CurrentSelectedTicket.taskModel = tasks
+//                            //  close and go to task details view
                             editMode = false
                             listener!!.onBottomSheetSelectedItem(3)
 
@@ -1424,7 +1434,7 @@ Log.d("d","New")
                         TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
                             date!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             date!!.set(Calendar.MINUTE, minute)
-                            Log.d("Date", "The choosen one ." + date!!.time)
+                            Log.d(TAG, "The choosen one ." + date!!.time)
 
                             var df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") //.SSSXXX
 
@@ -1460,7 +1470,7 @@ Log.d("d","New")
                         TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
                             date!!.set(Calendar.HOUR_OF_DAY, hourOfDay)
                             date!!.set(Calendar.MINUTE, minute)
-                            Log.d("Date", "The choosen one ." + date!!.time)
+                            Log.d(TAG, "The choosen one ." + date!!.time)
 
                             var df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") //.SSSXXX
 

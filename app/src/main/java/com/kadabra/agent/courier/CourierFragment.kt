@@ -176,9 +176,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         val token = AutocompleteSessionToken.newInstance()
 
         if(searchMode||directionMode)
-            materialSearchBar!!.setHint("Search a place")
+            materialSearchBar!!.setPlaceHolder("Search a place")
         else if(searchOnCourier)
-            materialSearchBar!!.setHint("Find a courier")
+            materialSearchBar!!.setPlaceHolder("Find a courier")
 
         materialSearchBar!!.setCardViewElevation(10)
         materialSearchBar!!.setOnSearchActionListener(object :
@@ -200,6 +200,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     materialSearchBar!!.disableSearch()
                 } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
                     materialSearchBar!!.disableSearch()
+//                    materialSearchBar.hideSuggestionsList()
                 } else { //act like press on back icon
                     if (searchMode)
                         listener?.onBottomSheetSelectedItem(6)
@@ -246,15 +247,18 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 }
 
                 else if(searchOnCourier) { //direction search for courier
-                    suggestionsList.clear()
+//                    suggestionsList.clear()
                     suggestionsList = ArrayList()
-                    couriersList.forEach { suggestionsList.add(it.name) }
-                    materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                   if(couriersList.size>0)
+                   {
+                       couriersList.forEach { suggestionsList.add(it.name) }
+                       materialSearchBar!!.updateLastSuggestions(suggestionsList)
 
-                    if (!materialSearchBar!!.isSuggestionsVisible) {
-                        materialSearchBar!!.showSuggestionsList()
-                    }
-                    print(couriersList)
+                       if (!materialSearchBar!!.isSuggestionsVisible) {
+                           materialSearchBar!!.showSuggestionsList()
+                       }
+                       print(couriersList)
+                   }
                 }
             }
 
@@ -516,7 +520,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
 
-        return false
+        return true
     }
 
 
@@ -619,7 +623,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                         currentMarker = mMap.addMarker(markerOptions)
                         markers[currentMarker!!.id] = currentSelectedCourier
 
-//                        currentMarker!!.position = latLng
                         //move mMap camera
                         moveCamera(latLng)
                     }

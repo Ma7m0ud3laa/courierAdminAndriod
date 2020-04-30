@@ -120,6 +120,9 @@ object AppConstants {
     var COURIERSTARTTASK=false
     var CURRENTTOTALNOTIFICATIONS=0
     var IN_PROGRESS="In progress"
+    var NEW="New"
+    var COMPLETED="Completed"
+
     enum class TaskStatus(var status: String) {
         NEW("New"),
         IN_PROGRESS("In progress"),

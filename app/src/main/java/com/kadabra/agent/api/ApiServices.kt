@@ -59,7 +59,7 @@ interface ApiServices {
     fun addTicket(
         @Body ticket: TicketModel
     )
-            : Call<ApiResponse<Boolean?>>
+            : Call<ApiResponse<Ticket>>
 
     @POST(AppConstants.URL_EDIT_TICKET)
     fun editTicket(
@@ -120,7 +120,7 @@ interface ApiServices {
         @Query("taskId") taskId: String,
         @Query("AdminId") adminId: String
     )
-            : Call<ApiResponse<ArrayList<Task>>>
+            : Call<ApiResponse<Boolean?>>
 
 
     @POST(AppConstants.URL_REMOVE_STOP)

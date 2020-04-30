@@ -41,7 +41,7 @@
                         android:layout_marginStart="20dp"
                         android:layout_marginTop="12dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
-                        app:srcCompat="@drawable/ic_back" />/>
+                        app:srcCompat="@drawable/ic_back" />
 
                     <TextView
                         android:id="@+id/tvTicketDetails"
@@ -107,8 +107,7 @@
                             android:layout_below="@+id/etTicketDescription"
                             android:layout_marginStart="24dp"
                             android:layout_marginTop="15dp"
-                            android:layout_marginEnd="24dp"
-                            >
+                            android:layout_marginEnd="24dp">
 
                             <com.hbb20.CountryCodePicker
                                 android:id="@+id/ccp"
@@ -144,21 +143,21 @@
                                 android:id="@+id/etMobile"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_toEndOf="@+id/ccp"
                                 android:editable="false"
                                 android:hint="@string/user_mobile"
                                 android:imeOptions="actionNext"
                                 android:inputType="phone"
                                 android:selectAllOnFocus="true"
                                 android:singleLine="true"
-                                android:textSize="15sp"
-                                android:layout_toEndOf="@+id/ccp"/>
+                                android:textSize="15sp" />
 
                             <ImageView
                                 android:id="@+id/ivCheck"
-                                android:layout_alignParentEnd="true"
-                                android:layout_marginEnd="20dp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="20dp"
                                 android:src="@drawable/ic_check" />
                         </RelativeLayout>
 
@@ -166,12 +165,12 @@
                             android:id="@+id/tvClientName"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_below="@+id/lPhone"
                             android:layout_marginStart="24dp"
                             android:layout_marginTop="15dp"
                             android:layout_marginEnd="24dp"
-                            android:visibility="gone"
                             android:editable="false"
-                            android:layout_below="@+id/lPhone"/>
+                            android:visibility="gone" />
 
                         <LinearLayout
                             android:id="@+id/llCategoryData"

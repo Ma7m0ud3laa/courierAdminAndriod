@@ -139,14 +139,16 @@ class TaskAdapter(
                 //delete the current task
                 val pos = adapterPosition
                 task = tasksList[pos]
-                if (task.Status == AppConstants.IN_PROGRESS)
+
+                if (task.Status == AppConstants.NEW) {
+                    deleteTaskListener!!.onTaskDelete(task)
+                } else {
                     Alert.showAlertMessage(
                         context,
                         AppConstants.WARNING,
-                        "Can't delete this task it's in progress."
+                        "Can't delete this task."
                     )
-                else
-                    deleteTaskListener!!.onTaskDelete(task)
+                }
 //                var anim = AnimationUtils.loadAnimation(context, R.anim.shake)
 //                itemView.startAnimation(anim)
             }

@@ -28,6 +28,7 @@ import android.widget.TextView
 import android.widget.EditText
 import com.kadabra.Utilities.Base.BaseFragment
 import android.text.InputFilter
+import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.hbb20.CountryCodePicker
@@ -36,6 +37,7 @@ import com.hbb20.CountryCodePicker
 class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     View.OnClickListener {
 
+    private var TAG=this.javaClass.simpleName
     private lateinit var scroll: ScrollView
     private lateinit var rlParent: RelativeLayout
 
@@ -57,7 +59,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
-    private lateinit var ccp: CountryCodePicker
+    private  var ccp: CountryCodePicker?=null
 
     //    private lateinit var sCategory: AutoCompleteTextView
     private lateinit var sPriority: AutoCompleteTextView
@@ -143,15 +145,26 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         when (view?.id) {
             R.id.ivCheck -> {
                 if (etMobile.text.trim().isNullOrEmpty() ) {
-                    Alert.showMessage(context!!, "User Mobile is required,and must be 11 digit.")
+                    Alert.showMessage(context!!, "User Mobile is required.")
                     AnimateScroll.scrollToView(scroll, etMobile)
                     etMobile.requestFocus()
                  return
                 }
                 else
                 {
-                    var mobileNo=etMobile.text.toString()
-                    getClientName(mobileNo)
+                    if( validatePhone(ccp!!, etMobile))
+                    {
+                        var mobileNo=ccp?.fullNumber
+                        getClientName(mobileNo!!)
+                        Log.d(TAG,mobileNo)
+                    }
+                    else
+                    {
+                        Alert.showMessage(context!!, "User Mobile is required.")
+                        AnimateScroll.scrollToView(scroll, etMobile)
+                        etMobile.requestFocus()
+                    }
+
                 }
 
             }
@@ -598,64 +611,64 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     }
 
     override fun onBottomSheetSelectedItem(index: Int) {
-        if (index == 6)//go to task details view
+        if (index == 6)//go to task details vieadb w
             listener!!.onBottomSheetSelectedItem(6)
     }
 
     override fun onTaskDelete(task: Task?) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-            var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getTaskDetails(task!!.TaskId)
-            NetworkManager().request(
-                endPoint,
-                object : INetworkCallBack<ApiResponse<Task>> {
-                    override fun onFailed(error: String) {
-                        Alert.hideProgress()
-                        Alert.showMessage(
-                            context!!,
-                            getString(R.string.error_login_server_error)
-                        )
-                    }
+           if(task?.Status==AppConstants.NEW)
+           { var request = NetworkManager().create(ApiServices::class.java)
+               var endPoint = request.getTaskDetails(task!!.TaskId)
+               NetworkManager().request(
+                   endPoint,
+                   object : INetworkCallBack<ApiResponse<Task>> {
+                       override fun onFailed(error: String) {
+                           Alert.hideProgress()
+                           Alert.showMessage(
+                               context!!,
+                               getString(R.string.error_login_server_error)
+                           )
+                       }
 
-                    override fun onSuccess(response: ApiResponse<Task>) {
-                        if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            taskInProgress = true
-                            var task = response.ResponseObj!!
-                            AppConstants.CurrentSelectedTask = task
-                            Alert.hideProgress()
+                       override fun onSuccess(response: ApiResponse<Task>) {
+                           if (response.Status == AppConstants.STATUS_SUCCESS) {
+                               taskInProgress = true
+                               var task = response.ResponseObj!!
+                               AppConstants.CurrentSelectedTask = task
+                               Alert.hideProgress()
 
-                            if (task.Status != AppConstants.IN_PROGRESS) {
-                                AlertDialog.Builder(context)
-                                    .setTitle(AppConstants.WARNING)
-                                    .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .setPositiveButton(AppConstants.OK) { dialog, which ->
-                                        deleteTask(task)
-                                    }
-                                    .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
-                                    .show()
-                            } else {
-                                getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
-                                Alert.showAlertMessage(
-                                    context!!,
-                                    AppConstants.WARNING,
-                                    "Can't edit this task it's in progress."
-                                )
-                            }
+                               if (task.Status != AppConstants.IN_PROGRESS) {
+                                   AlertDialog.Builder(context)
+                                       .setTitle(AppConstants.WARNING)
+                                       .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+                                       .setIcon(android.R.drawable.ic_dialog_alert)
+                                       .setPositiveButton(AppConstants.OK) { dialog, which ->
+                                           deleteTask(task)
+                                       }
+                                       .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                                       .show()
+                               } else {
+                                   getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+                                   Alert.showAlertMessage(
+                                       context!!,
+                                       AppConstants.WARNING,
+                                       "Can't edit this task it's in progress."
+                                   )
+                               }
 
 
-                        } else {
-                            Alert.hideProgress()
-                            Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_network)
-                            )
-                        }
+                           } else {
+                               Alert.hideProgress()
+                               Alert.showMessage(
+                                   context!!,
+                                   getString(R.string.error_network)
+                               )
+                           }
 
-                    }
-                })
-
+                       }
+                   })}
         } else {
             Alert.hideProgress()
             Alert.showMessage(
@@ -664,18 +677,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             )
         }
 
-//        if (!task!!.TaskId.isNullOrEmpty()) {
-//            AlertDialog.Builder(context)
-//                .setTitle(AppConstants.WARNING)
-//                .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
-//                .setIcon(android.R.drawable.ic_dialog_alert)
-//                .setPositiveButton(AppConstants.OK) { dialog, which ->
-//                    deleteTask(task)
-//                }
-//                .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
-//                .show()
-//
-//        }
+
     }
 
     private fun getTaskDetails(taskId: String): Boolean {
@@ -748,9 +750,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         etMobile.setText(ticket.UserMobile)
 
 
-        ccp.fullNumber = ticket.UserMobile
+        ccp?.fullNumber = ticket.UserMobile
 //        ccp.isEnabled=false
-        ccp.setCcpClickable(false)
+        ccp?.setCcpClickable(false)
 
 
 
@@ -803,7 +805,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Task>>> {
+                object : INetworkCallBack<ApiResponse<Boolean?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -812,10 +814,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
+                    override fun onSuccess(response: ApiResponse<Boolean?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
-                            var tasks = response.ResponseObj!!
+//                            var tasks = response.ResponseObj!!
                             var currentDeletedTask =
                                 AppConstants.CurrentSelectedTicket.taskModel.find { it.TaskId == task.TaskId }
                             AppConstants.CurrentSelectedTicket.taskModel.remove(currentDeletedTask)
@@ -919,7 +921,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.addTicket(ticketData)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<Boolean?>> {
+                object : INetworkCallBack<ApiResponse<Ticket>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -928,7 +930,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<Boolean?>) {
+                    override fun onSuccess(response: ApiResponse<Ticket>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 //                            var tickets = response.ResponseObj!!
@@ -1065,11 +1067,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             etTicketDescription.requestFocus()
             return false
         } else if (etMobile.text.trim().isNullOrEmpty() /*|| etMobile.text.length < 11*/) {
-            Alert.showMessage(context!!, "User Mobile is required,and must be 11 digit.")
+            Alert.showMessage(context!!, "User Mobile is required.")
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
-        } else if (!validatePhone(ccp, etMobile) && !editMode) {
+        } else if (!validatePhone(ccp!!, etMobile) && !editMode) {
             Alert.showMessage(context!!, getString(R.string.error_invalid_phone))
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
@@ -1106,7 +1108,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var ticketName = etTicketName.text.toString()
         var ticketDescription = etTicketDescription.text.toString()
-        var mobile = ccp.fullNumber//"2" + etMobile.text.toString()
+        var mobile = ccp?.fullNumber//"2" + etMobile.text.toString()
 
 
         var categoryId = "" //selectedCategory.CategoryId
@@ -1136,7 +1138,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             ticketId,
             ticketName,
             ticketDescription,
-            mobile,
+            mobile!!,
             categoryId,
             statusId,
             priorityId,
