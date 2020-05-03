@@ -143,7 +143,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                     override fun onFailed(error: String) {
                         sRefresh!!.isRefreshing = false
                         Alert.hideProgress()
-                        Alert.showMessage(context!!, getString(R.string.error_login_server_error))
+                        Alert.showMessage(context!!, context!!.getString(R.string.error_login_server_error))
                     }
 
                     override fun onSuccess(response: ApiResponse<TicketData>) {

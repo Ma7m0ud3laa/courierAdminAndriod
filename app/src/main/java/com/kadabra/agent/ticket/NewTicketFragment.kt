@@ -828,7 +828,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             Alert.hideProgress()
                             Alert.showMessage(
                                 context!!,
-                                context!!.getString(R.string.error_login_server_error)
+                                "Can't delete this task it's in progress."
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()

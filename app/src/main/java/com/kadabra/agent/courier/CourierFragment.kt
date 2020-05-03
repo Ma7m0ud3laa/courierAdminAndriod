@@ -25,13 +25,16 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.akexorcist.googledirection.BuildConfig
 import com.akexorcist.googledirection.DirectionCallback
 import com.akexorcist.googledirection.GoogleDirection
+import com.akexorcist.googledirection.config.GoogleDirectionConfiguration
 import com.akexorcist.googledirection.constant.TransportMode
 import com.akexorcist.googledirection.model.Direction
 import com.akexorcist.googledirection.model.Leg
 import com.akexorcist.googledirection.model.Route
 import com.akexorcist.googledirection.util.DirectionConverter
+import com.akexorcist.googledirection.util.execute
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -122,8 +125,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var currentCountry = ""
     private var countrygeoCoder: Geocoder? = null
     private lateinit var locale: Locale
-    private var couriersList=ArrayList<Courier>()
-     var searchOnCourier=false
+    private var couriersList = ArrayList<Courier>()
+    var searchOnCourier = false
+    var firstStop=Stop()
+    var lastStop=Stop()
+    var waypoints: ArrayList<LatLng> = ArrayList()
     //endregion
 
 
@@ -175,9 +181,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         placesClient = Places.createClient(context!!)
         val token = AutocompleteSessionToken.newInstance()
 
-        if(searchMode||directionMode)
+        if (searchMode)
             materialSearchBar!!.setPlaceHolder("Search a place")
-        else if(searchOnCourier)
+        else if (directionMode) {
+            materialSearchBar!!.visibility = View.GONE
+//            ivBack.visibility = View.VISIBLE
+        } else if (searchOnCourier)
             materialSearchBar!!.setPlaceHolder("Find a courier")
 
         materialSearchBar!!.setCardViewElevation(10)
@@ -244,21 +253,18 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                 Log.i(TAG, "prediction fetching task unsuccessful")
                             }
                         }
-                }
-
-                else if(searchOnCourier) { //direction search for courier
+                } else if (searchOnCourier) { //direction search for courier
 //                    suggestionsList.clear()
                     suggestionsList = ArrayList()
-                   if(couriersList.size>0)
-                   {
-                       couriersList.forEach { suggestionsList.add(it.name) }
-                       materialSearchBar!!.updateLastSuggestions(suggestionsList)
+                    if (couriersList.size > 0) {
+                        couriersList.forEach { suggestionsList.add(it.name) }
+                        materialSearchBar!!.updateLastSuggestions(suggestionsList)
 
-                       if (!materialSearchBar!!.isSuggestionsVisible) {
-                           materialSearchBar!!.showSuggestionsList()
-                       }
-                       print(couriersList)
-                   }
+                        if (!materialSearchBar!!.isSuggestionsVisible) {
+                            materialSearchBar!!.showSuggestionsList()
+                        }
+                        print(couriersList)
+                    }
                 }
             }
 
@@ -272,79 +278,78 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             SuggestionsAdapter.OnItemViewClickListener {
             override fun OnItemClickListener(position: Int, v: View) {
 
-              if(searchMode)
-              {
-                  if (position >= predictionList!!.size) {
-                      return
-                  }
-                  val selectedPrediction = predictionList!![position]
-                  val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-                  materialSearchBar!!.text = suggestion
+                if (searchMode) {
+                    if (position >= predictionList!!.size) {
+                        return
+                    }
+                    val selectedPrediction = predictionList!![position]
+                    val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                    materialSearchBar!!.text = suggestion
 
-                  Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-                  val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                  imm?.hideSoftInputFromWindow(
-                      materialSearchBar!!.windowToken,
-                      InputMethodManager.HIDE_IMPLICIT_ONLY
-                  )
-                  val placeId = selectedPrediction.placeId
-                  val placeFields = listOf(Place.Field.LAT_LNG)
+                    Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+                    val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm?.hideSoftInputFromWindow(
+                        materialSearchBar!!.windowToken,
+                        InputMethodManager.HIDE_IMPLICIT_ONLY
+                    )
+                    val placeId = selectedPrediction.placeId
+                    val placeFields = listOf(Place.Field.LAT_LNG)
 
-                  val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
-                  placesClient!!.fetchPlace(fetchPlaceRequest)
-                      .addOnSuccessListener { fetchPlaceResponse ->
-                          val place = fetchPlaceResponse.place
-                          if (place.name != null)
-                              Log.i("mytag", "Place found: " + place.name)
-                          else
-                              Log.i("mytag", "Place found: " + "No Name is found")
+                    val fetchPlaceRequest = FetchPlaceRequest.builder(placeId, placeFields).build()
+                    placesClient!!.fetchPlace(fetchPlaceRequest)
+                        .addOnSuccessListener { fetchPlaceResponse ->
+                            val place = fetchPlaceResponse.place
+                            if (place.name != null)
+                                Log.i("mytag", "Place found: " + place.name)
+                            else
+                                Log.i("mytag", "Place found: " + "No Name is found")
 
-                          val latLngOfPlace = place.latLng
-                          if (latLngOfPlace != null) {
-                              ivSearchMarker.visibility = View.VISIBLE
-                              mMap.moveCamera(
-                                  CameraUpdateFactory.newLatLngZoom(
-                                      latLngOfPlace,
-                                      DEFAULT_ZOOM
-                                  )
-                              )
-                          }
-                      }.addOnFailureListener { e ->
-                          if (e is ApiException) {
-                              e.printStackTrace()
-                              val statusCode = e.statusCode
-                              Log.i("mytag", "place not found: " + e.message)
-                              Log.i("mytag", "status code: $statusCode")
-                          }
-                      }
-              }
-                else if(searchOnCourier)
-              {
-                  if (position >= couriersList!!.size) {
-                      return
-                  }
-                  val selectedCourier = couriersList!![position]
-                  val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
-                  materialSearchBar!!.text = suggestion
+                            val latLngOfPlace = place.latLng
+                            if (latLngOfPlace != null) {
+                                ivSearchMarker.visibility = View.VISIBLE
+                                mMap.moveCamera(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        latLngOfPlace,
+                                        DEFAULT_ZOOM
+                                    )
+                                )
+                            }
+                        }.addOnFailureListener { e ->
+                            if (e is ApiException) {
+                                e.printStackTrace()
+                                val statusCode = e.statusCode
+                                Log.i("mytag", "place not found: " + e.message)
+                                Log.i("mytag", "status code: $statusCode")
+                            }
+                        }
+                } else if (searchOnCourier) {
+                    if (position >= couriersList!!.size) {
+                        return
+                    }
+                    val selectedCourier = couriersList!![position]
+                    val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                    materialSearchBar!!.text = suggestion
 
-                  Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
-                  val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                  imm?.hideSoftInputFromWindow(
-                      materialSearchBar!!.windowToken,
-                      InputMethodManager.HIDE_IMPLICIT_ONLY
-                  )
+                    Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
+                    val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm?.hideSoftInputFromWindow(
+                        materialSearchBar!!.windowToken,
+                        InputMethodManager.HIDE_IMPLICIT_ONLY
+                    )
 //                  var currentCourier=couriersList.find { it.name==selectedCourier.name }
 
 
-
-                  mMap.moveCamera(
-                      CameraUpdateFactory.newLatLngZoom(
-                          LatLng(selectedCourier!!.location.lat.toDouble(),selectedCourier!!.location.long.toDouble())
-                          ,
-                          DEFAULT_ZOOM
-                      )
-                  )
-              }
+                    mMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(
+                                selectedCourier!!.location.lat.toDouble(),
+                                selectedCourier!!.location.long.toDouble()
+                            )
+                            ,
+                            DEFAULT_ZOOM
+                        )
+                    )
+                }
             }
 
             override fun OnItemDeleteListener(position: Int, v: View) {
@@ -362,8 +367,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         if (searchMode) {
             btnConfirmLocation.visibility = View.VISIBLE
             ivSearchMarker.visibility = View.VISIBLE
-        }
-        else {
+        } else {
             btnConfirmLocation.visibility = View.GONE
             ivSearchMarker.visibility = View.GONE
         }
@@ -478,9 +482,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 selectedLatLng = mMap.cameraPosition.target
             }
 
-        } else if (mapView != null && directionMode) {
-//            getTAskDirection(AppConstants.CurrentSelectedTask)
-//            getDirection(AppConstants.CurrentSelectedTask)
+        } else if (mMap != null && directionMode) {
+
             requestDirection(AppConstants.CurrentSelectedTask)
 
         }
@@ -494,10 +497,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
         mMap.setOnMyLocationButtonClickListener {
-            //            if (materialSearchBar!!.isSuggestionsVisible)
-//                materialSearchBar!!.clearSuggestions()
-//            if (materialSearchBar!!.isSearchEnabled)
-//                materialSearchBar!!.disableSearch()
+
             false
         }
 
@@ -505,16 +505,18 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     override fun onMarkerClick(courierMarker: Marker?): Boolean {
 
-
         if (!searchMode && DEFAULT_ZOOM < MAX_ZOOM) {
-
-            var currentCourier = courierMarker?.tag as Courier
-            if (currentCourier != null && currentCourier.CourierId!! > 0) {
-                AppConstants.isMoving = true
-                if (currentSelectedCourierId != currentCourier.CourierId) {
-                    firstTimeFlag = true
-                    getCurrentCourierLocation(currentCourier.CourierId!!)
+            try {
+                var currentCourier = courierMarker?.tag as Courier
+                if (currentCourier != null && currentCourier.CourierId!! > 0) {
+                    AppConstants.isMoving = true
+                    if (currentSelectedCourierId != currentCourier.CourierId) {
+                        firstTimeFlag = true
+                        getCurrentCourierLocation(currentCourier.CourierId!!)
+                    }
                 }
+            } catch (ex: java.lang.Exception) {
+                Log.e(TAG, ex.message)
             }
 
         }
@@ -835,7 +837,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             lastStop.Longitude!!
         )
 
-        var waypoints: ArrayList<LatLng> = ArrayList()
+         waypoints= ArrayList()
         task.stopsmodel.forEach {
             if (it.StopTypeID == 3)
                 waypoints.add(
@@ -1118,8 +1120,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 for (polylineOption in polylineOptionList) {
                     polyline = mMap?.addPolyline(polylineOption)
                     polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
-                    polyline.isClickable = true
-
+                    polyline.isClickable = false
                     mNewPolyLinesData.add(NewPolylineData(polyline, leg))
                 }
             }
@@ -1131,6 +1132,60 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
 //        newAddPolyLinesToMap(direction)
+    }
+
+
+    private fun onDirectionSuccess(direction: Direction) {
+        var task = AppConstants.CurrentSelectedTask
+
+
+        if (direction.isOK) {
+            val route = direction.routeList[0]
+            val legCount = route.legList.size
+            for (index in 0 until legCount) {
+
+                val leg = route.legList[index]
+                val stop=task.stopsmodel.find { it.Latitude==leg.startLocation.coordination.latitude&& it.Longitude==leg.startLocation.coordination.longitude}
+                Log.d(TAG,stop?.StopName.toString())
+                Log.d(TAG,leg.toString())
+                print(leg)
+              var marker=  mMap?.addMarker(
+                    MarkerOptions().position(leg.startLocation.coordination)
+                        .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_placeholder))
+//                        .title("HI")
+
+                ).showInfoWindow()
+//                mMap?.addMarker(MarkerOptions().position(leg.startLocation.coordination).snippet(stop?.StopName))
+
+                if (index == legCount - 1) {
+                    mMap?.addMarker(
+                        MarkerOptions().position(leg.endLocation.coordination)
+                            .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_placeholder))
+//                            .title("HI")
+
+                    ).showInfoWindow()
+//                    mMap?.addMarker(MarkerOptions().position(leg.startLocation.coordination).snippet(stop?.StopName))
+                }
+                val stepList = leg.stepList
+                val polylineOptionList = DirectionConverter.createTransitPolyline(
+                    context!!,
+                    stepList,
+                    5,
+                    Color.RED,
+                    3,
+                    Color.BLUE
+                )
+                for (polylineOption in polylineOptionList) {
+                    mMap?.addPolyline(polylineOption)
+                }
+            }
+            setCameraWithCoordinationBounds(route)
+//            setTripData(route.legList[0])
+//            rlBottom.visibility = View.VISIBLE
+
+        } else {
+            Alert.showMessage(context!!, direction.status)
+        }
     }
 
     private fun newAddPolyLinesToMap(direction: Direction) {
@@ -1192,8 +1247,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private fun requestDirection(task: Task) {
 
         directionMode = false
-        var firstStop = task.stopsmodel.first()
-        var lastStop = task.stopsmodel.last()
+         firstStop = task.stopsmodel.first()
+         lastStop = task.stopsmodel.last()
 
         var pickUp = LatLng(
             firstStop.Latitude!!,
@@ -1204,7 +1259,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             lastStop.Longitude!!
         )
 
-        var waypoints: ArrayList<LatLng> = ArrayList()
+         waypoints= ArrayList()
         task.stopsmodel.forEach {
             if (it.StopTypeID == 3)
                 waypoints.add(
@@ -1216,46 +1271,26 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
         if (waypoints.size > 0) {
+            GoogleDirectionConfiguration.getInstance().isLogEnabled = BuildConfig.DEBUG
             GoogleDirection.withServerKey(context!!.getString(R.string.google_maps_key))
                 .from(pickUp)
                 .and(waypoints)
                 .to(dropOff)
                 .transportMode(TransportMode.DRIVING)
-                .execute(object : DirectionCallback {
-                    override fun onDirectionSuccess(direction: Direction?) {
-                        if (direction!!.isOK) {
-                            onDirectionDataSuccess(direction)
-                        } else {
-                            // Do something
-                        }
-                    }
-
-                    override fun onDirectionFailure(t: Throwable?) {
-                        onDirectionFailure(t)
-                    }
-
-
-                });
+                .execute(
+                    onDirectionSuccess = { direction -> onDirectionSuccess(direction) },
+                    onDirectionFailure = { t -> onDirectionFailure(t) }
+                )
         } else {
+            GoogleDirectionConfiguration.getInstance().isLogEnabled = BuildConfig.DEBUG
             GoogleDirection.withServerKey(context!!.getString(R.string.google_maps_key))
                 .from(pickUp)
                 .to(dropOff)
                 .transportMode(TransportMode.DRIVING)
-                .execute(object : DirectionCallback {
-                    override fun onDirectionSuccess(direction: Direction?) {
-                        if (direction!!.isOK) {
-                            onDirectionDataSuccess(direction)
-                        } else {
-                            // Do something
-                        }
-                    }
-
-                    override fun onDirectionFailure(t: Throwable?) {
-                        onDirectionFailure(t)
-                    }
-
-
-                });
+                .execute(
+                    onDirectionSuccess = { direction -> onDirectionSuccess(direction) },
+                    onDirectionFailure = { t -> onDirectionFailure(t) }
+                );
         }
 
 

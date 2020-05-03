@@ -256,7 +256,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
             R.id.tvAddStop -> {
                 if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS &&
-                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED) {
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED
+                ) {
                     if (!rlStops.isVisible)
                         rlStops.visibility = View.VISIBLE
                 } else
@@ -278,8 +279,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             R.id.tvGetLocation -> {
                 if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
-                    ||AppConstants.CurrentSelectedTask.Status== AppConstants.NEW) {
-                    Log.d(TAG,AppConstants.CurrentSelectedTask.Status)
+                    || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW
+                ) {
+                    Log.d(TAG, AppConstants.CurrentSelectedTask.Status)
                     hideKeyboard(tvGetLocation)
                     //to do open map and get selected location
                     listener!!.onBottomSheetSelectedItem(8)
@@ -296,7 +298,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             R.id.btnAddStopLocation -> {
                 if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
-                    ||AppConstants.CurrentSelectedTask.Status== AppConstants.NEW) {
+                    || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW
+                ) {
                     context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                     if (validateStopData()) {
                         hideKeyboard(btnAddStopLocation)
@@ -344,21 +347,21 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             R.id.btnSave -> {
                 //                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) { //
 //                if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
-                    if (validateAll()) {
-                        hideKeyboard(btnSave)
-                        prepareTaskData()
-                        if (!editMode) {
-                            addTask(taskModel)
-                        }
-//                        else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
-                        else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW)
-                            editTask(taskModelEdit)
-                        else
-                            Alert.showMessage(
-                                context!!,
-                                "Can't edit this task."
-                            )
+                if (validateAll()) {
+                    hideKeyboard(btnSave)
+                    prepareTaskData()
+                    if (!editMode) {
+                        addTask(taskModel)
                     }
+//                        else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
+                    else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW)
+                        editTask(taskModelEdit)
+                    else
+                        Alert.showMessage(
+                            context!!,
+                            "Can't edit this task."
+                        )
+                }
 //                } else
 //                    Alert.showAlertMessage(
 //                        context!!,
@@ -369,12 +372,18 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
             R.id.ivDirection -> //get current courier direction if task is accepted
             {
-//                if (AppConstants.CurrentSelectedTask.Status == AppConstants.IN_PROGRESS) {
-                if (AppConstants.CurrentSelectedTask.Status == AppConstants.IN_PROGRESS)
-                    listener?.onBottomSheetSelectedItem(17)//navigate to courier map
-else
-                    Alert.showMessage(context!!,"This task not started yet.")
+
+//                when (AppConstants.CurrentSelectedTask.Status) {
+//                    AppConstants.NEW ->
+//                        Alert.showMessage(context!!, "This task not started yet.")
+//                    AppConstants.IN_PROGRESS ->// to be adjusted to work on after start the task
+//                        listener?.onBottomSheetSelectedItem(17)//navigate to courier map
+//                    AppConstants.COMPLETED ->
+//                        Alert.showMessage(context!!, "This task is completed.")
+//
 //                }
+                if(!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
+                listener?.onBottomSheetSelectedItem(17)
 
 
             }
@@ -1300,7 +1309,7 @@ else
                             Alert.hideProgress()
                             Alert.showMessage(
                                 context!!,
-                                context!!.getString(R.string.error_login_server_error)
+                                "Can't delete this task it's in progress."
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
