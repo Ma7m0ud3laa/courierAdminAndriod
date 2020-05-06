@@ -127,8 +127,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private lateinit var locale: Locale
     private var couriersList = ArrayList<Courier>()
     var searchOnCourier = false
-    var firstStop=Stop()
-    var lastStop=Stop()
+    var firstStop = Stop()
+    var lastStop = Stop()
     var waypoints: ArrayList<LatLng> = ArrayList()
     //endregion
 
@@ -181,8 +181,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         placesClient = Places.createClient(context!!)
         val token = AutocompleteSessionToken.newInstance()
 
-        if (searchMode)
+        if (searchMode) {
             materialSearchBar!!.setPlaceHolder("Search a place")
+            suggestionsList.clear()
+            couriersList.clear()
+            materialSearchBar!!.updateLastSuggestions(suggestionsList)
+        }
         else if (directionMode) {
             materialSearchBar!!.visibility = View.GONE
 //            ivBack.visibility = View.VISIBLE
@@ -837,7 +841,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             lastStop.Longitude!!
         )
 
-         waypoints= ArrayList()
+        waypoints = ArrayList()
         task.stopsmodel.forEach {
             if (it.StopTypeID == 3)
                 waypoints.add(
@@ -1145,11 +1149,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             for (index in 0 until legCount) {
 
                 val leg = route.legList[index]
-                val stop=task.stopsmodel.find { it.Latitude==leg.startLocation.coordination.latitude&& it.Longitude==leg.startLocation.coordination.longitude}
-                Log.d(TAG,stop?.StopName.toString())
-                Log.d(TAG,leg.toString())
+                val stop =
+                    task.stopsmodel.find { it.Latitude == leg.startLocation.coordination.latitude && it.Longitude == leg.startLocation.coordination.longitude }
+                Log.d(TAG, stop?.StopName.toString())
+                Log.d(TAG, leg.toString())
                 print(leg)
-              var marker=  mMap?.addMarker(
+                var marker = mMap?.addMarker(
                     MarkerOptions().position(leg.startLocation.coordination)
                         .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_placeholder))
 //                        .title("HI")
@@ -1247,8 +1252,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private fun requestDirection(task: Task) {
 
         directionMode = false
-         firstStop = task.stopsmodel.first()
-         lastStop = task.stopsmodel.last()
+        firstStop = task.stopsmodel.first()
+        lastStop = task.stopsmodel.last()
 
         var pickUp = LatLng(
             firstStop.Latitude!!,
@@ -1259,7 +1264,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             lastStop.Longitude!!
         )
 
-         waypoints= ArrayList()
+        waypoints = ArrayList()
         task.stopsmodel.forEach {
             if (it.StopTypeID == 3)
                 waypoints.add(

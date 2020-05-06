@@ -377,7 +377,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 //                    AppConstants.NEW ->
 //                        Alert.showMessage(context!!, "This task not started yet.")
 //                    AppConstants.IN_PROGRESS ->// to be adjusted to work on after start the task
-//                        listener?.onBottomSheetSelectedItem(17)//navigate to courier map
+//                        listener?.onBottomShepingetSelectedItem(17)//navigate to courier map
 //                    AppConstants.COMPLETED ->
 //                        Alert.showMessage(context!!, "This task is completed.")
 //

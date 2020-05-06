@@ -164,7 +164,14 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                                 Alert.hideProgress()
                             }
 
-                        } else {
+                        }
+                        else if(response.Status == AppConstants.STATUS_FAILED&& response.Message == "No Ticket Found")
+                        {
+                            sRefresh!!.isRefreshing = false
+                            tvEmptyData!!.visibility = View.VISIBLE
+                            Alert.hideProgress()
+                        }
+                        else {
                             sRefresh!!.isRefreshing = false
                             Alert.hideProgress()
                             Alert.showMessage(

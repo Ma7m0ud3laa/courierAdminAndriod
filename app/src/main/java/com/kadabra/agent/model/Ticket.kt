@@ -8,7 +8,7 @@ class Ticket {
     var TicketDescription: String = ""
     var AgentName: String? = null
     var UserMobile: String = ""
-    var UserName=""
+    var UserName = ""
     var mobileNo = ""
     var TotalTasks = ""
     var TotalTasksAmount = ""
@@ -25,6 +25,8 @@ class Ticket {
 
     var price: Double? = null
     var PriorityId: Int? = null
+    var ComingTaskPickupTime = ""
+    var ComingTaskCourierName = ""
 
     var Priority: String? = null
     var PaymentMethodId: Int? = null

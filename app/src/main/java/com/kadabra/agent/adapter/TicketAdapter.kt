@@ -13,6 +13,9 @@ import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.Ticket
 import com.kadabra.agent.utilities.AppConstants
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 /**
@@ -57,14 +60,14 @@ class TicketAdapter(
         if (!ticket.TicketDescription.isNullOrEmpty())
             holder.tvTicketDescription.text = ticket.TicketDescription
 
-        holder.tvAgentName.text=ticket.AgentName
+        holder.tvAgentName.text = ticket.AgentName
         holder.tvPriority.text = ticket.Priority
 
 
 //        if (ticket.price!! > 0)
-//            holder.tvPrice.text = ticket.price.toString() + " " + context.getString(R.string.le)
+//            holder.tvComingTaskPickupTime.text = ticket.price.toString() + " " + context.getString(R.string.le)
 //        else
-//            holder.tvPrice.text = "0 " + context.getString(R.string.le)
+//            holder.tvComingTaskPickupTime.text = "0 " + context.getString(R.string.le)
 
 
 //        if (taskList.count() > 0) {
@@ -77,20 +80,31 @@ class TicketAdapter(
 //
 //        }
 
-        holder.tvTotalTasks.text =ticket.TotalTasks
+        holder.tvTotalTasks.text = ticket.TotalTasks
 
 //        if (totalTasksAmount > 0) {
-//            holder.tvPrice.text =
+//            holder.tvComingTaskPickupTime.text =
 //                totalTasksAmount.toString() + " " + context.getString(R.string.le)
 //        } else
-//            holder.tvPrice.text = "0 " + context.getString(R.string.le)
+//            holder.tvComingTaskPickupTime.text = "0 " + context.getString(R.string.le)
 
 
-        if (!ticket.TotalTasksAmount.isNullOrEmpty()) {
-            holder.tvPrice.text =
-                ticket.TotalTasksAmount + " " + context.getString(R.string.le)
+        if (!ticket.ComingTaskCourierName.isNullOrEmpty()) {
+            holder.tvComingTaskCourierName.text =
+                ticket.ComingTaskCourierName
         } else
-            holder.tvPrice.text = "0 " + context.getString(R.string.le)
+            holder.tvComingTaskCourierName.visibility = View.INVISIBLE
+
+        if (!ticket.ComingTaskPickupTime.isNullOrEmpty()) {
+            var myFormat = "EEE, MMM d, yyyy   hh:mm a" //
+            var t = "yyyy-MM-dd'T'HH:mm:ss"
+            var sdf = SimpleDateFormat(t, Locale.US)
+            var tf = SimpleDateFormat(myFormat, Locale.US)
+            var dateObj = sdf.parse(ticket.ComingTaskPickupTime)
+            holder.tvComingTaskPickupTime.text =
+                tf.format(dateObj!!.time)
+        } else
+            holder.tvComingTaskPickupTime.visibility = View.INVISIBLE
 
 
 
@@ -134,7 +148,9 @@ class TicketAdapter(
         var tvAgentName: TextView = itemView.findViewById(R.id.tvAgentName)
 
         var tvPriority: TextView = itemView.findViewById(R.id.tvPriority)
-        var tvPrice: TextView = itemView.findViewById(R.id.tvPrice)
+        var tvComingTaskPickupTime: TextView = itemView.findViewById(R.id.tvComingTaskPickupTime)
+        var tvComingTaskCourierName: TextView = itemView.findViewById(R.id.tvComingTaskCourierName)
+
         var tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
         var tvTotalTasks: TextView = itemView.findViewById(R.id.tvTotalTasks)
 
@@ -173,21 +189,17 @@ class TicketAdapter(
 
     }
 
-     inner class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         internal var progressBar: ProgressBar = itemView.findViewById(R.id.progressBar)
 
     }
 
 
-
-
     private fun showLoadingView(viewHolder: LoadingViewHolder, position: Int) {
         //ProgressBar would be displayed
 
     }
-
-
 
 
 }

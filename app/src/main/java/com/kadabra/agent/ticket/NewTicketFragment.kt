@@ -262,7 +262,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         ivCheck = currentView!!.findViewById(R.id.ivCheck)
         tvStatus = currentView!!.findViewById(R.id.tvStatus)
         tvPriority = currentView!!.findViewById(R.id.tvPriority)
-        tvPrice = currentView!!.findViewById(R.id.tvPrice)
         tvAddServiceCost = currentView!!.findViewById(R.id.tvAddServiceCost)
         tvAddTask = currentView!!.findViewById(R.id.tvAddTask)
         tvTasks = currentView!!.findViewById(R.id.tvTasks)
