@@ -8,7 +8,6 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
@@ -26,16 +25,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.firebase.ui.storage.images.FirebaseImageLoader
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
-import com.kadabra.agent.adapter.CourierListAdapter
-import com.kadabra.agent.adapter.CourierNewAdapter
-import com.kadabra.agent.adapter.StopAdapter
-import com.kadabra.agent.adapter.TicketListAdapter
+import com.kadabra.agent.adapter.*
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
@@ -67,7 +61,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var selectedTicket = Ticket()
     private var selectedStopType: StopType? = null
     private var adapterTicket: TicketListAdapter? = null
-    private var adapterCourier: CourierNewAdapter? = null
+    private var adapterCourier: CourierListAdapter? = null
 
     private var task = Task()
     private var taskModel = TaskModel()
@@ -318,19 +312,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 showDateTimePicker()
             }
 
-            R.id.sCourier -> {
-
-                courierList?.sortBy { it.CourierName }
-//                   adapterCourier = CourierNewAdapter(
-//                    context!!,
-//                       courierList
-//                )
-
-                sCourier.setAdapter(adapterCourier)
-//                adapterCourier?.notifyDataSetChanged()
-                sCourier.showDropDown()
-
-            }
 
             R.id.btnAddStopLocation -> {
                 if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
@@ -439,18 +420,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.cbRecord -> {
-                if(AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING))
-                {      if (cbRecord.isChecked) {
-                    ivRecord.visibility = View.VISIBLE
-                    record_timer.visibility = View.VISIBLE
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
+                ) {
+                    if (cbRecord.isChecked) {
+                        ivRecord.visibility = View.VISIBLE
+                        record_timer.visibility = View.VISIBLE
 
 
-                } else {
-                    ivRecord.visibility = View.INVISIBLE
-                    record_timer.visibility = View.INVISIBLE
-                }}
-                else
+                    } else {
+                        ivRecord.visibility = View.INVISIBLE
+                        record_timer.visibility = View.INVISIBLE
+                    }
+                } else
                     Alert.showMessage(
                         context!!,
                         "Can't edit this task."
@@ -512,7 +494,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         ivRecord.setOnClickListener(this)
         cbRecord.setOnClickListener(this)
 
-        sCourier.setOnClickListener(this)
+
 
 
 
@@ -885,7 +867,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             Alert.hideProgress()
                             Alert.showMessage(
                                 context!!,
-                               response.Message
+                                response.Message
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
@@ -1175,10 +1157,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 }
             }
 
-        sTicket.setOnClickListener(View.OnClickListener {
-            sTicket.showDropDown()
-
-        })
+//        sTicket.setOnClickListener(View.OnClickListener {
+//            sTicket.showDropDown()
+//
+//        })
 
 //        // set current ticket
 //        sTicket.setText(AppConstants.CurrentSelectedTicket.TicketName)
@@ -1200,14 +1182,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
         courierList?.sortBy { it.CourierName }
-        adapterCourier = CourierNewAdapter(
+        adapterCourier = CourierListAdapter(
             context!!,
+            android.R.layout.simple_dropdown_item_1line,
             courierList!!
         )
 
         sCourier.setAdapter(adapterCourier)
-
-//        sCourier.isCursorVisible = false
+        sCourier.isCursorVisible = false
 
         sCourier.onItemClickListener =
             AdapterView.OnItemClickListener { parent, view, position, id ->
@@ -1226,13 +1208,23 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
 //        sCourier.setOnClickListener(View.OnClickListener {
-//            sCourier.isFocusable=false
-
+//            var filter = adapterCourier?.filter
+//            filter = null
+////            sCourier.filters=filter
 //            sCourier.showDropDown()
-
-//       sCourier!!.onFocusChangeListener()
-
+//
 //        })
+
+        sCourier.setOnTouchListener { v, event ->
+            if(courierList.size>0)
+            {if(sCourier.text.trim().isNotEmpty())
+            adapterCourier!!.filter.filter(null)
+                sCourier.showDropDown()
+            }
+
+            false
+        }
+
 
 
     }
@@ -1453,11 +1445,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             AppConstants.CurrentSelectedTask = task
                             FirebaseManager.getTaskImage(task.TaskId) { success, data ->
 
-                                if(success) {
+                                if (success) {
                                     Glide.with(activity!! /* context */)
                                         .load(data)
                                         .into(ivTaskImage)
-                                    ivTaskImage.visibility=View.VISIBLE
+                                    ivTaskImage.visibility = View.VISIBLE
                                 }
                             }
                             loadTaskData(task)
@@ -1600,7 +1592,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         Alert.showMessage(context!!, "Recording Stopped, File Saved : $recordFile")
 //        filenameText!!.text = "Recording Stopped, File Saved : $recordFile"
         //Stop media recorder and set it to null for further use to record new audio
-        record_timer.text = "00:00"
+        record_timer.text = "Done."
         mediaRecorder!!.stop()
         mediaRecorder!!.release()
         mediaRecorder = null
@@ -1618,7 +1610,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         //initialize filename variable with date and time at the end to ensure the new file wont overwrite previous file
         recordFile = "Recording_" + formatter.format(now) + ".mp3"
 
-        Alert.showMessage(context!!, "Recording, File Name : $recordFile")
+//        Alert.showMessage(context!!, "Recording, File Name : $recordFile")
 //        filenameText!!.text = "Recording, File Name : $recordFile"
         //Setup Media Recorder for recording
         mediaRecorder = MediaRecorder()
