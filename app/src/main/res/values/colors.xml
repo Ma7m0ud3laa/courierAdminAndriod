@@ -180,5 +180,5 @@
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
     <color name="darkGrey">#a6a6a6 </color>
-
+    <color name="colorDarkBlue">#3D4054</color>
 </resources>

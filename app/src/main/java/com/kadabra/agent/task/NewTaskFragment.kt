@@ -1,52 +1,54 @@
 package com.kadabra.agent.task
 
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import android.widget.AdapterView
+import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.firebase.ui.storage.images.FirebaseImageLoader
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
+import com.kadabra.Utilities.Base.BaseFragment
+import com.kadabra.agent.R
+import com.kadabra.agent.adapter.CourierListAdapter
+import com.kadabra.agent.adapter.CourierNewAdapter
+import com.kadabra.agent.adapter.StopAdapter
 import com.kadabra.agent.adapter.TicketListAdapter
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
-
-import android.widget.AdapterView
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.kadabra.agent.adapter.CourierListAdapter
-import com.kadabra.agent.adapter.StopAdapter
-import android.widget.ArrayAdapter
-import com.kadabra.agent.R
-import com.kadabra.agent.utilities.*
-import android.widget.Spinner
-import androidx.core.view.isVisible
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.model.*
+import com.kadabra.agent.utilities.*
 import com.kadabra.agent.utilities.Alert.hideProgress
-import org.json.JSONArray
-import org.json.JSONObject
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-
-import android.widget.TimePicker
-import android.app.TimePickerDialog
-import android.widget.DatePicker
-import android.app.DatePickerDialog
-
-import android.util.Log
-import com.google.android.libraries.places.internal.df
-import com.google.android.libraries.places.internal.it
-import java.text.DateFormat
-import java.text.SimpleDateFormat
 
 
 class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, View.OnClickListener {
@@ -65,7 +67,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var selectedTicket = Ticket()
     private var selectedStopType: StopType? = null
     private var adapterTicket: TicketListAdapter? = null
-    private var adapterCourier: CourierListAdapter? = null
+    private var adapterCourier: CourierNewAdapter? = null
+
     private var task = Task()
     private var taskModel = TaskModel()
     private var taskModelEdit = TaskModelEdit()
@@ -110,9 +113,21 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var btnSave: Button
     private lateinit var tvStatus: TextView
     private lateinit var ivDirection: ImageView
+    private lateinit var ivTaskImage: ImageView
 
     private lateinit var refresh: SwipeRefreshLayout
     private var dateValue = ""
+
+    private var isRecording = false
+    private val recordPermission = Manifest.permission.RECORD_AUDIO
+    private val PERMISSION_CODE = 21
+    private var mediaRecorder: MediaRecorder? = null
+    private var recordFile: String? = null
+    private lateinit var ivRecord: ImageView
+    private lateinit var cbRecord: CheckBox
+    private lateinit var record_timer: Chronometer
+    private var allFiles = ArrayList<File>()
+    private var recordPath = ""
     //endregion
 
     //region Events
@@ -164,6 +179,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         super.onDetach()
         listener = null
         listenerTask = null
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isRecording) {
+            stopRecording()
+        }
     }
 
     override fun onBottomSheetClosed(isClosed: Boolean) {
@@ -235,7 +257,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             R.id.tvDeleteTask -> {
 
                 // if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
-                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
+                if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
@@ -255,8 +277,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     )
             }
             R.id.tvAddStop -> {
-                if (AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS &&
-                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
                 ) {
                     if (!rlStops.isVisible)
                         rlStops.visibility = View.VISIBLE
@@ -278,8 +300,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.tvGetLocation -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
-                    || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
                 ) {
                     Log.d(TAG, AppConstants.CurrentSelectedTask.Status)
                     hideKeyboard(tvGetLocation)
@@ -296,9 +318,23 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 showDateTimePicker()
             }
 
+            R.id.sCourier -> {
+
+                courierList?.sortBy { it.CourierName }
+//                   adapterCourier = CourierNewAdapter(
+//                    context!!,
+//                       courierList
+//                )
+
+                sCourier.setAdapter(adapterCourier)
+//                adapterCourier?.notifyDataSetChanged()
+                sCourier.showDropDown()
+
+            }
+
             R.id.btnAddStopLocation -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.trim().isNullOrEmpty()
-                    || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
                 ) {
                     context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                     if (validateStopData()) {
@@ -345,47 +381,80 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             R.id.btnSave -> {
-                //                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) { //
-//                if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
+
                 if (validateAll()) {
                     hideKeyboard(btnSave)
                     prepareTaskData()
                     if (!editMode) {
                         addTask(taskModel)
-                    }
-//                        else if (editMode && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS)
-                    else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW)
+                    } else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                        (AppConstants.CurrentLoginAdmin.IsSuperAdmin /*&& task.Status == AppConstants.WAITING*/)
+                    )
                         editTask(taskModelEdit)
                     else
                         Alert.showMessage(
                             context!!,
                             "Can't edit this task."
                         )
+
                 }
-//                } else
-//                    Alert.showAlertMessage(
-//                        context!!,
-//                        AppConstants.WARNING,
-//                        "Can't edit this task."
-//                    )
+
 
             }
             R.id.ivDirection -> //get current courier direction if task is accepted
             {
-
-//                when (AppConstants.CurrentSelectedTask.Status) {
-//                    AppConstants.NEW ->
-//                        Alert.showMessage(context!!, "This task not started yet.")
-//                    AppConstants.IN_PROGRESS ->// to be adjusted to work on after start the task
-//                        listener?.onBottomShepingetSelectedItem(17)//navigate to courier map
-//                    AppConstants.COMPLETED ->
-//                        Alert.showMessage(context!!, "This task is completed.")
-//
-//                }
-                if(!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
-                listener?.onBottomSheetSelectedItem(17)
+                if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
+                    listener?.onBottomSheetSelectedItem(17)
 
 
+            }
+
+
+            R.id.ivRecord -> //get current courier direction if task is accepted
+            {
+
+                if (isRecording) { //Stop Recording
+                    stopRecording()
+                    // Change button image and set Recording state to false
+                    ivRecord!!.setImageDrawable(
+                        resources.getDrawable(
+                            R.drawable.record_btn_stopped,
+                            null
+                        )
+                    )
+                    isRecording = false
+                } else { //Check permission to record audio
+                    if (checkPermissions()) { //Start Recording
+                        startRecording()
+                        // Change button image and set Recording state to false
+                        ivRecord!!.setImageDrawable(
+                            resources.getDrawable(
+                                R.drawable.record_btn_recording,
+                                null
+                            )
+                        )
+                        isRecording = true
+                    }
+                }
+            }
+
+            R.id.cbRecord -> {
+                if(AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
+                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING))
+                {      if (cbRecord.isChecked) {
+                    ivRecord.visibility = View.VISIBLE
+                    record_timer.visibility = View.VISIBLE
+
+
+                } else {
+                    ivRecord.visibility = View.INVISIBLE
+                    record_timer.visibility = View.INVISIBLE
+                }}
+                else
+                    Alert.showMessage(
+                        context!!,
+                        "Can't edit this task."
+                    )
             }
 
 
@@ -407,6 +476,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         etTaskDescription = currentView!!.findViewById(com.kadabra.agent.R.id.etTaskDescription)
         tvStatus = currentView!!.findViewById(com.kadabra.agent.R.id.tvStatus)
         ivDirection = currentView!!.findViewById(com.kadabra.agent.R.id.ivDirection)
+        ivTaskImage = currentView!!.findViewById(com.kadabra.agent.R.id.ivTaskImage)
+
+        ivRecord = currentView!!.findViewById(com.kadabra.agent.R.id.ivRecord)
+        cbRecord = currentView!!.findViewById(com.kadabra.agent.R.id.cbRecord)
+        record_timer = currentView!!.findViewById(com.kadabra.agent.R.id.record_timer)
 
         sTicket = currentView!!.findViewById(com.kadabra.agent.R.id.sTicket)
         sCourier = currentView!!.findViewById(com.kadabra.agent.R.id.sCourier)
@@ -435,6 +509,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvGetLocation!!.setOnClickListener(this)
         etPickupTime.setOnClickListener(this)
         ivDirection.setOnClickListener(this)
+        ivRecord.setOnClickListener(this)
+        cbRecord.setOnClickListener(this)
+
+        sCourier.setOnClickListener(this)
+
+
 
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
@@ -463,11 +543,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvStatus.text = getString(R.string.new_status)
 
 //        sCourier.setText(context!!.getString(R.string.select_courier))
+
         etAmount!!.hint = context!!.getString(R.string.amount)
 
         etPickupTime!!.hint = context!!.getString(R.string.pickup_time)
-
-
 
         rvStops.adapter = null
         rlStops.visibility = View.GONE
@@ -481,6 +560,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         selectedTicket =
             AppConstants.GetALLTicket.find { it.TicketId == AppConstants.CurrentSelectedTicket.TicketId }!!
 
+        if (task.Status == AppConstants.COMPLETED ||
+            (!AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
+        ) {
+            btnSave.isEnabled = false
+            btnSave.setBackgroundResource(R.drawable.rounded_button_disenaple)
+        }
 
         if (!task.TaskName.trim().isNullOrEmpty())
             etTaskName.setText(task.TaskName)
@@ -530,7 +615,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         }
 
-//        prepareTaskModelData(AppConstants.CurrentSelectedTask)
     }
 
     private fun prepareTaskModelData(task: Task) {
@@ -622,10 +706,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             Alert.showMessage(context!!, "Pickup Time is required.")
             AnimateScroll.scrollToView(scroll, etPickupTime)
             etPickupTime.requestFocus()
+            showDateTimePicker()
             return false
-        } else if (selectedCourier.CourierId == null) {
+        } else if (selectedCourier.CourierId == 0) {
             Alert.showMessage(context!!, "Courier is required.")
             AnimateScroll.scrollToView(scroll, sCourier)
+            sCourier.requestFocus()
+//            sCourier.isCursorVisible=true
             sCourier.showDropDown()
             return false
         } else if (rlStops.isVisible && stopsList.size <= 0 &&
@@ -732,12 +819,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     override fun onSuccess(response: ApiResponse<ArrayList<Task>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            Alert.hideProgress()
+
                             var tasks = response.ResponseObj!!
                             var task = tasks[0]
+                            uploadRecord("$recordPath/$recordFile", task.TaskId)
                             // add new task to the current ticket
                             AppConstants.CurrentSelectedTicket.taskModel.add(task)
-                            listener!!.onBottomSheetSelectedItem(3)
+//                            listener!!.onBottomSheetSelectedItem(3)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -791,13 +879,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                                 AppConstants.CurrentSelectedTicket.taskModel.indexOf(AppConstants.CurrentSelectedTicket.taskModel.find { it.TaskId == task.TaskId })
                             AppConstants.CurrentSelectedTicket.taskModel[selectedTaskIndex] = task
                             AppConstants.CurrentSelectedTask = task
-                            Alert.hideProgress()
+                            uploadRecord("$recordPath/$recordFile", task.TaskId)
                             listener!!.onBottomSheetSelectedItem(3)
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
                                 context!!,
-                                getString(R.string.error_login_server_error)
+                               response.Message
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
@@ -959,7 +1047,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllCouriers()
+            var endPoint = request.getAllCouriersWithStatus()
             NetworkManager().request(
                 endPoint,
                 object : INetworkCallBack<ApiResponse<ArrayList<Courier>>> {
@@ -1102,8 +1190,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (courierList.size > 0) {
             var newArray = courierList
 
-            var firstItem = Courier(0, getString(R.string.select_courier))
-            dummyCourierList.add(firstItem)
+//            var firstItem = Courier(0, getString(R.string.select_courier))
+//            dummyCourierList.add(firstItem)
 
             for (c in newArray.indices) {
                 dummyCourierList.add(newArray[c])
@@ -1111,35 +1199,40 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         }
 
 
-        adapterCourier = CourierListAdapter(
+        courierList?.sortBy { it.CourierName }
+        adapterCourier = CourierNewAdapter(
             context!!,
-            android.R.layout.simple_spinner_dropdown_item,
-            dummyCourierList
+            courierList!!
         )
+
         sCourier.setAdapter(adapterCourier)
-        sCourier.isCursorVisible = false
+
+//        sCourier.isCursorVisible = false
 
         sCourier.onItemClickListener =
             AdapterView.OnItemClickListener { parent, view, position, id ->
                 sCourier.showDropDown()
                 var courier = parent.getItemAtPosition(position) as Courier
 
-
                 if (courier.CourierId!! > 0) {
                     selectedCourier = courier
                     sCourier.setText(courier.CourierName)
                 } else {
                     selectedCourier = Courier(0, getString(R.string.select_courier))
-                    sCourier.setText(getString(R.string.select_courier))
+                    sCourier.hint = getString(R.string.select_courier)
                 }
 
 
             }
 
-        sCourier.setOnClickListener(View.OnClickListener {
-            sCourier.showDropDown()
+//        sCourier.setOnClickListener(View.OnClickListener {
+//            sCourier.isFocusable=false
 
-        })
+//            sCourier.showDropDown()
+
+//       sCourier!!.onFocusChangeListener()
+
+//        })
 
 
     }
@@ -1328,39 +1421,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         }
     }
 
-    fun convertTaskDataToJson(task: Task): JSONObject {
-
-        val jResult = JSONObject()
-        val jArray = JSONArray()
-
-        val array = arrayOfNulls<Stop>(task.stopsmodel.size)
-        for (i in task.stopsmodel.indices) {
-            array[i] = task.stopsmodel[i]
-        }
-
-        jResult.putOpt("TaskName", task.TaskName)
-        jResult.putOpt("Amount", task.Amount.toString())
-        jResult.putOpt("AddedBy", task.AddedBy)
-        jResult.putOpt("TicketID", task.TicketId)
-        jResult.putOpt("CourierId", task.CourierID.toString())
-
-
-        for (i in 0 until array.count()) {
-            val jGroup = JSONObject()
-            jGroup.put("Longitude", array[i]?.Longitude.toString())
-            jGroup.put("AddedBy", task.AddedBy)
-            jGroup.put("Latitude", array[i]?.Latitude.toString())
-            jGroup.put("StopName", array[i]?.StopName.toString())
-            jGroup.put("StopTypeID", array[i]?.StopTypeID.toString())
-
-
-            jArray.put(jGroup)
-        }
-
-        jResult.putOpt("stopsmodels", jArray)
-
-        return jResult
-    }
 
     fun hideKeyboard(view: View) {
         val inputMethodManager =
@@ -1391,6 +1451,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                             task = response.ResponseObj!!
                             AppConstants.CurrentSelectedTask = task
+                            FirebaseManager.getTaskImage(task.TaskId) { success, data ->
+
+                                if(success) {
+                                    Glide.with(activity!! /* context */)
+                                        .load(data)
+                                        .into(ivTaskImage)
+                                    ivTaskImage.visibility=View.VISIBLE
+                                }
+                            }
                             loadTaskData(task)
                             hideProgress()
                             refresh.isRefreshing = false
@@ -1434,8 +1503,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             date!!.set(mYear, mMonth, mDay)
 
-            DatePickerDialog(
-                context,
+            var datePickerDialog = DatePickerDialog(
+                context!!,
                 DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
                     date!!.set(year, monthOfYear, dayOfMonth)
                     TimePickerDialog(
@@ -1471,7 +1540,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             DatePickerDialog(
-                context,
+                context!!,
                 DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
                     date!!.set(year, monthOfYear, dayOfMonth)
                     TimePickerDialog(
@@ -1508,7 +1577,101 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         Alert.hideProgress()
     }
 
+    private fun checkPermissions(): Boolean { //Check permission
+        return if (ActivityCompat.checkSelfPermission(
+                context!!,
+                recordPermission
+            ) == PackageManager.PERMISSION_GRANTED
+        ) { //Permission Granted
+            true
+        } else { //Permission not granted, ask for permission
+            ActivityCompat.requestPermissions(
+                activity!!,
+                arrayOf(recordPermission),
+                PERMISSION_CODE
+            )
+            false
+        }
+    }
+
+    private fun stopRecording() { //Stop Timer, very obvious
+        record_timer!!.stop()
+        //Change text on page to file saved
+        Alert.showMessage(context!!, "Recording Stopped, File Saved : $recordFile")
+//        filenameText!!.text = "Recording Stopped, File Saved : $recordFile"
+        //Stop media recorder and set it to null for further use to record new audio
+        record_timer.text = "00:00"
+        mediaRecorder!!.stop()
+        mediaRecorder!!.release()
+        mediaRecorder = null
+    }
+
+    private fun startRecording() { //Start timer from 0
+        record_timer!!.base = SystemClock.elapsedRealtime()
+        record_timer!!.start()
+        //Get app external directory path
+        recordPath = activity!!.getExternalFilesDir("/")?.absolutePath!!
+        //Get current date and time
+        val formatter =
+            SimpleDateFormat("yyyy_MM_dd_hh_mm_ss", Locale.CANADA)
+        val now = Date()
+        //initialize filename variable with date and time at the end to ensure the new file wont overwrite previous file
+        recordFile = "Recording_" + formatter.format(now) + ".mp3"
+
+        Alert.showMessage(context!!, "Recording, File Name : $recordFile")
+//        filenameText!!.text = "Recording, File Name : $recordFile"
+        //Setup Media Recorder for recording
+        mediaRecorder = MediaRecorder()
+        mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
+        mediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+        mediaRecorder!!.setOutputFile("$recordPath/$recordFile")
+        mediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        mediaRecorder!!.setMaxDuration(120000)
+
+        try {
+            mediaRecorder!!.prepare()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        //Start Recording
+        mediaRecorder!!.start()
+    }
 //endregion
 
+
+    private fun uploadRecord(filePath: String, taskId: String) {
+        if (cbRecord.isChecked && !filePath.trim().isNullOrEmpty()) {
+            Log.d(TAG, filePath)
+
+            var newFile = "$recordPath/$taskId.mp3"
+
+            Log.d(TAG, newFile)
+            var done = rename(File(filePath), File(newFile))
+            Log.d(TAG, done.toString())
+            if (done) {
+                var uri = Uri.fromFile(File(newFile))
+                Log.d(TAG, uri.toString())
+                FirebaseManager.uploadRecord(uri, taskId) { success ->
+                    if (success) {
+                        Alert.hideProgress()
+                        Log.d(TAG, "success")
+                        //file uploaded succeded
+                        listener!!.onBottomSheetSelectedItem(3)
+                    } else {
+                        //failed
+                        Alert.showMessage(context!!, "Error on uploading file to server.")
+                    }
+                }
+            }
+        }
+
+
+    }
+
+
+    private fun rename(from: File, to: File): Boolean {
+
+        return from.parentFile.exists() && from.exists() && from.renameTo(to)
+    }
 
 }

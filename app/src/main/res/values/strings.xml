@@ -76,7 +76,7 @@
 
     <string name="no_ticket_available">No Ticket Available</string>
     <string name="add_new">Add+</string>
- <string name="new_status">New</string>
+    <string name="new_status">New</string>
 
     <string name="select_status">Select Status ...</string>
     <string name="select_ticket">Select Ticket ...</string>
@@ -141,7 +141,10 @@
     <string name="duration">Duration: </string>
     <string name="distance">Distance: </string>
     <string name="trip">"Trip # </string>
+    <string name="day">Day </string>
+    <string name="hour">hr </string>
     <string name="minutes">min</string>
+    <string name="error_calculate_distance">Can\'t find a way there.</string>
     <string name="km">km</string>
     <string name="fastest_route">Fastest route now due to traffic conditions</string>
 </resources>

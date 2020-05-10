@@ -70,6 +70,8 @@ object AppConstants {
 
     const val URL_GET_TICKET_BY_ID = "GetTicketById"
     const val URL_GET_ALL_COURIERS = "GetAllCourier"
+    const val URL_GET_ALL_COURIERS_WITH_STATUS = "GetAllCourierWithStatus  "
+
     const val URL_ADD_TASK_STOP = "AddTaskStop"
     const val URL_GET_ALL_TASK_STOPS = "GetAllTaskStops"
     const val URL_REMOVE_TASK = "RemoveCourierTask"
@@ -122,6 +124,9 @@ object AppConstants {
     var IN_PROGRESS="In progress"
     var NEW="New"
     var COMPLETED="Completed"
+    var WAITING = "Waiting For Pickup"
+
+
 
     enum class TaskStatus(var status: String) {
         NEW("New"),

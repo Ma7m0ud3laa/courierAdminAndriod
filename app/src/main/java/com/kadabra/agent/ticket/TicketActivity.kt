@@ -308,7 +308,8 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     courierFragment.searchMode = false
                     fm.beginTransaction().remove(courierFragment).commit()
 
-                } else {
+                }
+                else {
                     newTaskFragment = NewTaskFragment()
                     newTaskFragment.editMode = true
                     fm.beginTransaction()

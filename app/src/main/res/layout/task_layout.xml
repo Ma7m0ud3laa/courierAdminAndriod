@@ -93,7 +93,8 @@
             android:layout_marginBottom="10dp"
             android:text="@string/le"
             android:textColor="@color/colorWelcome"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="invisible"/>
 
         <TextView
             android:id="@+id/tvDelete"

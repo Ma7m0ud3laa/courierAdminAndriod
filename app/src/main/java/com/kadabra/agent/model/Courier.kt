@@ -4,13 +4,16 @@ class Courier {
     var CourierId: Int? = null
     var CourierName: String = ""
     var name: String = ""
-    //    var CourierMobile: String = ""
-//    var courierLocation: Stop = Stop()
     var isActive = false
     var location = location()
-    //    var locations=HashMap<String,location>()
     var token: String = ""
-
+    var CourierMobile: String = ""
+    var HasTasksNow = false
+    var HasTasksWithinHour = false
+    var VehicleTypeID = 1  //1 car 2 bike
+    var TaskId = ""
+    var PickupName = ""
+    var DropoffName = ""
 
     constructor()
     constructor(id: Int?, name: String) {

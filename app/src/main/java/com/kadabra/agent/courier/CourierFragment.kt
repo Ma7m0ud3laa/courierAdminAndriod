@@ -186,10 +186,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             suggestionsList.clear()
             couriersList.clear()
             materialSearchBar!!.updateLastSuggestions(suggestionsList)
-        }
-        else if (directionMode) {
+        } else if (directionMode) {
             materialSearchBar!!.visibility = View.GONE
-//            ivBack.visibility = View.VISIBLE
+            ivBack.visibility = View.VISIBLE
         } else if (searchOnCourier)
             materialSearchBar!!.setPlaceHolder("Find a courier")
 
@@ -390,6 +389,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             R.id.ivBack -> {
                 if (searchMode)
                     listener?.onBottomSheetSelectedItem(6)
+                else if(directionMode)
+                {
+                    directionMode=false
+                    listener?.onBottomSheetSelectedItem(6)
+                }
                 else
                     listener?.onBottomSheetSelectedItem(2)
             }
@@ -488,8 +492,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
         } else if (mMap != null && directionMode) {
 
-            requestDirection(AppConstants.CurrentSelectedTask)
-
+//            requestDirection(AppConstants.CurrentSelectedTask)
+            getTAskDirection(AppConstants.CurrentSelectedTask)
         }
         // show all couriers on mMap for tracking
         else {
@@ -508,7 +512,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     }
 
     override fun onMarkerClick(courierMarker: Marker?): Boolean {
-
+        var done = false
         if (!searchMode && DEFAULT_ZOOM < MAX_ZOOM) {
             try {
                 var currentCourier = courierMarker?.tag as Courier
@@ -522,11 +526,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             } catch (ex: java.lang.Exception) {
                 Log.e(TAG, ex.message)
             }
-
+            done = true
         }
 
-
-        return true
+        if (directionMode)
+            done = false
+        return done
     }
 
 
@@ -810,20 +815,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     }
 
     private fun getTAskDirection(task: Task) {
-        directionMode = false
-        var firstStop = task.stopsmodel.first()
-        var lastStop = task.stopsmodel.last()
-
-        var pickUp = LatLng(
-            firstStop.Latitude!!,
-            firstStop.Longitude!!
-        )
-        var dropOff = LatLng(
-            lastStop.Latitude!!,
-            lastStop.Longitude!!
-        )
-
-        calculateDirections(pickUp, dropOff)
+//        directionMode = false
+        calculateDirections(task, false)
 
     }
 
@@ -880,45 +873,69 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     }
 
-    private fun calculateDirections(origin: LatLng, dest: LatLng) {
-//Alert.showProgress(this)
+    private fun calculateDirections(
+        task: Task,
+        showAlternatives: Boolean
+    ) {
+        var firstStop = task.stopsmodel.first()
+        var lastStop = task.stopsmodel.last()
+
+
         Log.d(
             TAG,
             "calculateDirections: calculating directions."
         )
         val destination = com.google.maps.model.LatLng(
-            dest.latitude,
-            dest.longitude
+            lastStop.Latitude!!,
+            lastStop.Longitude!!
         )
         val directions = DirectionsApiRequest(mGeoApiContext)
-        directions.alternatives(true)
+        directions.alternatives(showAlternatives)
+
         directions.origin(
             com.google.maps.model.LatLng(
-                origin.latitude,
-                origin.longitude
+                firstStop.Latitude!!,
+                firstStop.Longitude!!
             )
         )
-        Log.d(
-            TAG,
-            "calculateDirections: destination: $destination"
-        )
+        Log.d(TAG, "calculateDirections: destination: $destination")
+
+
+        task.stopsmodel.forEach {
+
+            if (it.StopTypeID == 3) {
+                directions.waypoints(
+                    com.google.maps.model.LatLng(
+                        it.Latitude!!,
+                        it.Longitude!!
+                    )
+                )
+
+            }
+            directions.optimizeWaypoints(true)
+        }
+
+
+
+
+
         directions.destination(destination)
             .setCallback(object : PendingResult.Callback<DirectionsResult?> {
-                override fun onResult(result: DirectionsResult?) { //                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
-//                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-//                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-//                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
-                    Log.d(
-                        TAG,
-                        "onResult: successfully retrieved directions."
-                    )
-                    val meters = result!!.routes[0].legs[0].distance.inMeters
-                    totalKilometers = conevrtMetersToKilometers(meters)
+                override fun onResult(result: DirectionsResult?) {
+                    result!!.routes[0].legs.forEach {
+                        Log.d(
+                            TAG,
+                            "LEG: duration: " + it.duration
+                        );
+                        Log.d(
+                            TAG,
+                            "LEG: distance: " + it.distance
+                        );
+                        Log.d("LEG DATA", it.toString())
+                    }
 
-                    Log.d("DISTANCE1", result!!.routes[0].legs[0].distance.inMeters.toString())
-                    Log.d("DISTANCE1", totalKilometers.toString())
                     addPolylinesToMap(result!!)
-//                    Alert.hideProgress()
+
                 }
 
                 override fun onFailure(e: Throwable) {
@@ -927,8 +944,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                         TAG,
                         "calculateDirections: Failed to get directions: " + e.message
                     )
+
+                    Alert.showMessage(context!!, "Can't find a way there.")
                 }
             })
+
     }
 
     private fun conevrtMetersToKilometers(meters: Long): Float {
@@ -947,17 +967,14 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             )
             if (mPolyLinesData.size > 0) {
                 for (polylineData in mPolyLinesData) {
-                    polylineData.getPolyline().remove()
+                    polylineData.polyline.remove()
                 }
                 mPolyLinesData.clear()
                 mPolyLinesData = java.util.ArrayList<PolylineData>()
             }
             var duration = 999999999.0
+
             for (route in result.routes) {
-                Log.d(
-                    TAG,
-                    "run: leg: " + route.legs[0].toString()
-                )
                 val decodedPath =
                     PolylineEncoding.decode(route.overviewPolyline.encodedPath)
                 val newDecodedPath: MutableList<LatLng> =
@@ -971,23 +988,34 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                         )
                     )
                 }
-                polyline =
-                    mMap.addPolyline(PolylineOptions().addAll(newDecodedPath)) // add marker
-                polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
-                polyline.isClickable = true
-                mPolyLinesData.add(PolylineData(polyline, route.legs[0]))
+
+
                 // highlight the fastest route and adjust camera
                 val tempDuration =
                     route.legs[0].duration.inSeconds.toDouble()
+
                 if (tempDuration < duration) {
+                    mMap.clear()
+                    mMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                    polyline =
+                        mMap.addPolyline(PolylineOptions().addAll(newDecodedPath)) // add marker
+                    polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
+                    polyline.isClickable = true
+                    mPolyLinesData.add(PolylineData(polyline, route.legs[0]))
+
                     duration = tempDuration
-                    onPolylineClick(polyline)
-                    zoomRoute(polyline.points)
-                    setTripDirectionData(PolylineData(polyline, route.legs[0]))
-                    rlBottom.visibility = View.VISIBLE
+                    val southwest = LatLng(route.bounds.southwest.lat,route.bounds.southwest.lng)
+                    val northeast = LatLng(route.bounds.northeast.lat,route.bounds.northeast.lng)
+                    setCameraWithCoordinationBoundsWithLatLng(southwest!!,northeast)
+//                    zoomRoute(polyline.points)
+
                 }
+
             }
+            setTripStopsMarker(AppConstants.CurrentSelectedTask)
+
         }
+
     }
 
     fun zoomRoute(lstLatLngRoute: List<LatLng?>?) {
@@ -1096,6 +1124,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private fun setCameraWithCoordinationBounds(route: Route) {
         val southwest = route.bound.southwestCoordination.coordination
         val northeast = route.bound.northeastCoordination.coordination
+        val bounds = LatLngBounds(southwest, northeast)
+        mMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+    }
+    private fun setCameraWithCoordinationBoundsWithLatLng(southwest: LatLng,northeast:LatLng) {
         val bounds = LatLngBounds(southwest, northeast)
         mMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
     }
@@ -1302,7 +1334,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     }
 
     private fun onDirectionFailure(t: Throwable) {
-        Alert.showMessage(context!!, t.message!!)
+        Alert.showMessage(context!!, "Can't find a way there.")
     }
 
     private fun getUserCountry(context: Context): String? {
@@ -1321,6 +1353,87 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             Log.d(TAG, e.message)
         }
         return null
+    }
+
+    private fun setTripStopsMarker(task: Task) {
+        var speciaMarker: Marker? = null
+        task.stopsmodel.forEach {
+            when (it.StopTypeID) {
+                1 -> {
+                    val marker: Marker = mMap.addMarker(
+                        MarkerOptions()
+                            .icon(
+                                bitmapDescriptorFromVector(
+                                    context!!,
+                                    R.drawable.ic_location_start
+                                )
+                            )
+                            .position(LatLng(it.Latitude!!, it.Longitude!!))
+                            .title(it.StopName)
+
+
+                    )
+                    mTripMarkers.add(marker)
+                    marker.tag = it
+                    marker.showInfoWindow()
+                    Log.d("MARKER DATA", it.StopName)
+//                    marker.showInfoWindow()
+                }
+                2 -> {
+                    var tripData = TripData()
+                    var snippetData =
+                        getString(R.string.distance) + " " + tripData.distance.toString() + " - " + (getString(
+                            R.string.duration
+                        ) + " " + tripData.toString())
+
+                   val  speciaMarker = mMap.addMarker(
+                        MarkerOptions()
+                            .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_location))
+                            .position(LatLng(it.Latitude!!, it.Longitude!!))
+                            .title(it.StopName)
+                    )
+                    mTripMarkers.add(speciaMarker!!)
+                    speciaMarker?.tag = it
+                    Log.d("MARKER DATA", it.StopName)
+                    speciaMarker?.showInfoWindow()
+                }
+                3 -> {
+//                    val marker: Marker = map.addMarker(
+//                        MarkerOptions()
+//                            .icon(bitmapDescriptorFromVector(this, R.drawable.ic_location_stops))
+//                            .position(LatLng(it.Latitude!!, it.Longitude!!))
+//                            .title(it.StopName)
+//                    )
+//                    mTripMarkers.add(marker)
+//                    marker.tag = it
+//                    Log.d("MARKER DATA",it.StopName)
+//                    marker.showInfoWindow()
+
+                    val marker: Marker = mMap.addMarker(
+                        MarkerOptions()
+                            .icon(
+                                bitmapDescriptorFromVector(
+                                    context!!,
+                                    R.drawable.ic_location_stop
+                                )
+                            )
+                            .position(LatLng(it.Latitude!!, it.Longitude!!))
+                            .title(it.StopName)
+                    )
+                    marker.showInfoWindow()
+                    mTripMarkers.add(marker)
+                    marker.tag = it
+                    Log.d("MARKER DATA", it.StopName)
+                    Log.d("Latitude", it.Latitude.toString())
+                    Log.d("Longitude", it.Longitude.toString())
+
+
+//                    marker.showInfoWindow()
+                }
+            }
+        }
+
+//        speciaMarker!!.showInfoWindow()
     }
 
 

@@ -52,7 +52,7 @@ class UserSessionManager(val context: Context) {
         editor.putBoolean(AppConstants.IS_FIRST, isFirst).commit()
     }
 
-    fun getLanguage(): String {
+    fun getLanguage(): String? {
         return sharedPreferences.getString(AppConstants.LANGUAGE, AppConstants.ENGLISH)
     }
 

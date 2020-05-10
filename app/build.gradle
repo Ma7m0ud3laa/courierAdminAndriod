@@ -7,12 +7,12 @@ apply plugin: 'io.fabric'
 
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.kadabra.agent"
-        minSdkVersion 24
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -119,6 +119,10 @@ dependencies {
     implementation 'gr.escsoft.michaelprimez.searchablespinner:SearchableSpinner:1.0.9'
 //custom datetime
     implementation 'com.github.tylersuehr7:googlish-datetime-picker:1.1'
+    //horizontal steps progress bar
+    implementation 'com.kofigyan.stateprogressbar:stateprogressbar:1.0.0'
+//image viewer
+    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'

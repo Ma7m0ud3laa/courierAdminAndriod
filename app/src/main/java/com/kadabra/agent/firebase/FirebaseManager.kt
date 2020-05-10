@@ -1,12 +1,15 @@
 package com.kadabra.agent.firebase
 
+import android.net.Uri
 import android.util.Log
+import com.bumptech.glide.Glide
+import com.firebase.ui.storage.images.FirebaseImageLoader
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Task
 import com.kadabra.agent.model.location
@@ -26,6 +29,11 @@ object FirebaseManager {
     private var fireBaseUser: FirebaseUser? = null
     private var dbNameCourier = "courier"
     private var dbNameTaskHistory = "task_history"
+    private var tasksImagesFolderName = "task_images"
+    private var tasksRecordsFolderName = "task_records"
+    lateinit var mImageStorage: StorageReference
+    lateinit var mAudioStorage: StorageReference
+
     private var courier = Courier()
     var exception = ""
     var token = ""
@@ -48,6 +56,8 @@ object FirebaseManager {
         firebaseDatabase = FirebaseDatabase.getInstance()
         dbCourier = firebaseDatabase.getReference(dbNameCourier)
         dbCourierTaskHistory = firebaseDatabase.getReference(dbNameTaskHistory)
+        mImageStorage = FirebaseStorage.getInstance().getReference(tasksImagesFolderName)
+        mAudioStorage = FirebaseStorage.getInstance().getReference(tasksRecordsFolderName)
 
     }
 
@@ -111,7 +121,7 @@ object FirebaseManager {
                             completion(true, location)
                         }
                     } catch (ex: Exception) {
-                        Log.e(TAG,ex.message)
+                        Log.e(TAG, ex.message)
                     }
                 }
             }
@@ -145,6 +155,32 @@ object FirebaseManager {
         dbCourierTaskHistory.addListenerForSingleValueEvent(valueEventListener)
 
     }
+
+    fun uploadRecord(uri: Uri, taskId: String, completion: (success: Boolean) -> Unit) {
+        Log.d(TAG, "uploadRecord")
+        mAudioStorage.child(taskId).putFile(uri).addOnSuccessListener { completion(true) }
+            .addOnFailureListener { completion(false) }
+
+    }
+
+    fun getTaskRecord(taskId:String, completion: (success: Boolean,data: Uri?) -> Unit)
+    {
+
+        mAudioStorage.child(taskId).downloadUrl.addOnSuccessListener {
+            completion(true,it)
+        }.addOnFailureListener { completion(false,null) }
+    }
+
+    fun getTaskImage(taskId:String, completion: (success: Boolean,data: Uri?) -> Unit)
+    {
+        Log.d(TAG, "getTaskImage")
+        mImageStorage.child("$taskId.jpeg").downloadUrl.addOnSuccessListener {
+            Log.d(TAG, it.toString())
+            completion(true,it)
+        }.addOnFailureListener { completion(false,null) }
+    }
+
+
 
     //endregion
 

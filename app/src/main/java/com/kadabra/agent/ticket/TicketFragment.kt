@@ -258,28 +258,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             )
     }
 
-    private fun getAllCouriers() {
-        if (NetworkManager().isNetworkAvailable(context!!)) {
-            var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllCouriers()
-            NetworkManager().request(
-                endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Courier>>> {
-                    override fun onFailed(error: String) {
-                    }
 
-                    override fun onSuccess(response: ApiResponse<ArrayList<Courier>>) {
-                        if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            AppConstants.ALL_COURIERS = response.ResponseObj!!
-
-                        }
-
-                    }
-                })
-
-        } else {
-        }
-    }
 
     override fun onDestroy() {
         super.onDestroy()

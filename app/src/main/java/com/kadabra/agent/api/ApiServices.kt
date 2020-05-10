@@ -94,6 +94,10 @@ interface ApiServices {
     fun getAllCouriers()
             : Call<ApiResponse<ArrayList<Courier>>>
 
+    @GET(AppConstants.URL_GET_ALL_COURIERS_WITH_STATUS)
+    fun getAllCouriersWithStatus()
+            : Call<ApiResponse<ArrayList<Courier>>>
+
     @FormUrlEncoded
     @POST(AppConstants.URL_ADD_TASK_STOP)
     fun addTaskStop(
