@@ -48,17 +48,17 @@ class LoginActivity : AppCompatActivity() {
         if (userName.isNullOrEmpty()) {
             AnimateScroll.scrollToView(scroll, etUsername)
             etUsername.requestFocus()
-            Alert.showMessage(this, getString(R.string.error_user_name))
+            Alert.showMessage(  getString(R.string.error_user_name))
             return false
         }
 //        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(courierName).matches()) {
-//            Alert.showMessage(this, getString(R.string.error_email))
+//            Alert.showMessage(  getString(R.string.error_email))
 //            return false
 //        }
         if (etPassword.text.toString().trim().isNullOrEmpty()) {
             AnimateScroll.scrollToView(scroll, etPassword)
             etPassword.requestFocus()
-            Alert.showMessage(this, getString(R.string.error_password))
+            Alert.showMessage(  getString(R.string.error_password))
             return false
         }
         return true
@@ -74,7 +74,7 @@ class LoginActivity : AppCompatActivity() {
                 override fun onFailed(error: String) {
                     Alert.hideProgress()
                     Alert.showMessage(
-                        this@LoginActivity,
+
                         getString(R.string.error_login_server_error)
                     )
                 }
@@ -91,13 +91,11 @@ class LoginActivity : AppCompatActivity() {
                     } else if (response.Status == AppConstants.STATUS_FAILED) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            this@LoginActivity,
                             getString(R.string.error_incorrect_user_name)
                         )
                     } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            this@LoginActivity,
                             getString(R.string.error_incorrect_password)
                         )
                     }
@@ -107,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(this@LoginActivity, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
         return admin
     }
@@ -124,7 +122,6 @@ class LoginActivity : AppCompatActivity() {
                 override fun onFailed(error: String) {
                     Log.d(TAG, "SEND TOKEN - API - FAILED.")
                     Alert.showMessage(
-                        this@LoginActivity,
                         getString(R.string.error_login_server_error)
                     )
                 }
@@ -133,7 +130,7 @@ class LoginActivity : AppCompatActivity() {
 
         } else {
             Log.d(TAG, "SEND TOKEN - API - NO INTERNET.")
-            Alert.showMessage(this@LoginActivity, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
 
     }

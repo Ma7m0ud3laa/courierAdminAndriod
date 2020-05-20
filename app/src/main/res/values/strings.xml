@@ -147,5 +147,8 @@
     <string name="error_calculate_distance">Can\'t find a way there.</string>
     <string name="km">km</string>
     <string name="fastest_route">Fastest route now due to traffic conditions</string>
+    <string name="confirm_location">Confirm Location</string>
+    <string name="cancel_task">Cancel Task</string>
+    <string name="confirm">Confirm</string>
 </resources>
 

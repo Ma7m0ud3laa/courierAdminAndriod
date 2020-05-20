@@ -1,6 +1,5 @@
 package com.kadabra.agent.adapter;
 
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -23,6 +22,9 @@ import java.util.List;
 
 public class CourierListAdapter extends ArrayAdapter<Courier> {
     private List<Courier> courierListFull;
+    private String pickUpData = "";
+    private String dropOffData = "";
+
 
     public CourierListAdapter(@NonNull Context context, Integer resourceId, @NonNull List<Courier> courierList) {
         super(context, resourceId, courierList);
@@ -46,41 +48,56 @@ public class CourierListAdapter extends ArrayAdapter<Courier> {
 
         ImageView imageViewFlag = convertView.findViewById(R.id.ivCourierImage);
         TextView tvName = convertView.findViewById(R.id.tvName);
-         TextView tvMobile = convertView.findViewById(R.id.tvMobile );
-         TextView tvHaveTaskNow = convertView.findViewById(R.id.tvHaveTaskNow);
+        TextView tvMobile = convertView.findViewById(R.id.tvMobile);
+        TextView tvHaveTaskNow = convertView.findViewById(R.id.tvHaveTaskNow);
         StateProgressBar progress = convertView.findViewById(R.id.progress);
 
 
         Courier courier = getItem(position);
 
         if (courier != null) {
-            if(courier.getPickupName() !=null&&courier.getDropoffName() !=null)
-            {
-                String[] descriptionData = { courier.getPickupName(),
-                        courier.getDropoffName()};
-
-                progress.setStateDescriptionData(descriptionData);
-                progress.setVisibility(View.VISIBLE);
-
+            tvName.setText(courier.getCourierName());
+            tvMobile.setText(courier.getCourierMobile());
+            if (courier.getHasTasksNow()) {
+                tvHaveTaskNow.setText("Has Task");
+                tvHaveTaskNow.setTextColor(Color.parseColor("#E54728"));
+            } else {
+                tvHaveTaskNow.setText("No Task");
+                tvHaveTaskNow.setTextColor(Color.parseColor("#ff000000"));
             }
-            if(courier.getVehicleTypeID()==2)
+
+            if (courier.getVehicleTypeID() == 2)
                 imageViewFlag.setImageResource(R.drawable.bike);
             else
                 imageViewFlag.setImageResource(R.drawable.car);
 
+            if (courier.getPickupName() != null && courier.getDropoffName() != null)
+            {
 
-            tvName.setText(courier.getCourierName());
-            tvMobile.setText(courier.getCourierMobile());
-            if (courier.getHasTasksNow()) {
-//                convertView.setBackgroundColor(
-//                    Color.parseColor("#008CDB")
-//                )
-                tvHaveTaskNow.setText("Has Task");
-                tvHaveTaskNow.setTextColor( Color.parseColor("#E54728"));
-            } else tvHaveTaskNow.setText("No Task");
+                pickUpData = courier.getPickupName();
+                dropOffData = courier.getDropoffName();
+
+//                if (pickUpData.length() > 20 || dropOffData.length() > 20) {
+//                    String[] pickUpArrayData = pickUpData.split("\\W+");
+//                    String[] dropOffArrayData = dropOffData.split("\\W+");
+//                    pickUpData = pickUpArrayData.toString();
+//                    dropOffData = dropOffArrayData.toString();
+//                }
+
+                pickUpData= ellipsize(pickUpData,20);
+                dropOffData= ellipsize(dropOffData,20);
+
+                String[] descriptionData = {pickUpData,
+                        dropOffData};
+
+                progress.setStateDescriptionData(descriptionData);
+                progress.setVisibility(View.VISIBLE);
+
+            } else
+                progress.setVisibility(View.INVISIBLE);
+
 
         }
-
         return convertView;
     }
 
@@ -120,4 +137,13 @@ public class CourierListAdapter extends ArrayAdapter<Courier> {
             return ((Courier) resultValue).getCourierName();
         }
     };
+
+    private String ellipsize(String input, int maxLength) {
+        String ellip = "...";
+        if (input == null || input.length() <= maxLength
+                || input.length() < ellip.length()) {
+            return input;
+        }
+        return input.substring(0, maxLength - ellip.length()).concat(ellip);
+    }
 }

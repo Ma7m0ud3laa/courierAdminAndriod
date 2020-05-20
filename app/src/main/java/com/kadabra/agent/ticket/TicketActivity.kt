@@ -38,10 +38,12 @@ import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.login.LoginActivity
 import com.kadabra.agent.model.Stop
 import com.kadabra.agent.model.Task
+import com.kadabra.agent.records.TaskImageFragment
 import com.kadabra.agent.task.NewTaskFragment
 import com.kadabra.agent.task.TasksFragment
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
+import java.lang.Exception
 
 
 class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback {
@@ -53,12 +55,14 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     private var tasksFragment: TasksFragment = TasksFragment()
     private var courierFragment: CourierFragment = CourierFragment()
     private var notificationFragment: NotificationFragment = NotificationFragment()
+    private var taskImageFragment: TaskImageFragment = TaskImageFragment()
+
     private val fm = supportFragmentManager
     private var active = BaseFragment()
     val bottomSheetDialogFragment = BottomSheetNavigationFragment.newInstance()
     private var locationUpdateState = false
-
     private var lastVerion = 0
+    private var  mOnActivityResultIntent:Intent ?=null
     //endregion
 
     //region Events
@@ -77,6 +81,14 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(data != null){
+            mOnActivityResultIntent = data
+            Log.d(TAG,data.toString())
+        }
     }
 
     @SuppressLint("RestrictedApi")
@@ -120,7 +132,6 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     .commit()
                 active = ticketFragment
                 fab.visibility = View.VISIBLE
-
 
 
             }
@@ -270,14 +281,22 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             }
             3 -> //open ticket details from adapter
             {
-                newTicketFragment = NewTicketFragment()
-                fm.beginTransaction()
-                    .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
-                    .addToBackStack(null)
-                    .commit()
-                newTicketFragment.editMode =true// AppConstants.CurrentLoginAdmin.IsSuperAdmin
-                active = newTicketFragment
-                fab.visibility = View.INVISIBLE
+                try{
+                    Log.d(TAG,"open ticket details from adapter")
+                    newTicketFragment = NewTicketFragment()
+                    fm.beginTransaction()
+                        .replace(R.id.layout_container, newTicketFragment, "newTicketFragment")
+                        .addToBackStack(null)
+                        .commit()
+                    newTicketFragment.editMode = true// AppConstants.CurrentLoginAdmin.IsSuperAdmin
+                    active = newTicketFragment
+                    fab.visibility = View.INVISIBLE
+                    Log.d(TAG, "newTicketFragment")
+                }
+                catch(ex:Exception)
+                {
+                    Log.d(TAG, ex.message)
+                }
 
             }
 
@@ -308,8 +327,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     courierFragment.searchMode = false
                     fm.beginTransaction().remove(courierFragment).commit()
 
-                }
-                else {
+                } else {
                     newTaskFragment = NewTaskFragment()
                     newTaskFragment.editMode = true
                     fm.beginTransaction()
@@ -428,7 +446,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 finish()
             }
 
-            15-> // NOTIFICATION
+            15 -> // NOTIFICATION
             {
 
                 //show courier view
@@ -439,7 +457,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 active = notificationFragment
             }
 
-            16-> // NOTIFICATION DETAILS
+            16 -> // NOTIFICATION DETAILS
             {
 
                 //show courier view
@@ -450,12 +468,12 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                 active = notificationFragment
             }
 
-             17-> // COURIER FRAGMENT _SHOW COURIER DIRECTION OVER TASK PATH
+            17 -> // COURIER FRAGMENT _SHOW COURIER DIRECTION OVER TASK PATH
             {
 
                 if (NetworkManager().isNetworkAvailable(this)) {
                     courierFragment = CourierFragment()
-                    courierFragment.directionMode=true
+                    courierFragment.directionMode = true
                     fm.beginTransaction()
                         .replace(R.id.layout_container, courierFragment, "courierFragment")
                         .addToBackStack(null)
@@ -465,7 +483,19 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
                     Alert.showMessage(this, getString(R.string.no_internet))
             }
 
+            18 -> //send image from task view to task image viewer
+            {
+                taskImageFragment = TaskImageFragment()
+                var args = Bundle()
+                args.putString("Image", AppConstants.CURRENT_IMAGE_URI.toString());
+                taskImageFragment.arguments = args
+                fm.beginTransaction()
+                    .replace(R.id.layout_container, taskImageFragment, "taskImageFragment")
+                    .addToBackStack(null)
+                    .commit()
+                active = courierFragment
 
+            }
 
 
         }
@@ -496,19 +526,19 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 
         fab.setOnClickListener {
 
-//            if (AppConstants.CurrentLoginAdmin.IsSuperAdmin && active != newTicketFragment) {
-                newTicketFragment = NewTicketFragment()
-                fm.beginTransaction()
-                    .replace(
-                        R.id.layout_container,
-                        newTicketFragment,
-                        "newTicketFragment"
-                    ).addToBackStack(null)
-                    .commit()
+            //            if (AppConstants.CurrentLoginAdmin.IsSuperAdmin && active != newTicketFragment) {
+            newTicketFragment = NewTicketFragment()
+            fm.beginTransaction()
+                .replace(
+                    R.id.layout_container,
+                    newTicketFragment,
+                    "newTicketFragment"
+                ).addToBackStack(null)
+                .commit()
 
-                active = newTicketFragment
+            active = newTicketFragment
 
-                fab.visibility = View.INVISIBLE
+            fab.visibility = View.INVISIBLE
 //            }
 
 //            else if (active == newTicketFragment && newTicketFragment.editMode) {
@@ -620,7 +650,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
 //                    toggleFabMode()
                     if (NetworkManager().isNetworkAvailable(this)) {
                         courierFragment = CourierFragment()
-                        courierFragment.searchOnCourier=true
+                        courierFragment.searchOnCourier = true
                         fm.beginTransaction()
                             .replace(R.id.layout_container, courierFragment, "courierFragment")
                             .addToBackStack(null)
@@ -714,6 +744,9 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
     public override fun onResume() {
         super.onResume()
         forceUpdate()
+        if(mOnActivityResultIntent != null){
+            mOnActivityResultIntent = null
+        }
     }
 
 
@@ -791,7 +824,6 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             alertDialog.show()
         }
     }
-
 
 
 //endregion

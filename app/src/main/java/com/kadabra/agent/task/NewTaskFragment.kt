@@ -25,6 +25,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.DirectionsApiRequest
+import com.google.maps.GeoApiContext
+import com.google.maps.PendingResult
+import com.google.maps.model.DirectionsResult
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
@@ -43,6 +48,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.ceil
 
 
 class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, View.OnClickListener {
@@ -53,7 +59,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var tasks = ArrayList<Task>()
     private var stopsList = ArrayList<Stop>()
     private var stopsModelList = ArrayList<Stopsmodel>()
-
     private var courierList = ArrayList<Courier>()
     private var dummyCourierList = ArrayList<Courier>()
     private var dummyTicketList = ArrayList<Ticket>()
@@ -62,7 +67,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var selectedStopType: StopType? = null
     private var adapterTicket: TicketListAdapter? = null
     private var adapterCourier: CourierListAdapter? = null
-
     private var task = Task()
     private var taskModel = TaskModel()
     private var taskModelEdit = TaskModelEdit()
@@ -75,7 +79,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var mDay = 0
     private var mHour = 0
     private var mMinute = 0
-
     var editMode = false
     var taskAddMode = false
 
@@ -88,10 +91,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var listenerTask: ITaskCallback? = null
     private lateinit var etTaskName: EditText
     private lateinit var etTaskDescription: EditText
-
     private lateinit var etAmount: EditText
     private lateinit var etPickupTime: EditText
-
     private lateinit var sTicket: AutoCompleteTextView
     private lateinit var sCourier: AutoCompleteTextView
     private lateinit var tvAddStop: TextView
@@ -105,23 +106,33 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private lateinit var etLongitude: EditText
     private lateinit var rvStops: RecyclerView
     private lateinit var btnSave: Button
+    private lateinit var btnCancel: Button
     private lateinit var tvStatus: TextView
     private lateinit var ivDirection: ImageView
     private lateinit var ivTaskImage: ImageView
-
     private lateinit var refresh: SwipeRefreshLayout
     private var dateValue = ""
-
     private var isRecording = false
     private val recordPermission = Manifest.permission.RECORD_AUDIO
     private val PERMISSION_CODE = 21
     private var mediaRecorder: MediaRecorder? = null
-    private var recordFile: String? = null
+    private var recordFile: String = ""
     private lateinit var ivRecord: ImageView
     private lateinit var cbRecord: CheckBox
     private lateinit var record_timer: Chronometer
     private var allFiles = ArrayList<File>()
     private var recordPath = ""
+    private var alertDialog: AlertDialog? = null
+    private var cancelTaskView: View? = null
+    private lateinit var ivBackConfirmCancel: ImageView
+    private lateinit var etTotalCost: EditText
+    private lateinit var btnCancelConfirm: Button
+    private var mGeoApiContext: GeoApiContext? = null
+    var meters = 0L
+    private var totalKilometers = 0
+    private var totalDuration: Float = 0F
+    var totalDistance = 0L
+    var totalSeconds = 0L
     //endregion
 
     //region Events
@@ -134,6 +145,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             R.layout.fragment_new_task, container, false
         )
         init()
+        initDierction()
         getAllCouriers()
         prepareCourier(AppConstants.ALL_COURIERS)
         prepareStopType()
@@ -248,10 +260,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 AppConstants.CurrentSelectedTask = Task()  //reset selected task
                 listener!!.onBottomSheetSelectedItem(3)  //back to ticket details
             }
+
+            R.id.ivTaskImage -> {
+                listener!!.onBottomSheetSelectedItem(18)
+            }
             R.id.tvDeleteTask -> {
 
                 // if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() && AppConstants.CurrentSelectedTask.Status != AppConstants.IN_PROGRESS) {
-                if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
+                if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
                     var task = AppConstants.CurrentSelectedTask
                     AlertDialog.Builder(context)
                         .setTitle(AppConstants.WARNING)
@@ -271,8 +287,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     )
             }
             R.id.tvAddStop -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
+                if (
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
                 ) {
                     if (!rlStops.isVisible)
                         rlStops.visibility = View.VISIBLE
@@ -294,8 +311,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.tvGetLocation -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
                 ) {
                     Log.d(TAG, AppConstants.CurrentSelectedTask.Status)
                     hideKeyboard(tvGetLocation)
@@ -314,8 +331,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             R.id.btnAddStopLocation -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
+                if (
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
                 ) {
                     context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
                     if (validateStopData()) {
@@ -344,7 +362,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             addStopToStopList(stop)
                         } else
                             Alert.showMessage(
-                                context!!,
+
                                 "The task must include at least one Pickup and one Drop Off Stops."
                             )
 
@@ -362,19 +380,18 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             R.id.btnSave -> {
-
                 if (validateAll()) {
                     hideKeyboard(btnSave)
                     prepareTaskData()
                     if (!editMode) {
                         addTask(taskModel)
-                    } else if (editMode && AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                        (AppConstants.CurrentLoginAdmin.IsSuperAdmin /*&& task.Status == AppConstants.WAITING*/)
+                    } else if (editMode &&
+                        AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED &&
+                        AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED
                     )
                         editTask(taskModelEdit)
                     else
                         Alert.showMessage(
-                            context!!,
                             "Can't edit this task."
                         )
 
@@ -382,10 +399,75 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             }
+
+            R.id.btnCancel ->  // cancel task
+            {
+                if (
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
+                ) {
+
+                    if (alertDialog == null) {
+                        var alert = AlertDialog.Builder(context!!)
+                        alertDialog = alert.create()
+                        alertDialog!!.setView(cancelTaskView)
+                        etTotalCost.text.clear()
+                        alertDialog!!.show()
+                    } else {
+                        etTotalCost.text.clear()
+                        etTotalCost!!.requestFocus()
+                        alertDialog!!.setView(cancelTaskView)
+                        alertDialog!!.show()
+                    }
+
+                } else
+                    Alert.showMessage(
+                        "Can't Cancel this task."
+                    )
+            }
+
+            R.id.ivBackConfirmCancel -> {
+                if (alertDialog != null)
+                    alertDialog!!.dismiss()
+            }
+
+            R.id.btnCancelConfirm -> {
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() ||
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED
+                ) {
+                    var total = etTotalCost.text.toString().toDouble()
+                    cancelTask(AppConstants.CurrentSelectedTask.TaskId, total)
+                } else
+                    Alert.showMessage(
+                        "Can't Cancel this task."
+                    )
+            }
+
             R.id.ivDirection -> //get current courier direction if task is accepted
             {
                 if (!AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty())
                     listener?.onBottomSheetSelectedItem(17)
+                // the task is new so use it for calculate the distance between pickup and drop off before save task to decide create task for client or not
+                //accrding to calculated kilometers
+                else {
+                    //make sure stops have pickup and dropOff
+                    //get the kilometers and show on popup
+                    if (validateTaskAcceptance()) {
+                        var firstStop = stopsList.find { it.StopTypeID == 1 }
+                        var lastStop = stopsList.find { it.StopTypeID == 2 }
+                        var pickUp = LatLng(
+                            firstStop!!.Latitude!!,
+                            firstStop!!.Longitude!!
+                        )
+                        var dropOff = LatLng(
+                            lastStop!!.Latitude!!,
+                            lastStop!!.Longitude!!
+                        )
+
+                        calculateDirections(pickUp, dropOff)
+
+                    }
+                }
 
 
             }
@@ -420,9 +502,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             }
 
             R.id.cbRecord -> {
-                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status == AppConstants.NEW ||
-                    (AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
-                ) {
+                if (AppConstants.CurrentSelectedTask.TaskId.isNullOrEmpty() || AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED) {
                     if (cbRecord.isChecked) {
                         ivRecord.visibility = View.VISIBLE
                         record_timer.visibility = View.VISIBLE
@@ -431,10 +511,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     } else {
                         ivRecord.visibility = View.INVISIBLE
                         record_timer.visibility = View.INVISIBLE
+                        recordFile = ""
+                        recordPath = ""
                     }
                 } else
                     Alert.showMessage(
-                        context!!,
+
                         "Can't edit this task."
                     )
             }
@@ -449,6 +531,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     //region Helper Functions
     private fun init() {
+
+
         scroll = currentView.findViewById(com.kadabra.agent.R.id.scroll)
         refresh = currentView!!.findViewById(com.kadabra.agent.R.id.refresh)
         ivBack = currentView!!.findViewById(com.kadabra.agent.R.id.ivBack)
@@ -459,6 +543,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         tvStatus = currentView!!.findViewById(com.kadabra.agent.R.id.tvStatus)
         ivDirection = currentView!!.findViewById(com.kadabra.agent.R.id.ivDirection)
         ivTaskImage = currentView!!.findViewById(com.kadabra.agent.R.id.ivTaskImage)
+//        mRipplePulseLayout = currentView!!.findViewById(com.kadabra.agent.R.id.layout_ripplepulse)
 
         ivRecord = currentView!!.findViewById(com.kadabra.agent.R.id.ivRecord)
         cbRecord = currentView!!.findViewById(com.kadabra.agent.R.id.cbRecord)
@@ -481,8 +566,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         btnAddStopLocation = currentView!!.findViewById(com.kadabra.agent.R.id.btnAddStopLocation)
         rvStops = currentView!!.findViewById(com.kadabra.agent.R.id.rvStops)
         btnSave = currentView!!.findViewById(com.kadabra.agent.R.id.btnSave)
+        btnCancel = currentView!!.findViewById(com.kadabra.agent.R.id.btnCancel)
+
+        cancelTaskView = View.inflate(context!!, R.layout.cancel_task_layout, null)
+        ivBackConfirmCancel = cancelTaskView!!.findViewById(R.id.ivBackConfirmCancel)
+        etTotalCost = cancelTaskView!!.findViewById(R.id.etTotalCost)
+        btnCancelConfirm = cancelTaskView!!.findViewById(R.id.btnCancelConfirm)
 
 
+//        mRipplePulseLayout.startRippleAnimation()
 
         ivBack!!.setOnClickListener(this)
         tvDeleteTask!!.setOnClickListener(this)
@@ -493,13 +585,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         ivDirection.setOnClickListener(this)
         ivRecord.setOnClickListener(this)
         cbRecord.setOnClickListener(this)
-
-
-
-
-
+        ivTaskImage.setOnClickListener(this)
         btnAddStopLocation!!.setOnClickListener(this)
         btnSave!!.setOnClickListener(this)
+        btnCancel!!.setOnClickListener(this)
+        ivBackConfirmCancel.setOnClickListener(this)
+        btnCancelConfirm.setOnClickListener(this)
+
 
 
 
@@ -514,8 +606,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun defaultTaskData() {
 
-
         btnSave.text = context!!.getString(com.kadabra.agent.R.string.save)
+        btnCancel.visibility = View.INVISIBLE
         tvTaskDetails!!.hint = context!!.getString(com.kadabra.agent.R.string.new_task)
 
         tvDeleteTask!!.visibility = View.INVISIBLE
@@ -542,10 +634,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         selectedTicket =
             AppConstants.GetALLTicket.find { it.TicketId == AppConstants.CurrentSelectedTicket.TicketId }!!
 
-        if (task.Status == AppConstants.COMPLETED ||
-            (!AppConstants.CurrentLoginAdmin.IsSuperAdmin && task.Status == AppConstants.WAITING)
-        ) {
+        if (task.Status == AppConstants.COMPLETED || task.Status == AppConstants.CANCELLED) {
             btnSave.isEnabled = false
+            btnCancel.visibility = View.INVISIBLE
             btnSave.setBackgroundResource(R.drawable.rounded_button_disenaple)
         }
 
@@ -668,30 +759,30 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var drop = stopsList.count { it.StopTypeID == 2 }
 
         if (etTaskName.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "TaskName Name is required.")
+            Alert.showMessage("TaskName Name is required.")
             AnimateScroll.scrollToView(scroll, etTaskName)
             etTaskName.requestFocus()
             return false
         } else if (etTaskDescription.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "TaskName Description is required.")
+            Alert.showMessage("TaskName Description is required.")
             AnimateScroll.scrollToView(scroll, etTaskDescription)
             etTaskDescription.requestFocus()
             return false
         }
 //        else if (etAmount.text.toString().isNullOrEmpty()) {
-//            Alert.showMessage(context!!, "Amount is required.")
+//            Alert.showMessage(  "Amount is required.")
 //            AnimateScroll.scrollToView(scroll, etAmount)
 //            etAmount.requestFocus()
 //            return false
 //        }
         else if (etPickupTime.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Pickup Time is required.")
+            Alert.showMessage("Pickup Time is required.")
             AnimateScroll.scrollToView(scroll, etPickupTime)
             etPickupTime.requestFocus()
             showDateTimePicker()
             return false
         } else if (selectedCourier.CourierId == 0) {
-            Alert.showMessage(context!!, "Courier is required.")
+            Alert.showMessage("Courier is required.")
             AnimateScroll.scrollToView(scroll, sCourier)
             sCourier.requestFocus()
 //            sCourier.isCursorVisible=true
@@ -701,12 +792,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
         ) {
 
-            Alert.showMessage(context!!, "Complete add Stop data.")
+            Alert.showMessage("Complete add Stop data.")
             AnimateScroll.scrollToView(scroll, etLongitude)
             btnAddStopLocation.requestFocus()
             return false
         } else if (stopsList.size < 2) {
-            Alert.showMessage(context!!, "Cant save task without Pickup and Drop off stops.")
+            Alert.showMessage("Cant save task without Pickup and Drop off stops.")
             rlStops.visibility = View.VISIBLE
             AnimateScroll.scrollToView(scroll, etStopName)
             etStopName.requestFocus()
@@ -717,12 +808,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             etStopName.requestFocus()
             if (pick < 1)
                 Alert.showMessage(
-                    context!!,
+
                     "The task must include one Pickup Stop ."
                 )
             if (drop < 1)
                 Alert.showMessage(
-                    context!!,
+
                     "The task must include one Drop Off Stop ."
                 )
 
@@ -730,20 +821,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             return false
         }
 
-//        else if (stopsList.size >= 2) {
-//            var pick = stopsList.count { it.StopTypeID == 1 }
-//            var drop = stopsList.count { it.StopTypeID == 2 }
-//
-//             if (pick == 1 || drop == 1) {
-//                Alert.showMessage(
-//                    context!!, "The task must include at least one Pickup and one Drop Off Stops.")
-//
-//                return false
-//
-//            }
-//            return true
-//
-//        }
+
 
         return true
 
@@ -794,7 +872,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -804,22 +882,25 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                             var tasks = response.ResponseObj!!
                             var task = tasks[0]
-                            uploadRecord("$recordPath/$recordFile", task.TaskId)
-                            // add new task to the current ticket
                             AppConstants.CurrentSelectedTicket.taskModel.add(task)
-//                            listener!!.onBottomSheetSelectedItem(3)
+                            var recordFullPath = "$recordPath/$recordFile"
+                            if (!recordFile.isNullOrEmpty())
+                                uploadRecord(recordFullPath, task.TaskId)
+                            else
+                                listener!!.onBottomSheetSelectedItem(3)
+
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_login_server_error)
+                                response.Message
+//                                getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_login_server_error)
+                                response.Message
+//                                getString(R.string.error_login_server_error)
                             )
                         }
 
@@ -828,7 +909,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -846,7 +927,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -861,19 +942,25 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                                 AppConstants.CurrentSelectedTicket.taskModel.indexOf(AppConstants.CurrentSelectedTicket.taskModel.find { it.TaskId == task.TaskId })
                             AppConstants.CurrentSelectedTicket.taskModel[selectedTaskIndex] = task
                             AppConstants.CurrentSelectedTask = task
-                            uploadRecord("$recordPath/$recordFile", task.TaskId)
-                            listener!!.onBottomSheetSelectedItem(3)
+
+
+                            var recordFullPath = "$recordPath/$recordFile"
+                            if (!recordFile.isNullOrEmpty())
+                                uploadRecord(recordFullPath, task.TaskId)
+                            else
+                                listener!!.onBottomSheetSelectedItem(3)
+
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 response.Message
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_login_server_error)
+                                response.Message
+//                                getString(R.string.error_login_server_error)
                             )
                         }
 
@@ -882,10 +969,52 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
+
+    private fun cancelTask(taskId: String, amount: Double) {
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.cancelTask(
+                taskId,
+                amount
+            )
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<Boolean?>> {
+                    override fun onFailed(error: String) {
+                        Alert.hideProgress()
+                        Alert.showMessage(
+
+                            getString(R.string.error_login_server_error)
+                        )
+                    }
+
+                    override fun onSuccess(response: ApiResponse<Boolean?>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            Log.d(TAG, "response - " + response.toString())
+                            Log.d(TAG, "response.Status - " + response.Status.toString())
+                            alertDialog!!.dismiss()
+                            listener!!.onBottomSheetSelectedItem(3)
+
+                        } else {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                response.Message
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(getString(R.string.no_internet))
+        }
+    }
 
     private fun addStop(stop: Stop) {
 
@@ -905,7 +1034,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             object : INetworkCallBack<ApiResponse<ArrayList<Stop>>> {
                 override fun onFailed(error: String) {
                     Alert.showMessage(
-                        context!!,
+
                         getString(R.string.error_login_server_error)
                     )
                 }
@@ -916,12 +1045,12 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     } else if (response.Status == AppConstants.STATUS_FAILED) {
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -945,7 +1074,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -960,13 +1089,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         }
@@ -976,7 +1105,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -991,7 +1120,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -1005,13 +1134,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         }
@@ -1021,7 +1150,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -1036,7 +1165,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -1051,13 +1180,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         }
@@ -1067,7 +1196,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -1082,7 +1211,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -1095,13 +1224,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_login_server_error)
                             )
                         }
@@ -1111,7 +1240,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -1216,15 +1345,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 //        })
 
         sCourier.setOnTouchListener { v, event ->
-            if(courierList.size>0)
-            {if(sCourier.text.trim().isNotEmpty())
-            adapterCourier!!.filter.filter(null)
+            if (courierList.size > 0) {
+                if (sCourier.text.trim().isNotEmpty())
+                    adapterCourier!!.filter.filter(null)
                 sCourier.showDropDown()
             }
 
             false
         }
-
 
 
     }
@@ -1293,7 +1421,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             } else {
-                Alert.showMessage(context!!, getString(R.string.no_internet))
+                Alert.showMessage(getString(R.string.no_internet))
             }
 
 
@@ -1311,7 +1439,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         rvStops.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
         adapter.notifyDataSetChanged()
-        Alert.showMessage(context!!, "Stop ${stop.StopName} is added successfully.")
+        Alert.showMessage("Stop ${stop.StopName} is added successfully.")
         clearStopControlsData()
 
     }
@@ -1330,17 +1458,17 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun validateStopData(): Boolean {
         if (etStopName.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Stop Name is required.")
+            Alert.showMessage("Stop Name is required.")
             AnimateScroll.scrollToView(scroll, etStopName)
             etStopName.requestFocus()
             return false
         } else if (etLatitude.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Latitude is required.")
+            Alert.showMessage("Latitude is required.")
             AnimateScroll.scrollToView(scroll, etLatitude)
             etLatitude.requestFocus()
             return false
         } else if (etLongitude.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Longitude is required.")
+            Alert.showMessage("Longitude is required.")
             AnimateScroll.scrollToView(scroll, etLongitude)
             etLongitude.requestFocus()
             return false
@@ -1372,16 +1500,16 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<Boolean?>> {
+                object : INetworkCallBack<ApiResponse<Task?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
+
                             context!!.getString(R.string.error_login_server_error)
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<Boolean?>) {
+                    override fun onSuccess(response: ApiResponse<Task?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 //                            var tasks = response.ResponseObj!!
@@ -1393,13 +1521,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                "Can't delete this task it's in progress."
+                                response.Message
+                                // "Can't delete this task it's in progress."
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
+
                                 context!!.getString(R.string.error_login_server_error)
                             )
                         }
@@ -1409,7 +1537,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, context!!.getString(R.string.no_internet))
+            Alert.showMessage(context!!.getString(R.string.no_internet))
         }
     }
 
@@ -1433,7 +1561,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         hideProgress()
                         refresh.isRefreshing = false
                         Alert.showMessage(
-                            context!!,
+
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -1446,6 +1574,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             FirebaseManager.getTaskImage(task.TaskId) { success, data ->
 
                                 if (success) {
+                                    AppConstants.CURRENT_IMAGE_URI = data
                                     Glide.with(activity!! /* context */)
                                         .load(data)
                                         .into(ivTaskImage)
@@ -1459,7 +1588,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             hideProgress()
                             refresh.isRefreshing = false
                             Alert.showMessage(
-                                context!!,
+
                                 getString(R.string.error_network)
                             )
                         }
@@ -1471,7 +1600,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             hideProgress()
             refresh.isRefreshing = false
             Alert.showMessage(
-                context!!,
                 getString(R.string.no_internet)
             )
         }
@@ -1589,7 +1717,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private fun stopRecording() { //Stop Timer, very obvious
         record_timer!!.stop()
         //Change text on page to file saved
-        Alert.showMessage(context!!, "Recording Stopped, File Saved : $recordFile")
+//        Alert.showMessage(context!!, "Recording Stopped, File Saved : $recordFile")
 //        filenameText!!.text = "Recording Stopped, File Saved : $recordFile"
         //Stop media recorder and set it to null for further use to record new audio
         record_timer.text = "Done."
@@ -1646,12 +1774,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 FirebaseManager.uploadRecord(uri, taskId) { success ->
                     if (success) {
                         Alert.hideProgress()
-                        Log.d(TAG, "success")
-                        //file uploaded succeded
+                        Log.d(TAG, "Success")
                         listener!!.onBottomSheetSelectedItem(3)
                     } else {
-                        //failed
-                        Alert.showMessage(context!!, "Error on uploading file to server.")
+                        Log.d(TAG, "Failed")
+                        Alert.showMessage("Error on uploading file to server.")
                     }
                 }
             }
@@ -1666,4 +1793,150 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         return from.parentFile.exists() && from.exists() && from.renameTo(to)
     }
 
+    //this is eused when we need to check the kilmeters for the task and till the client about it before screate the task
+//    if accpted save the task
+    private fun validateTaskAcceptance(): Boolean {
+        var pick = stopsList.count { it.StopTypeID == 1 }
+        var drop = stopsList.count { it.StopTypeID == 2 }
+        if (rlStops.isVisible && stopsList.size <= 0 &&
+            etLatitude.text.toString().isNotEmpty() || etLongitude.text.toString().isNotEmpty()
+        ) {
+
+            Alert.showMessage("Complete add Stop data.")
+            AnimateScroll.scrollToView(scroll, etLongitude)
+            btnAddStopLocation.requestFocus()
+            return false
+        } else if (stopsList.size < 2) {
+            Alert.showMessage("for calculate task kilometers please enter stops first and click again.")
+            rlStops.visibility = View.VISIBLE
+            AnimateScroll.scrollToView(scroll, etStopName)
+            etStopName.requestFocus()
+
+            return false
+        } else if (stopsList.size >= 2 && pick == 0 || drop == 0) {
+            AnimateScroll.scrollToView(scroll, etStopName)
+            etStopName.requestFocus()
+            if (pick < 1)
+                Alert.showMessage(
+
+                    "The task must include one Pickup Stop ."
+                )
+            if (drop < 1)
+                Alert.showMessage(
+
+                    "The task must include one Drop Off Stop ."
+                )
+
+
+            return false
+        }
+        return true
+    }
+
+    private fun calculateDirections(
+        origin: LatLng,
+        dest: LatLng
+    ) {
+
+        val destination = com.google.maps.model.LatLng(
+            dest.latitude,
+            dest.longitude
+        )
+        val directions = DirectionsApiRequest(mGeoApiContext)
+        directions.alternatives(false)
+
+        directions.origin(
+            com.google.maps.model.LatLng(
+                origin.latitude,
+                origin.longitude
+            )
+        )
+        Log.d(TAG, "calculateDirections: destination: $destination")
+
+        if (stopsList.size > 2) {
+            stopsList.forEach {
+
+                if (it.StopTypeID == 3) {
+                    directions.waypoints(
+                        com.google.maps.model.LatLng(
+                            it.Latitude!!,
+                            it.Longitude!!
+                        )
+                    )
+
+                }
+
+            }
+            directions.optimizeWaypoints(true)
+        }
+
+        directions.destination(destination)
+            .setCallback(object : PendingResult.Callback<DirectionsResult?> {
+                override fun onResult(result: DirectionsResult?) {
+
+                    result!!.routes[0].legs.forEach {
+                        Log.d(
+                            TAG,
+                            "LEG: duration: " + it.duration
+                        );
+                        Log.d(
+                            TAG,
+                            "LEG: distance: " + it.distance
+                        );
+                        Log.d("LEG DATA", it.toString())
+
+                        meters += it.distance.inMeters
+                        totalDistance += it.distance.inMeters
+                        totalSeconds += it.duration.inSeconds
+                    }
+                    Log.d(TAG, "totalKilometers: $totalKilometers")
+                    Log.d(TAG, "METERS:  $meters")
+                    totalKilometers = conevrtMetersToKilometers(meters)
+                    meters = 0L
+                    var data =
+                        "Total Kilometers: ( " + totalKilometers + " " + getString(R.string.km) + "  )"
+
+                    activity?.runOnUiThread {
+                        Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                    }
+
+
+                }
+
+                override fun onFailure(e: Throwable) {
+                    activity!!.runOnUiThread {
+                        Alert.hideProgress()
+                        Alert.showMessage(context!!, "Can't find a way there.")
+                        totalKilometers = 0
+                        Log.e(
+                            TAG,
+                            "calculateDirections: Failed to get directions: " + e.message
+                        )
+                    }
+                }
+            })
+
+    }
+
+    private fun initDierction() {
+        //direction
+        if (mGeoApiContext == null) {
+            mGeoApiContext = GeoApiContext.Builder()
+                .apiKey(getString(R.string.google_map_key))
+                .build()
+        }
+    }
+
+    private fun conevrtMetersToKilometers(meters: Long): Int {
+        var kilometers = 0
+        if (meters in 100..999) //grater than 100 meters and ess than 1000 meters consider as 1 kilometer
+            kilometers = 1
+        else
+            kilometers = ceil((meters * 0.001).toFloat()).toInt()
+
+        Log.d(TAG, "totalKilometers: RESULT $kilometers")
+
+
+        return kilometers
+    }
 }

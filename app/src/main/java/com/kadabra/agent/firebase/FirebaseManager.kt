@@ -163,23 +163,20 @@ object FirebaseManager {
 
     }
 
-    fun getTaskRecord(taskId:String, completion: (success: Boolean,data: Uri?) -> Unit)
-    {
+    fun getTaskRecord(taskId: String, completion: (success: Boolean, data: Uri?) -> Unit) {
 
         mAudioStorage.child(taskId).downloadUrl.addOnSuccessListener {
-            completion(true,it)
-        }.addOnFailureListener { completion(false,null) }
+            completion(true, it)
+        }.addOnFailureListener { completion(false, null) }
     }
 
-    fun getTaskImage(taskId:String, completion: (success: Boolean,data: Uri?) -> Unit)
-    {
+    fun getTaskImage(taskId: String, completion: (success: Boolean, data: Uri?) -> Unit) {
         Log.d(TAG, "getTaskImage")
         mImageStorage.child("$taskId.jpeg").downloadUrl.addOnSuccessListener {
             Log.d(TAG, it.toString())
-            completion(true,it)
-        }.addOnFailureListener { completion(false,null) }
+            completion(true, it)
+        }.addOnFailureListener { completion(false, null) }
     }
-
 
 
     //endregion

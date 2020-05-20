@@ -67,11 +67,16 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-<!--        <service android:name="com.kadabra.agent.firebase.FirebasePushNotificatinService">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="com.google.firebase.MESSAGING_EVENT" />-->
-<!--            </intent-filter>-->
-<!--        </service>-->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.kadabra.agent.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <service android:name=".services.NotificatinService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

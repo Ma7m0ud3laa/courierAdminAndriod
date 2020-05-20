@@ -1,6 +1,8 @@
 package com.kadabra.agent.adapter
 
 import android.content.Context
+import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,23 +106,32 @@ class TicketAdapter(
             holder.tvComingTaskPickupTime.text =
                 tf.format(dateObj!!.time)
         } else
-            holder.tvComingTaskPickupTime.visibility = View.INVISIBLE
+        {
+            var myFormat = "EEE, MMM d, yyyy   hh:mm a" //
+            var t = "yyyy-MM-dd'T'HH:mm:ss"
+            var sdf = SimpleDateFormat(t, Locale.US)
+            var tf = SimpleDateFormat(myFormat, Locale.US)
+            var dateObj = sdf.parse(ticket.CreationDate)
+            holder.tvComingTaskPickupTime.text =
+                tf.format(dateObj!!.time)
+        }
+
 
 
 
 
         when (ticket.Status) {
             AppConstants.TaskStatus.NEW.status -> {
-                holder.tvStatus.setTextColor(context.getColor(R.color.link))
+                holder.tvStatus.setTextColor(Color.parseColor("#008CDB"))
             }
             AppConstants.TaskStatus.IN_PROGRESS.status -> {
-                holder.tvStatus.setTextColor(context.getColor(R.color.crimson))
+                holder.tvStatus.setTextColor(Color.parseColor("#DC143C"))
             }
             AppConstants.TaskStatus.POST_PONDED.status -> {
-                holder.tvStatus.setTextColor(context.getColor(R.color.black))
+                holder.tvStatus.setTextColor(Color.parseColor("#000000"))
             }
             AppConstants.TaskStatus.COMPLETED.status -> {
-                holder.tvStatus.setTextColor(context.getColor(R.color.green))
+                holder.tvStatus.setTextColor(Color.parseColor("#00BE12"))
             }
 
         }
@@ -163,6 +174,7 @@ class TicketAdapter(
                 ticket = ticketList[pos]
 //
 //                if (checkPermissions()&& LocationHelper.shared.isGPSEnabled()) {
+                Log.d("Ticket Adapter","open ticket details from adapter")
                 AppConstants.CurrentSelectedTicket = ticket
                 listener!!.onBottomSheetSelectedItem(3)
 //                }

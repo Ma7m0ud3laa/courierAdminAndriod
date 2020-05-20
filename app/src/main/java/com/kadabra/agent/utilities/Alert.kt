@@ -47,9 +47,14 @@ object Alert {
 //        mLoadingDialog!!.hide()
     }
 
+    fun showMessage( message: String) {
+        Toast.makeText(AppController.getContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     fun showMessage(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
+
 
     fun showAlertMessage(context: Context, title: String, message: String) {
         AlertDialog.Builder(context)

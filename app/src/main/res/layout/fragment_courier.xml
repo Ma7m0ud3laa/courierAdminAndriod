@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.an      droid.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rlParent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".courier.CourierFragment"
-    android:id="@+id/rlParent"
-    >
+    tools:context=".courier.CourierFragment">
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
@@ -18,7 +17,6 @@
 
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
 
 
         <ImageView
@@ -41,7 +39,7 @@
             android:layout_marginBottom="100dp"
             android:background="@drawable/rounded_button"
             android:elevation="1dp"
-            android:text="Confirm Location"
+            android:text="@string/confirm_location"
             android:textAllCaps="false"
             android:textColor="@color/colorSecondary"
             android:visibility="invisible" />
@@ -51,26 +49,26 @@
             android:id="@+id/ivBack"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginTop="20dp"
             android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:src="@drawable/ic_back"
-android:visibility="invisible"
-            />
+            android:visibility="invisible"
+            android:focusable="true" />
+
         <com.mancj.materialsearchbar.MaterialSearchBar
-            app:mt_speechMode="false"
+            android:id="@+id/searchBar"
+            android:theme="@style/MyCustomTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/searchBar"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="16dp"
-       android:layout_marginTop="20dp"
-            app:mt_navIconEnabled="true"
             android:elevation="1dp"
             android:outlineProvider="bounds"
-
-            app:mt_placeholder="Search a place"/>
+            app:mt_navIconEnabled="true"
+            app:mt_placeholder="Search a place" />
 
         <RelativeLayout
             android:id="@+id/rlBottom"
@@ -78,10 +76,9 @@ android:visibility="invisible"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="50dp"
-            android:elevation="1dp"
             android:background="@color/white"
-            android:visibility="gone"
-            >
+            android:elevation="1dp"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/tvExpectedTime"
@@ -97,24 +94,24 @@ android:visibility="invisible"
                 android:id="@+id/tvExpectedDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/tvExpectedTime"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="2dp"
+                android:layout_toEndOf="@+id/tvExpectedTime"
                 android:text="@string/minutes"
                 android:textColor="@color/black"
                 android:textSize="18sp" />
+
             <TextView
                 android:id="@+id/tvDetails"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="20dp"
                 android:layout_below="@+id/tvExpectedTime"
                 android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="20dp"
                 android:text="@string/fastest_route"
                 android:textColor="@color/textColor"
-                android:textSize="16sp"
-                />
+                android:textSize="16sp" />
 
 
         </RelativeLayout>

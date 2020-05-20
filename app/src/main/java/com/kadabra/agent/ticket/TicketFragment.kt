@@ -2,6 +2,7 @@ package com.kadabra.agent.ticket
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,11 +24,13 @@ import com.kadabra.agent.model.TicketData
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
+import com.reach.plus.admin.util.UserSessionManager
 
 
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
     // TODO: Rename and change types of parameters
+    private var TAG=this.javaClass.simpleName
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var ticket: Ticket = Ticket()
@@ -49,6 +52,8 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             mParam1 = arguments!!.getString(ARG_PARAM1)
             mParam2 = arguments!!.getString(ARG_PARAM2)
         }
+
+        AppConstants.CurrentLoginAdmin=UserSessionManager.getInstance(AppController.getContext()).getUserData()!!
     }
 
     override fun onCreateView(
@@ -99,11 +104,11 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     }
 
     override fun onBottomSheetClosed(isClosed: Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onBottomSheetSelectedItem(index: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     private fun init(view: View) {
@@ -116,6 +121,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
 
         sRefresh?.setOnRefreshListener {
+            Log.d(TAG,"  sRefresh?.setOnRefreshListener")
             loadTickets(AppConstants.CurrentLoginAdmin.AdminId)
 
         }
@@ -132,6 +138,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
 
     private fun loadTickets(adminID: String) {
+        Log.d(TAG," loadTickets")
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             ivNoInternet!!.visibility = View.INVISIBLE
@@ -141,9 +148,10 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                 endPoint,
                 object : INetworkCallBack<ApiResponse<TicketData>> {
                     override fun onFailed(error: String) {
+                        Log.e(TAG,error)
                         sRefresh!!.isRefreshing = false
                         Alert.hideProgress()
-                        Alert.showMessage(context!!, context!!.getString(R.string.error_login_server_error))
+                        Alert.showMessage( AppController.getContext().getString(R.string.error_login_server_error))
                     }
 
                     override fun onSuccess(response: ApiResponse<TicketData>) {
@@ -152,6 +160,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             ticketList = ticketsData.simpleTicketmodels
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
+                                Log.d(TAG,"ticketList size : ${ticketList.toString()}")
                                 prepareTicketData(ticketList)
                                 AppConstants.GetALLTicket = ticketList
 //                                getAllCouriers()
@@ -175,7 +184,6 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             sRefresh!!.isRefreshing = false
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_network)
                             )
                         }
@@ -187,7 +195,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             ivNoInternet!!.visibility = View.VISIBLE
             sRefresh!!.isRefreshing = false
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
 
 
@@ -205,7 +213,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                     override fun onFailed(error: String) {
                         sRefresh!!.isRefreshing = false
                         Alert.hideProgress()
-                        Alert.showMessage(context!!, getString(R.string.error_login_server_error))
+                        Alert.showMessage( getString(R.string.error_login_server_error))
                     }
 
                     override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
@@ -228,7 +236,6 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             sRefresh!!.isRefreshing = false
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_network)
                             )
                         }
@@ -240,7 +247,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             ivNoInternet!!.visibility = View.VISIBLE
             sRefresh!!.isRefreshing = false
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
 
 

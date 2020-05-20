@@ -17,15 +17,15 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp">
 
-<!--        <ImageView-->
-<!--            android:id="@+id/ivVehicle"-->
-<!--            android:layout_width="36dp"-->
-<!--            android:layout_height="36dp"-->
-<!--            android:layout_alignParentEnd="true"-->
-<!--            android:layout_marginEnd="20dp"-->
-<!--            android:layout_marginBottom="10dp"-->
-<!--           android:src="@drawable/car" -->
-<!--            android:scaleType="centerCrop"/>-->
+        <!--        <ImageView-->
+        <!--            android:id="@+id/ivVehicle"-->
+        <!--            android:layout_width="36dp"-->
+        <!--            android:layout_height="36dp"-->
+        <!--            android:layout_alignParentEnd="true"-->
+        <!--            android:layout_marginEnd="20dp"-->
+        <!--            android:layout_marginBottom="10dp"-->
+        <!--           android:src="@drawable/car" -->
+        <!--            android:scaleType="centerCrop"/>-->
         <ImageView
             android:id="@+id/ivCourierImage"
             android:layout_width="48dp"
@@ -85,18 +85,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvHaveTaskNow"
-            android:layout_margin="10dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="10dp"
+            android:visibility="invisible"
             app:spb_animateToCurrentProgressState="true"
             app:spb_checkStateCompleted="true"
             app:spb_currentStateDescriptionColor="#009688"
             app:spb_currentStateNumber="one"
+            app:spb_justifyMultilineDescription="true"
             app:spb_maxStateNumber="two"
             app:spb_stateBackgroundColor="#BDBDBD"
             app:spb_stateDescriptionColor="#808080"
             app:spb_stateForegroundColor="#009688"
             app:spb_stateNumberBackgroundColor="#808080"
-            app:spb_stateNumberForegroundColor="#eeeeee"
-            android:visibility="invisible"/>
+            app:spb_stateNumberForegroundColor="#eeeeee" />
 
         <View
             android:layout_width="match_parent"

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     android:focusableInTouchMode="true"
     tools:context=".task.NewTaskFragment">
 
@@ -504,9 +503,23 @@
                     android:layout_marginStart="24dp"
                     android:layout_marginTop="40dp"
                     android:layout_marginEnd="24dp"
-                    android:layout_marginBottom="60dp"
                     android:background="@drawable/rounded_button"
                     android:text="@string/save"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorSecondary"
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/btnCancel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/btnSave"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginBottom="60dp"
+                    android:background="@drawable/rounded_button"
+                    android:text="@string/cancel"
                     android:textAllCaps="false"
                     android:textColor="@color/colorSecondary"
                     android:textSize="20sp" />

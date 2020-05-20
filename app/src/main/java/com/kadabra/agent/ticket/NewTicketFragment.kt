@@ -37,7 +37,7 @@ import com.hbb20.CountryCodePicker
 class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     View.OnClickListener {
 
-    private var TAG=this.javaClass.simpleName
+    private var TAG = this.javaClass.simpleName
     private lateinit var scroll: ScrollView
     private lateinit var rlParent: RelativeLayout
 
@@ -59,7 +59,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
-    private  var ccp: CountryCodePicker?=null
+    private var ccp: CountryCodePicker? = null
 
     //    private lateinit var sCategory: AutoCompleteTextView
     private lateinit var sPriority: AutoCompleteTextView
@@ -123,7 +123,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 prepareTicketSubData()
             }
         } else
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
 
 //        if (editMode)
 //            getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
@@ -144,23 +144,18 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.ivCheck -> {
-                if (etMobile.text.trim().isNullOrEmpty() ) {
-                    Alert.showMessage(context!!, "User Mobile is required.")
+                if (etMobile.text.trim().isNullOrEmpty()) {
+                    Alert.showMessage("User Mobile is required.")
                     AnimateScroll.scrollToView(scroll, etMobile)
                     etMobile.requestFocus()
-                 return
-                }
-                else
-                {
-                    if( validatePhone(ccp!!, etMobile))
-                    {
-                        var mobileNo=ccp?.fullNumber
+                    return
+                } else {
+                    if (validatePhone(ccp!!, etMobile)) {
+                        var mobileNo = ccp?.fullNumber
                         getClientName(mobileNo!!)
-                        Log.d(TAG,mobileNo)
-                    }
-                    else
-                    {
-                        Alert.showMessage(context!!, "User Mobile is required.")
+                        Log.d(TAG, mobileNo)
+                    } else {
+                        Alert.showMessage("User Mobile is required.")
                         AnimateScroll.scrollToView(scroll, etMobile)
                         etMobile.requestFocus()
                     }
@@ -172,7 +167,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 if (NetworkManager().isNetworkAvailable(context!!))
                     showServiceCostWindow()
                 else
-                    Alert.showMessage(context!!, getString(R.string.no_internet))
+                    Alert.showMessage(getString(R.string.no_internet))
             }
 
             R.id.tvAddTask -> {// add task to the current ticket
@@ -209,7 +204,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         }
                     }
                 } else
-                    Alert.showMessage(context!!, getString(R.string.no_internet))
+                    Alert.showMessage(getString(R.string.no_internet))
 
             }
             R.id.btnSave -> {
@@ -223,9 +218,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             editTicket(ticketModel)
                     }
                 } else
-                    Alert.showMessage(context!!, getString(R.string.no_internet))
+                    Alert.showMessage(getString(R.string.no_internet))
 //                } else
-//                    Alert.showMessage(context!!, "You are not authorized to perform this action!!.")
+//                    Alert. showMessage( "You are not authorized to perform this action!!.")
 
 
             }
@@ -236,12 +231,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private fun validateServiceCost(): Boolean {
 
         if (etServiceCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Service cost Name is required.")
+            Alert.showMessage("Service cost Name is required.")
             etServiceCost!!.requestFocus()
             return false
         }
         if (etCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "cost is required.")
+            Alert.showMessage("cost is required.")
             etCost!!.requestFocus()
             return false
         }
@@ -306,8 +301,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
             ivCheck!!.isEnabled = false
             ivCheck!!.setOnClickListener(null)
-            ivCheck!!.visibility=View.GONE
-            tvClientName!!.visibility=View.VISIBLE
+            ivCheck!!.visibility = View.GONE
+            tvClientName!!.visibility = View.VISIBLE
 
             tvTicketDetails!!.text = getString(R.string.ticket_details)
             etMobile.isEnabled = false
@@ -558,7 +553,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 override fun onFailed(error: String) {
                     Alert.hideProgress()
                     Alert.showMessage(
-                        context!!,
                         getString(R.string.error_login_server_error)
                     )
                 }
@@ -583,7 +577,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
 
     }
@@ -617,61 +611,59 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     override fun onTaskDelete(task: Task?) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-           if(task?.Status==AppConstants.NEW)
-           { var request = NetworkManager().create(ApiServices::class.java)
-               var endPoint = request.getTaskDetails(task!!.TaskId)
-               NetworkManager().request(
-                   endPoint,
-                   object : INetworkCallBack<ApiResponse<Task>> {
-                       override fun onFailed(error: String) {
-                           Alert.hideProgress()
-                           Alert.showMessage(
-                               context!!,
-                               getString(R.string.error_login_server_error)
-                           )
-                       }
+            if (task?.Status == AppConstants.NEW||task?.Status == AppConstants.WAITING) {
+                var request = NetworkManager().create(ApiServices::class.java)
+                var endPoint = request.getTaskDetails(task!!.TaskId)
+                NetworkManager().request(
+                    endPoint,
+                    object : INetworkCallBack<ApiResponse<Task>> {
+                        override fun onFailed(error: String) {
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                getString(R.string.error_login_server_error)
+                            )
+                        }
 
-                       override fun onSuccess(response: ApiResponse<Task>) {
-                           if (response.Status == AppConstants.STATUS_SUCCESS) {
-                               taskInProgress = true
-                               var task = response.ResponseObj!!
-                               AppConstants.CurrentSelectedTask = task
-                               Alert.hideProgress()
+                        override fun onSuccess(response: ApiResponse<Task>) {
+                            if (response.Status == AppConstants.STATUS_SUCCESS) {
+                                taskInProgress = true
+                                var task = response.ResponseObj!!
+                                AppConstants.CurrentSelectedTask = task
+                                Alert.hideProgress()
 
-                               if (task.Status != AppConstants.IN_PROGRESS) {
-                                   AlertDialog.Builder(context)
-                                       .setTitle(AppConstants.WARNING)
-                                       .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
-                                       .setIcon(android.R.drawable.ic_dialog_alert)
-                                       .setPositiveButton(AppConstants.OK) { dialog, which ->
-                                           deleteTask(task)
-                                       }
-                                       .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
-                                       .show()
-                               } else {
-                                   getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
-                                   Alert.showAlertMessage(
-                                       context!!,
-                                       AppConstants.WARNING,
-                                       "Can't edit this task it's in progress."
-                                   )
-                               }
+                                if (task.Status != AppConstants.IN_PROGRESS) {
+                                    AlertDialog.Builder(context)
+                                        .setTitle(AppConstants.WARNING)
+                                        .setMessage(getString(R.string.message_delete) + " " + task.TaskName + " ?")
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .setPositiveButton(AppConstants.OK) { dialog, which ->
+                                            deleteTask(task)
+                                        }
+                                        .setNegativeButton(AppConstants.CANCEL) { dialog, which -> }
+                                        .show()
+                                } else {
+                                    getTicketById(AppConstants.CurrentSelectedTicket.TicketId!!)
+                                    Alert.showAlertMessage(
+                                        context!!,
+                                        AppConstants.WARNING,
+                                        "Can't edit this task it's in progress."
+                                    )
+                                }
 
 
-                           } else {
-                               Alert.hideProgress()
-                               Alert.showMessage(
-                                   context!!,
-                                   getString(R.string.error_network)
-                               )
-                           }
+                            } else {
+                                Alert.hideProgress()
+                                Alert.showMessage(
+                                    getString(R.string.error_network)
+                                )
+                            }
 
-                       }
-                   })}
+                        }
+                    })
+            }
         } else {
             Alert.hideProgress()
             Alert.showMessage(
-                context!!,
                 getString(R.string.no_internet)
             )
         }
@@ -692,7 +684,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         Alert.hideProgress()
                         refresh.isRefreshing = false
                         Alert.showMessage(
-                            context!!,
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -708,7 +699,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             Alert.hideProgress()
                             refresh.isRefreshing = false
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_network)
                             )
                         }
@@ -720,7 +710,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             Alert.hideProgress()
             refresh.isRefreshing = false
             Alert.showMessage(
-                context!!,
                 getString(R.string.no_internet)
             )
         }
@@ -735,9 +724,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private fun loadTicketDetails(ticket: Ticket) {
 
 
-        if(!ticket.UserName.trim().isNullOrEmpty())
-        {
-            tvClientName!!.visibility=View.VISIBLE
+        if (!ticket.UserName.trim().isNullOrEmpty()) {
+            tvClientName!!.visibility = View.VISIBLE
             tvClientName?.text = ticket.UserName
         }
 
@@ -752,7 +740,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         ccp?.fullNumber = ticket.UserMobile
 //        ccp.isEnabled=false
         ccp?.setCcpClickable(false)
-
 
 
 //        if (ticket.CategoryId != null) {
@@ -804,16 +791,15 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<Boolean?>> {
+                object : INetworkCallBack<ApiResponse<Task?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
                             context!!.getString(R.string.error_login_server_error)
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<Boolean?>) {
+                    override fun onSuccess(response: ApiResponse<Task?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 //                            var tasks = response.ResponseObj!!
@@ -826,19 +812,16 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 "Can't delete this task it's in progress."
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 context!!.getString(R.string.error_login_server_error)
                             )
                         } else {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 context!!.getString(R.string.error_login_server_error)
                             )
                         }
@@ -849,7 +832,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         } else {
             Alert.hideProgress()
             Alert.showMessage(
-                context!!,
                 context!!.getString(R.string.no_internet)
             )
         }
@@ -869,7 +851,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         Alert.hideProgress()
                         refresh.isRefreshing = false
                         Alert.showMessage(
-                            context!!,
                             context!!.getString(R.string.error_login_server_error)
                         )
                     }
@@ -885,14 +866,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                             Alert.hideProgress()
                             refresh.isRefreshing = false
                             Alert.showMessage(
-                                context!!,
                                 context!!.getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             refresh.isRefreshing = false
                             Alert.showMessage(
-                                context!!,
                                 context!!.getString(R.string.error_login_server_error)
                             )
                         }
@@ -904,7 +883,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             Alert.hideProgress()
             refresh.isRefreshing = false
             Alert.showMessage(
-                context!!,
                 context!!.getString(R.string.no_internet)
             )
         }
@@ -924,7 +902,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -941,20 +918,18 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_mobile_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_login_server_error)
                             )
                         } else {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_login_server_error)
+                                response.Message
+//                                getString(R.string.error_login_server_error)
                             )
                         }
 
@@ -963,7 +938,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -978,7 +953,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -991,7 +965,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         } else {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_mobile_error)
                             )
                         }
@@ -1001,7 +974,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
@@ -1016,7 +989,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -1033,13 +1005,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
-                                getString(R.string.error_login_server_error)
+                                response.Message
+//                                getString(R.string.error_login_server_error)
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                context!!,
                                 getString(R.string.error_login_server_error)
                             )
                         }
@@ -1049,52 +1020,52 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
         } else {
             Alert.hideProgress()
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
     private fun validateAll(): Boolean {
 
         if (etTicketName.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Ticket Name is required.")
+            Alert.showMessage("Ticket Name is required.")
             AnimateScroll.scrollToView(scroll, etTicketName)
             etTicketName.requestFocus()
             return false
         } else if (etTicketDescription.text.toString().isNullOrEmpty()) {
-            Alert.showMessage(context!!, "Ticket Description is required.")
+            Alert.showMessage("Ticket Description is required.")
             AnimateScroll.scrollToView(scroll, etTicketDescription)
             etTicketDescription.requestFocus()
             return false
         } else if (etMobile.text.trim().isNullOrEmpty() /*|| etMobile.text.length < 11*/) {
-            Alert.showMessage(context!!, "User Mobile is required.")
+            Alert.showMessage("User Mobile is required.")
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
         } else if (!validatePhone(ccp!!, etMobile) && !editMode) {
-            Alert.showMessage(context!!, getString(R.string.error_invalid_phone))
+            Alert.showMessage(getString(R.string.error_invalid_phone))
             AnimateScroll.scrollToView(scroll, etMobile)
             etMobile.requestFocus()
             return false
         }
 //        else if (selectedCategory.CategoryId.isNullOrEmpty()) {
-//            Alert.showMessage(context!!, "Category is required.")
+//            Alert. showMessage( "Category is required.")
 //            AnimateScroll.scrollToView(scroll, etMobile)
 //            sCategory.showDropDown()
 //            return false
 //        }
         else if (selectedStatus.StatusId == null) {
-            Alert.showMessage(context!!, "Status is required.")
+            Alert.showMessage("Status is required.")
             AnimateScroll.scrollToView(scroll, sStatus)
             sStatus.showDropDown()
             return false
         } else if (selectedPaymentMethod.paymentId == null) {
-            Alert.showMessage(context!!, "Payment is required.")
+            Alert.showMessage("Payment is required.")
             AnimateScroll.scrollToView(scroll, sPayment)
             sPayment.showDropDown()
             return false
         }
 //        else if (selectedPriority.PriorityId == null) {
-//            Alert.showMessage(context!!, "Prirotiy is required.")
+//            Alert. showMessage( "Prirotiy is required.")
 //            AnimateScroll.scrollToView(scroll, sPriority)
 //            sPriority.showDropDown()
 //            return false

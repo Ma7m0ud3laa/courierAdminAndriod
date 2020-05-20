@@ -85,6 +85,11 @@ interface ApiServices {
     )
             : Call<ApiResponse<ArrayList<Task>>>
 
+    @POST(AppConstants.URL_CANCEL_TASK)
+    fun cancelTask(
+        @Query("taskId") taskId: String, @Query("amount") amount: Double
+    )
+            : Call<ApiResponse<Boolean?>>
 
     @POST(AppConstants.URL_REASSIGN_TASK_TO_COURIER)
     fun reAssignTaskToCourier(@Query("TaskId") taskId: String, @Query("CourierID") courierId: String)
@@ -124,7 +129,7 @@ interface ApiServices {
         @Query("taskId") taskId: String,
         @Query("AdminId") adminId: String
     )
-            : Call<ApiResponse<Boolean?>>
+            : Call<ApiResponse<Task?>>
 
 
     @POST(AppConstants.URL_REMOVE_STOP)
@@ -162,6 +167,11 @@ interface ApiServices {
     @GET(AppConstants.URL_GET_CLIENT_NAME)
     fun getClientName(@Query("mobile") mobileNo: String)
             : Call<ApiResponse<String?>>
+
+    @POST(AppConstants.URL_TAG_AGENT_IN_TICKET)
+    fun tagAgentInTicket(@Query("TicketId") ticketId: String, @Query("AgentId") agentId: String,@Query("TaggedAgentId") taggedAgentId:String)
+            : Call<ApiResponse<Boolean>>
+
 
 /////////////////////////////////////////////
 

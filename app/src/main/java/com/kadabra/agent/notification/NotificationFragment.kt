@@ -109,7 +109,6 @@ class NotificationFragment : BaseFragment(), IBottomSheetCallback {
                         refresh.isRefreshing = false
                         Alert.hideProgress()
                         Alert.showMessage(
-                            context!!,
                             getString(R.string.error_login_server_error)
                         )
                     }
@@ -164,7 +163,6 @@ class NotificationFragment : BaseFragment(), IBottomSheetCallback {
             Alert.hideProgress()
 
             Alert.showMessage(
-                context!!,
                 getString(R.string.no_internet)
             )
         }

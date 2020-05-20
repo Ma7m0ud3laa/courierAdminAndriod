@@ -3,10 +3,7 @@ package com.kadabra.agent.courier
 
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
+import android.graphics.*
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
@@ -20,10 +17,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import com.akexorcist.googledirection.BuildConfig
 import com.akexorcist.googledirection.DirectionCallback
@@ -58,7 +52,6 @@ import com.google.maps.model.DirectionsResult
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
-import com.kadabra.agent.adapter.CustomInfoWindowAdapter
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
 import com.kadabra.agent.firebase.FirebaseManager
@@ -68,6 +61,7 @@ import com.kadabra.agent.utilities.AppConstants
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
 import kotlinx.android.synthetic.main.fragment_courier.*
+import java.lang.reflect.Field
 import java.util.*
 
 
@@ -130,6 +124,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     var firstStop = Stop()
     var lastStop = Stop()
     var waypoints: ArrayList<LatLng> = ArrayList()
+    var f: Field? = null
     //endregion
 
 
@@ -140,7 +135,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
         currentCountry = getUserCountry(context!!)!!
-        countrygeoCoder = Geocoder(context!!, Locale.forLanguageTag(currentCountry))
+        countrygeoCoder = Geocoder(activity?.applicationContext, Locale.forLanguageTag(currentCountry))
         locale = Locale("", currentCountry)
 
     }
@@ -160,7 +155,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         tvExpectedDistance = currentView.findViewById(R.id.tvExpectedDistance)
 
 
-        materialSearchBar = currentView.findViewById(R.id.searchBar)
+        materialSearchBar = currentView!!.findViewById(R.id.searchBar)
+
         ivBack.setOnClickListener(this)
         btnConfirmLocation.setOnClickListener(this)
 //        polylines = ArrayList()
@@ -209,9 +205,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     suggestionsList.clear()
                     couriersList.clear()
                     materialSearchBar!!.updateLastSuggestions(suggestionsList)
-                    materialSearchBar!!.disableSearch()
+                    materialSearchBar!!.closeSearch()
                 } else if (buttonCode == MaterialSearchBar.BUTTON_BACK) {
-                    materialSearchBar!!.disableSearch()
+                    materialSearchBar!!.closeSearch()
 //                    materialSearchBar.hideSuggestionsList()
                 } else { //act like press on back icon
                     if (searchMode)
@@ -277,7 +273,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         })
 
 
-        materialSearchBar!!.setSuggstionsClickListener(object :
+        materialSearchBar!!.setSuggestionsClickListener(object :
             SuggestionsAdapter.OnItemViewClickListener {
             override fun OnItemClickListener(position: Int, v: View) {
 
@@ -364,6 +360,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             }
         })
 
+
+
         ///////////////////////////////////////////////////
 
 
@@ -389,12 +387,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             R.id.ivBack -> {
                 if (searchMode)
                     listener?.onBottomSheetSelectedItem(6)
-                else if(directionMode)
-                {
-                    directionMode=false
+                else if (directionMode) {
+                    directionMode = false
                     listener?.onBottomSheetSelectedItem(6)
-                }
-                else
+                } else
                     listener?.onBottomSheetSelectedItem(2)
             }
             R.id.btnConfirmLocation -> {
@@ -736,9 +732,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                         )
                                     )
 
-
                             )
-
 
 
                             if (markersList!!.size < data.size) {
@@ -916,9 +910,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
 
-
-
-
         directions.destination(destination)
             .setCallback(object : PendingResult.Callback<DirectionsResult?> {
                 override fun onResult(result: DirectionsResult?) {
@@ -946,6 +937,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     )
 
                     Alert.showMessage(context!!, "Can't find a way there.")
+                    return
                 }
             })
 
@@ -1004,9 +996,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     mPolyLinesData.add(PolylineData(polyline, route.legs[0]))
 
                     duration = tempDuration
-                    val southwest = LatLng(route.bounds.southwest.lat,route.bounds.southwest.lng)
-                    val northeast = LatLng(route.bounds.northeast.lat,route.bounds.northeast.lng)
-                    setCameraWithCoordinationBoundsWithLatLng(southwest!!,northeast)
+                    val southwest = LatLng(route.bounds.southwest.lat, route.bounds.southwest.lng)
+                    val northeast = LatLng(route.bounds.northeast.lat, route.bounds.northeast.lng)
+                    setCameraWithCoordinationBoundsWithLatLng(southwest!!, northeast)
 //                    zoomRoute(polyline.points)
 
                 }
@@ -1127,7 +1119,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         val bounds = LatLngBounds(southwest, northeast)
         mMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
     }
-    private fun setCameraWithCoordinationBoundsWithLatLng(southwest: LatLng,northeast:LatLng) {
+
+    private fun setCameraWithCoordinationBoundsWithLatLng(southwest: LatLng, northeast: LatLng) {
         val bounds = LatLngBounds(southwest, northeast)
         mMap?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
     }
@@ -1335,6 +1328,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     private fun onDirectionFailure(t: Throwable) {
         Alert.showMessage(context!!, "Can't find a way there.")
+        return
     }
 
     private fun getUserCountry(context: Context): String? {
@@ -1386,7 +1380,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                             R.string.duration
                         ) + " " + tripData.toString())
 
-                   val  speciaMarker = mMap.addMarker(
+                    val speciaMarker = mMap.addMarker(
                         MarkerOptions()
                             .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_location))
                             .position(LatLng(it.Latitude!!, it.Longitude!!))
@@ -1435,7 +1429,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 //        speciaMarker!!.showInfoWindow()
     }
-
 
     //endregion
 }

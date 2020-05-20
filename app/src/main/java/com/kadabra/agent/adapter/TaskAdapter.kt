@@ -1,6 +1,7 @@
 package com.kadabra.agent.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -140,8 +141,10 @@ class TaskAdapter(
                 val pos = adapterPosition
                 task = tasksList[pos]
 
-                if (task.Status == AppConstants.NEW) {
-                    deleteTaskListener!!.onTaskDelete(task)
+//                if (task.Status == AppConstants.NEW||task.Status == AppConstants.WAITING) {
+                if (task.Status == AppConstants.NEW){
+                    Log.d("TAG",task.Status)
+                            deleteTaskListener!!.onTaskDelete(task)
                 } else {
                     Alert.showAlertMessage(
                         context,

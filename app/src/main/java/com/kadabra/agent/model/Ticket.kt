@@ -22,7 +22,7 @@ class Ticket {
     var Status: String? = null
     var CategoryId: String = ""
     var Category: String = ""
-
+ var CreationDate=""
     var price: Double? = null
     var PriorityId: Int? = null
     var ComingTaskPickupTime = ""

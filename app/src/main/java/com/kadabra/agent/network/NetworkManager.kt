@@ -95,7 +95,7 @@ class NetworkManager {
                         }
                         else -> {
                             // UNKNOWN ERROR
-                            callback.onFailed(context.getString(R.string.error_login_server_unknown_error))
+                            callback.onFailed(AppController.getContext().getString(R.string.error_login_server_unknown_error))
                         }
                     }
                 }

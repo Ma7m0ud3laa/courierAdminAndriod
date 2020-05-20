@@ -1,6 +1,7 @@
 package com.kadabra.agent.utilities
 
 import android.location.Location
+import android.net.Uri
 import com.kadabra.agent.model.*
 
 
@@ -60,7 +61,7 @@ object AppConstants {
     const val URL_TICKET_SUB_DATA = "GetAllDataForAddingTicket"
     const val URL_ADD_TASK = "AddTask"
     const val URL_EDIT_TASK = "EditTask"
-
+    const val URL_CANCEL_TASK = "cancelTask"
     const val URL_REASSIGN_TASK_TO_COURIER = "ReassignTaskToCourier"
     const val URL_GET_ALL_TICKETS = "GetAllTickets"
     const val URL_GET_ALL_TICKETS_BY_PAGE_NO = "GetAllTicketsByPageNo"
@@ -84,7 +85,7 @@ object AppConstants {
     const val URL_GET_ALL_NOTIFICATIONS = "GetAllAdminNotification"
     const val URL_GET_ALL_READED_NOTIFICATIONS = "UpdateAdminReadedNotification"
     const val URL_GET_CLIENT_NAME = "GetUserNameByMobile"
-
+    const val URL_TAG_AGENT_IN_TICKET = "TagAgentInTicket"
 
 
     //endregion
@@ -111,6 +112,7 @@ object AppConstants {
     var TASK_STOP_LIST = ArrayList<Stop>()
     var CurrentLocation: Location? = null
     var StopType: StopType? = null
+    var CURRENT_IMAGE_URI: Uri? = null
 
     var FIRE_BASE_LOGOUT = false
     var FIRE_BASE_NEW_TASK = false
@@ -119,13 +121,13 @@ object AppConstants {
     var FIRE_BASE_REASSIGN_TASK = false
 
     var CurrentSelecedNotification = Notification()
-    var COURIERSTARTTASK=false
-    var CURRENTTOTALNOTIFICATIONS=0
-    var IN_PROGRESS="In progress"
-    var NEW="New"
-    var COMPLETED="Completed"
+    var COURIERSTARTTASK = false
+    var CURRENTTOTALNOTIFICATIONS = 0
+    var IN_PROGRESS = "In progress"
+    var NEW = "New"
+    var COMPLETED = "Completed"
     var WAITING = "Waiting For Pickup"
-
+    var CANCELLED = "Cancelled"
 
 
     enum class TaskStatus(var status: String) {

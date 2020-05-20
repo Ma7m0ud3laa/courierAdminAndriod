@@ -115,7 +115,46 @@ class NotificatinService : FirebaseMessagingService() {
 //            }
 
 
-        } else if (title == "endTask") {
+        }
+        else if (title == "StartTask") {
+//            AppConstants.FIRE_BASE_NEW_TASK = true
+
+            Log.d(
+                TAG, "$title: \n" +
+                        AppConstants.FIRE_BASE_NEW_TASK + "\n" +
+                        "admin: " + admin?.AdminId
+            )
+//            if (admin != null && !admin?.AdminId.isNullOrEmpty()) {
+            var intent = Intent(
+                AppController.getContext(),
+                TicketActivity::class.java
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .setAction(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_LAUNCHER)
+//                startActivity(
+//                    intent
+//                )
+            sendNotification(title!!, message, intent)
+//
+//                Log.d(TAG, "Sended")
+//            } else // user didn't log in yet
+//            {
+//                Log.d(TAG, "Not Login yet")
+//                var intent = Intent(
+//                    AppController.getContext(),
+//                    LoginActivity::class.java
+//                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+//                    .setAction(Intent.ACTION_MAIN)
+//                    .addCategory(Intent.CATEGORY_LAUNCHER)
+//                startActivity(
+//                    intent
+//                )
+//                sendNotification(title!!, message, intent)
+//            }
+
+
+        }
+        else if (title == "endTask") {
             AppConstants.FIRE_BASE_EDIT_TASK = true
 
             Log.d(
@@ -285,7 +324,6 @@ class NotificatinService : FirebaseMessagingService() {
                 override fun onFailed(error: String) {
                     Log.d(TAG, "SEND TOKEN - API - FAILED.")
                     Alert.showMessage(
-                        AppController.getContext(),
                         getString(R.string.error_login_server_error)
                     )
                 }
@@ -294,7 +332,7 @@ class NotificatinService : FirebaseMessagingService() {
 
         } else {
             Log.d(TAG, "SEND TOKEN - API - NO INTERNET.")
-            Alert.showMessage(AppController.getContext(), getString(R.string.no_internet))
+            Alert.showMessage( getString(R.string.no_internet))
         }
 
     }
