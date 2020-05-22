@@ -431,12 +431,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     )
 
                 setTripDirectionData(polylineData)
-                var pickUpStop = AppConstants.CurrentSelectedTask.stopsmodel.first()
+                var pickUpStop = AppConstants.CurrentSelectedTask.stopsmodel.find { it.StopTypeID==1 }
                 val marker: Marker = mMap.addMarker(
                     MarkerOptions()
                         .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_location))
                         .position(endLocation)
-                        .title("[" + getString(R.string.trip) + " " + index + "] - " + pickUpStop.StopName)
+                        .title("[" + getString(R.string.trip) + " " + index + "] - " + pickUpStop?.StopName)
                         .snippet(
                             getString(R.string.duration) + " " + polylineData.leg.duration + " " + (getString(
                                 R.string.distance
