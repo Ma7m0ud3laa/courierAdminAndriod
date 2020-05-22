@@ -2,6 +2,7 @@ package com.kadabra.agent.api
 
 
 import android.app.Notification
+import com.kadabra.agent.googleDirection.Directions
 import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.AppConstants
 import retrofit2.Call
@@ -129,7 +130,7 @@ interface ApiServices {
         @Query("taskId") taskId: String,
         @Query("AdminId") adminId: String
     )
-            : Call<ApiResponse<Task?>>
+            : Call<ApiResponse<Any?>>
 
 
     @POST(AppConstants.URL_REMOVE_STOP)
@@ -171,6 +172,18 @@ interface ApiServices {
     @POST(AppConstants.URL_TAG_AGENT_IN_TICKET)
     fun tagAgentInTicket(@Query("TicketId") ticketId: String, @Query("AgentId") agentId: String,@Query("TaggedAgentId") taggedAgentId:String)
             : Call<ApiResponse<Boolean>>
+
+
+    @POST(AppConstants.URL_END_TAKS)
+    fun endTask(@Query("taskId") taskID: String)
+            : Call<ApiResponse<Task>>
+
+    @GET("maps/api/directions/json")
+    fun getFullJson(
+        @Query("origin") origin: String, @Query("destination") destination: String,
+        @Query("waypoints") waypoints: String?, @Query("key") key:String
+
+    ): Call<Directions?>
 
 
 /////////////////////////////////////////////

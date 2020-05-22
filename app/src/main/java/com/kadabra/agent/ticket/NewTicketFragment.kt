@@ -791,7 +791,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<Task?>> {
+                object : INetworkCallBack<ApiResponse<Any?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -799,7 +799,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<Task?>) {
+                    override fun onSuccess(response: ApiResponse<Any?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 //                            var tasks = response.ResponseObj!!

@@ -56,7 +56,7 @@ class TaskAdapter(
         holder.tvStatus.text = task.Status
 
         if (task.stopsmodel.size > 0) {
-            task.stopsmodel.sortBy { it.StopTypeID }
+//            task.stopsmodel.sortBy { it.StopTypeID }
             task.stopsmodel.forEach {
 
                 when (it.StopTypeID) {
@@ -78,6 +78,7 @@ class TaskAdapter(
                 }
 
             }
+
         } else {
             holder.tvPickupLocation.text =
                 context.getString(R.string.from) + " " + context.getString(R.string.no_stop)
@@ -142,9 +143,9 @@ class TaskAdapter(
                 task = tasksList[pos]
 
 //                if (task.Status == AppConstants.NEW||task.Status == AppConstants.WAITING) {
-                if (task.Status == AppConstants.NEW){
-                    Log.d("TAG",task.Status)
-                            deleteTaskListener!!.onTaskDelete(task)
+                if (task.Status == AppConstants.NEW) {
+                    Log.d("TAG", task.Status)
+                    deleteTaskListener!!.onTaskDelete(task)
                 } else {
                     Alert.showAlertMessage(
                         context,

@@ -30,19 +30,27 @@ import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
 import com.google.maps.PendingResult
 import com.google.maps.model.DirectionsResult
+import com.google.maps.model.TravelMode
 import com.kadabra.Networking.INetworkCallBack
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
-import com.kadabra.agent.adapter.*
+import com.kadabra.agent.adapter.CourierListAdapter
+import com.kadabra.agent.adapter.StopAdapter
+import com.kadabra.agent.adapter.TicketListAdapter
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.callback.ITaskCallback
+import com.kadabra.agent.direction.FetchURL
 import com.kadabra.agent.firebase.FirebaseManager
+import com.kadabra.agent.googleDirection.Directions
 import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.*
 import com.kadabra.agent.utilities.Alert.hideProgress
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -133,6 +141,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var totalDuration: Float = 0F
     var totalDistance = 0L
     var totalSeconds = 0L
+    var totalDistanceValue = ""
+    private var pickUpStops = ArrayList<Stop>()
+    private var dropOffStops = ArrayList<Stop>()
+    private var normalStops = ArrayList<Stop>()
     //endregion
 
     //region Events
@@ -208,7 +220,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     override fun onStopDelete(stop: Stop?) {
 
-        if (AppConstants.CurrentSelectedTask.Status == AppConstants.NEW) {
+        if (AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED) {
             if (!stop!!.StopID.isNullOrEmpty()) {
                 AlertDialog.Builder(context)
                     .setTitle(AppConstants.WARNING)
@@ -453,19 +465,24 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     //make sure stops have pickup and dropOff
                     //get the kilometers and show on popup
                     if (validateTaskAcceptance()) {
+
                         var firstStop = stopsList.find { it.StopTypeID == 1 }
                         var lastStop = stopsList.find { it.StopTypeID == 2 }
+
                         var pickUp = LatLng(
                             firstStop!!.Latitude!!,
                             firstStop!!.Longitude!!
                         )
+
                         var dropOff = LatLng(
                             lastStop!!.Latitude!!,
                             lastStop!!.Longitude!!
                         )
 
-                        calculateDirections(pickUp, dropOff)
 
+//                        calculateDirections(pickUp, dropOff)
+
+                        calcDirection(pickUp, dropOff, false)
                     }
                 }
 
@@ -753,11 +770,52 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     }
 
+    private fun prepareTaskStops(stops: ArrayList<Stop>): ArrayList<Stop> {
+        pickUpStops.clear()
+        dropOffStops.clear()
+        normalStops.clear()
+
+        if (stops.size > 0) {
+//            stops.sortBy { it.StopTypeID }
+
+            stops.forEach {
+
+                when (it.StopTypeID) {
+                    1 -> { //pickup
+                        pickUpStops.add(it)
+                    }
+                    2 -> { //dropOff
+                        dropOffStops.add(it)
+                    }
+                    3 -> {
+                        normalStops.add(it)
+                    }
+
+                }
+            }
+
+            stops.clear()
+
+            if (pickUpStops.count() > 0)
+                stops.addAll(pickUpStops)
+            if (normalStops.count() > 0) {
+                normalStops.reverse()
+                stops.addAll(normalStops)
+            }
+
+            if (dropOffStops.count() > 0)
+                stops.addAll(dropOffStops)
+
+        }
+
+        return stops
+
+    }
+
     private fun validateAll(): Boolean {
 
         var pick = stopsList.count { it.StopTypeID == 1 }
         var drop = stopsList.count { it.StopTypeID == 2 }
-
         if (etTaskName.text.toString().isNullOrEmpty()) {
             Alert.showMessage("TaskName Name is required.")
             AnimateScroll.scrollToView(scroll, etTaskName)
@@ -775,13 +833,16 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 //            etAmount.requestFocus()
 //            return false
 //        }
+
+
         else if (etPickupTime.text.toString().isNullOrEmpty()) {
             Alert.showMessage("Pickup Time is required.")
             AnimateScroll.scrollToView(scroll, etPickupTime)
             etPickupTime.requestFocus()
             showDateTimePicker()
             return false
-        } else if (selectedCourier.CourierId == 0) {
+        } else if (selectedCourier.CourierId == 0 || selectedCourier.CourierId == null) {
+            Log.d(TAG, "selectedCourier : " + selectedCourier.CourierId.toString())
             Alert.showMessage("Courier is required.")
             AnimateScroll.scrollToView(scroll, sCourier)
             sCourier.requestFocus()
@@ -795,6 +856,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             Alert.showMessage("Complete add Stop data.")
             AnimateScroll.scrollToView(scroll, etLongitude)
             btnAddStopLocation.requestFocus()
+            return false
+        } else if (stopsList.size == 0) {
+            Alert.showMessage("Cant save task without Pickup and Drop off stops.")
+            rlStops.visibility = View.VISIBLE
+            AnimateScroll.scrollToView(scroll, etStopName)
+            etStopName.requestFocus()
+
             return false
         } else if (stopsList.size < 2) {
             Alert.showMessage("Cant save task without Pickup and Drop off stops.")
@@ -842,7 +910,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var taskId = AppConstants.CurrentSelectedTask.TaskId
         var courierId = selectedCourier.CourierId
-
+        print(stopsList)
+//        stopsList= prepareTaskStops(stopsList)
+        print(stopsList)
         task = Task(
             taskName,
             taskDescription,
@@ -997,8 +1067,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Log.d(TAG, "response - " + response.toString())
                             Log.d(TAG, "response.Status - " + response.Status.toString())
-                            alertDialog!!.dismiss()
-                            listener!!.onBottomSheetSelectedItem(3)
+                            endTask(task)
 
                         } else {
                             Alert.hideProgress()
@@ -1064,95 +1133,53 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private fun removeStop(stop: Stop) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-            var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.removeStop(
-                stop.StopID, AppConstants.CurrentLoginAdmin.AdminId
-            )
-            NetworkManager().request(
-                endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Stop>>> {
-                    override fun onFailed(error: String) {
-                        Alert.hideProgress()
-                        Alert.showMessage(
-
-                            getString(R.string.error_login_server_error)
-                        )
-                    }
-
-                    override fun onSuccess(response: ApiResponse<ArrayList<Stop>>) {
-                        if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            Alert.hideProgress()
-                            stopsList = response.ResponseObj!!
-                            AppConstants.CurrentSelectedTask.stopsmodel = stopsList
-                            loadTaskStops(stopsList)
-
-                        } else if (response.Status == AppConstants.STATUS_FAILED) {
-                            Alert.hideProgress()
-                            Alert.showMessage(
-
-                                getString(R.string.error_login_server_error)
-                            )
-                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
-                            Alert.hideProgress()
-                            Alert.showMessage(
-
-                                getString(R.string.error_login_server_error)
-                            )
-                        }
-
-                    }
-                })
-
+//            var request = NetworkManager().create(ApiServices::class.java)
+//            var endPoint = request.removeStop(
+//                stop.StopID, AppConstants.CurrentLoginAdmin.AdminId
+//            )
+//            NetworkManager().request(
+//                endPoint,
+//                object : INetworkCallBack<ApiResponse<ArrayList<Stop>>> {
+//                    override fun onFailed(error: String) {
+//                        Alert.hideProgress()
+//                        Alert.showMessage(
+//
+//                            getString(R.string.error_login_server_error)
+//                        )
+//                    }
+//
+//                    override fun onSuccess(response: ApiResponse<ArrayList<Stop>>) {
+//                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+//                            Alert.hideProgress()
+//                            stopsList = response.ResponseObj!!
+//                            AppConstants.CurrentSelectedTask.stopsmodel = stopsList
+//                            loadTaskStops(stopsList)
+//
+//                        } else if (response.Status == AppConstants.STATUS_FAILED) {
+//                            Alert.hideProgress()
+//                            Alert.showMessage(
+//
+//                                getString(R.string.error_login_server_error)
+//                            )
+//                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+//                            Alert.hideProgress()
+//                            Alert.showMessage(
+//
+//                                getString(R.string.error_login_server_error)
+//                            )
+//                        }
+//
+//                    }
+//                })
+            stopsList.remove(stop)
+            loadTaskStops(stopsList)
+            Alert.hideProgress()
         } else {
             Alert.hideProgress()
             Alert.showMessage(getString(R.string.no_internet))
         }
     }
 
-    private fun getAllTaskStops(task: Task) {
-        Alert.showProgress(context!!)
-        if (NetworkManager().isNetworkAvailable(context!!)) {
-            var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllTaskStops(task.TaskId)
-            NetworkManager().request(
-                endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Stop>>> {
-                    override fun onFailed(error: String) {
-                        Alert.hideProgress()
-                        Alert.showMessage(
-
-                            getString(R.string.error_login_server_error)
-                        )
-                    }
-
-                    override fun onSuccess(response: ApiResponse<ArrayList<Stop>>) {
-                        if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            Alert.hideProgress()
-                            stopsList = response.ResponseObj!!
-                            loadTaskStops(stopsList)
-
-                        } else if (response.Status == AppConstants.STATUS_FAILED) {
-                            Alert.hideProgress()
-                            Alert.showMessage(
-
-                                getString(R.string.error_login_server_error)
-                            )
-                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
-                            Alert.hideProgress()
-                            Alert.showMessage(
-
-                                getString(R.string.error_login_server_error)
-                            )
-                        }
-
-                    }
-                })
-
-        } else {
-            Alert.hideProgress()
-            Alert.showMessage(getString(R.string.no_internet))
-        }
-    }
 
     private fun getAllCouriers() {
         Alert.showProgress(context!!)
@@ -1500,7 +1527,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             var endPoint = request.removeTask(task.TaskId, AppConstants.CurrentLoginAdmin.AdminId)
             NetworkManager().request(
                 endPoint,
-                object : INetworkCallBack<ApiResponse<Task?>> {
+                object : INetworkCallBack<ApiResponse<Any?>> {
                     override fun onFailed(error: String) {
                         Alert.hideProgress()
                         Alert.showMessage(
@@ -1509,7 +1536,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         )
                     }
 
-                    override fun onSuccess(response: ApiResponse<Task?>) {
+                    override fun onSuccess(response: ApiResponse<Any?>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Alert.hideProgress()
 //                            var tasks = response.ResponseObj!!
@@ -1838,85 +1865,254 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         dest: LatLng
     ) {
 
-        val destination = com.google.maps.model.LatLng(
-            dest.latitude,
-            dest.longitude
-        )
+        var wayPoints = ""
+
         val directions = DirectionsApiRequest(mGeoApiContext)
         directions.alternatives(false)
+        directions.mode(TravelMode.DRIVING)
 
-        directions.origin(
+
+        val orig =
             com.google.maps.model.LatLng(
                 origin.latitude,
                 origin.longitude
             )
+
+        val destination = com.google.maps.model.LatLng(
+            dest.latitude,
+            dest.longitude
         )
+
+
+        Log.d(TAG, "calculateDirections: origin: $orig")
         Log.d(TAG, "calculateDirections: destination: $destination")
+
 
         if (stopsList.size > 2) {
             stopsList.forEach {
 
                 if (it.StopTypeID == 3) {
-                    directions.waypoints(
-                        com.google.maps.model.LatLng(
-                            it.Latitude!!,
-                            it.Longitude!!
-                        )
-                    )
-
+//                    directions.waypoints(
+//                        com.google.maps.model.LatLng(
+//                            it.Latitude!!,
+//                            it.Longitude!!
+//                        )
+//                    )
+                    wayPoints += "%7Cvia:" + it.Latitude + "%2C" + it.Longitude
                 }
 
             }
-            directions.optimizeWaypoints(true)
+
+            Log.d("wayPoints", "wayPoints: " + wayPoints)
+
+            directions.origin(orig).destination(destination).waypoints(wayPoints)
+                .optimizeWaypoints(true)
+                .setCallback(object : PendingResult.Callback<DirectionsResult?> {
+                    override fun onResult(result: DirectionsResult?) {
+
+                        result!!.routes[0].legs.forEach {
+                            Log.d(
+                                TAG,
+                                "LEG: duration: " + it.duration
+                            );
+                            Log.d(
+                                TAG,
+                                "LEG: distance: " + it.distance
+                            );
+                            Log.d("LEG DATA", it.toString())
+
+                            meters += it.distance.inMeters
+                            totalDistance += it.distance.inMeters
+                            totalSeconds += it.duration.inSeconds
+                        }
+                        Log.d(TAG, "totalKilometers: $totalKilometers")
+                        Log.d(TAG, "METERS:  $meters")
+                        totalKilometers = conevrtMetersToKilometers(meters)
+                        meters = 0L
+                        var data =
+                            "Total Kilometers: ( " + totalKilometers + " " + getString(R.string.km) + "  )"
+
+                        activity?.runOnUiThread {
+                            Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                        }
+
+
+                    }
+
+                    override fun onFailure(e: Throwable) {
+                        activity!!.runOnUiThread {
+                            Alert.hideProgress()
+                            Alert.showMessage(context!!, "Can't find a way there.")
+                            totalKilometers = 0
+                            Log.e(
+                                TAG,
+                                "calculateDirections: Failed to get directions: " + e.message
+                            )
+                        }
+                    }
+                })
+
+        } else {
+            directions.origin(orig)
+            directions.destination(destination)
+                .setCallback(object : PendingResult.Callback<DirectionsResult?> {
+                    override fun onResult(result: DirectionsResult?) {
+
+                        result!!.routes[0].legs.forEach {
+                            Log.d(
+                                TAG,
+                                "LEG: duration: " + it.duration
+                            );
+                            Log.d(
+                                TAG,
+                                "LEG: distance: " + it.distance
+                            );
+                            Log.d("LEG DATA", it.toString())
+
+                            meters += it.distance.inMeters
+                            totalDistance += it.distance.inMeters
+                            totalSeconds += it.duration.inSeconds
+                        }
+                        Log.d(TAG, "totalKilometers: $totalKilometers")
+                        Log.d(TAG, "METERS:  $meters")
+                        totalKilometers = conevrtMetersToKilometers(meters)
+                        meters = 0L
+                        var data =
+                            "Total Kilometers: ( " + totalKilometers + " " + getString(R.string.km) + "  )"
+
+                        activity?.runOnUiThread {
+                            Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                        }
+
+
+                    }
+
+                    override fun onFailure(e: Throwable) {
+                        activity!!.runOnUiThread {
+                            Alert.hideProgress()
+                            Alert.showMessage(context!!, "Can't find a way there.")
+                            totalKilometers = 0
+                            Log.e(
+                                TAG,
+                                "calculateDirections: Failed to get directions: " + e.message
+                            )
+                        }
+                    }
+                })
         }
 
-        directions.destination(destination)
-            .setCallback(object : PendingResult.Callback<DirectionsResult?> {
-                override fun onResult(result: DirectionsResult?) {
+    }
 
-                    result!!.routes[0].legs.forEach {
-                        Log.d(
-                            TAG,
-                            "LEG: duration: " + it.duration
-                        );
-                        Log.d(
-                            TAG,
-                            "LEG: distance: " + it.distance
-                        );
-                        Log.d("LEG DATA", it.toString())
+    private fun calcDirection(origin: LatLng, dest: LatLng, isStop: Boolean) {
+        var wayPoints = ""
+        var counter = 0
+        if (!isStop) {
+            stopsList.forEach {
 
-                        meters += it.distance.inMeters
-                        totalDistance += it.distance.inMeters
-                        totalSeconds += it.duration.inSeconds
-                    }
-                    Log.d(TAG, "totalKilometers: $totalKilometers")
-                    Log.d(TAG, "METERS:  $meters")
-                    totalKilometers = conevrtMetersToKilometers(meters)
-                    meters = 0L
-                    var data =
-                        "Total Kilometers: ( " + totalKilometers + " " + getString(R.string.km) + "  )"
-
-                    activity?.runOnUiThread {
-                        Alert.showAlertMessage(context!!, AppConstants.INFO, data)
-                    }
-
-
+                if (it.StopTypeID == 3) {
+                    Log.d(TAG, "default Stop:" + it.StopName)
+                    if (counter == 0)
+                        wayPoints += "via:" + it.Latitude + "," + it.Longitude
+                    else
+                        wayPoints += "|via:" + it.Latitude + "," + it.Longitude
+                    counter += 1
                 }
 
-                override fun onFailure(e: Throwable) {
+            }
+            counter = 0
+        }
+        Log.d(TAG, "way points: " + wayPoints)
+
+        var baseUrl = "https://maps.googleapis.com/"
+        val str_origin = origin.latitude.toString() + "," + origin.longitude.toString()
+        val str_dest = dest.latitude.toString() + "," + dest.longitude.toString()
+
+
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+//            Alert.showProgress(context!!)
+            var request = NetworkManager().create(baseUrl, ApiServices::class.java)
+
+            var endPoint = request.getFullJson(
+                str_origin,
+                str_dest,
+                wayPoints,
+                getString(R.string.google_map_key)
+            )
+
+
+            endPoint?.enqueue(object : Callback<Directions?> {
+                override fun onFailure(call: Call<Directions?>, t: Throwable) {
+                    Log.e(
+                        TAG,
+                        "calculateTwoDirections: Failed to get directions: " + t.message
+                    )
                     activity!!.runOnUiThread {
                         Alert.hideProgress()
                         Alert.showMessage(context!!, "Can't find a way there.")
                         totalKilometers = 0
-                        Log.e(
-                            TAG,
-                            "calculateDirections: Failed to get directions: " + e.message
-                        )
                     }
+                }
+
+                override fun onResponse(
+                    call: Call<Directions?>,
+                    response: Response<Directions?>
+                ) {
+
+                    if (response.isSuccessful && response.body()?.status.equals("OK")) {
+                        Log.d(TAG, "onResponse:isSuccessful " + response.isSuccessful)
+//                        drawRouteOnMap(map, response.body()!!.directionPolylines)
+                        var dist = response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.text
+                        var dur = response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text
+
+//                        totalKilometers =
+//                            conevrtMetersToKilometers(response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.value!!.toLong())
+//                        totalDistanceValue =
+//                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text.toString()
+//                        totalSeconds =
+//                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.value!!.toLong()
+//                        Log.d(TAG, "totalDistanceValue: " + totalDistanceValue)
+//                        Log.d(TAG, "totalSeconds: " + totalSeconds)
+//                        Log.d(TAG, "DIst: " + dist)
+//                        Log.d(TAG, "dur: " + dur)
+//                        Log.d(TAG, "totalKilometers: $totalKilometers")
+//                        Log.d(TAG, "METERS:  $meters")
+//                        totalKilometers = conevrtMetersToKilometers(meters)
+//                        meters = 0L
+                        var data =
+                            "Total Kilometers: ( " + dist + "  )\n Time : $dur"
+
+                        activity?.runOnUiThread {
+                            //                            Alert.hideProgress()
+                            Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                        }
+
+
+                    } else
+                        activity!!.runOnUiThread {
+                            //                            Alert.hideProgress()
+                            Alert.showMessage(context!!, "Can't find a way there.")
+                            totalKilometers = 0
+                            Log.e(
+                                TAG,
+                                "calculateDirections: Failed to get directions: " + response.errorBody().toString()
+                            )
+                        }
                 }
             })
 
+
+        } else {
+            activity!!.runOnUiThread {
+                Alert.hideProgress()
+                Alert.showMessage(
+                    context!!,
+                    getString(R.string.no_internet)
+                )
+            }
+        }
+
     }
+
 
     private fun initDierction() {
         //direction
@@ -1939,4 +2135,83 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         return kilometers
     }
+
+    private fun endTask(task: Task) {
+//        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.endTask(task.TaskId)
+            NetworkManager().request(endPoint, object : INetworkCallBack<ApiResponse<Task>> {
+                override fun onFailed(error: String) {
+                    alertDialog!!.dismiss()
+                    Alert.hideProgress()
+                    Alert.showMessage(
+                        context!!,
+                        getString(R.string.error_login_server_unknown_error)
+                    )
+                }
+
+                override fun onSuccess(response: ApiResponse<Task>) {
+                    if (response.Status == AppConstants.STATUS_SUCCESS) {
+
+                        FirebaseManager.endTask(
+                            AppConstants.CurrentSelectedTask,
+                            task.CourierID!!.toInt()
+                        )
+                        Alert.hideProgress()
+                        alertDialog!!.dismiss()
+                        listener!!.onBottomSheetSelectedItem(3)
+
+
+                    } else {
+                        Alert.hideProgress()
+                        alertDialog!!.dismiss()
+                        Alert.showMessage(
+                            context!!,
+                            getString(R.string.error_network)
+                        )
+                    }
+
+                }
+            })
+
+        } else {
+            Alert.hideProgress()
+            Alert.showMessage(
+                context!!,
+                getString(R.string.no_internet)
+            )
+        }
+
+
+    }
+
+
+    private fun getUrl(
+        origin: LatLng,
+        dest: LatLng,
+        wayPoints: String,
+        directionMode: String
+    ): String? { // Origin of route
+        var parameters = ""
+        val str_origin = "origin=" + origin.latitude + "," + origin.longitude
+        // Destination of route
+        val str_dest = "destination=" + dest.latitude + "," + dest.longitude
+        // Mode
+        val mode = "mode=$directionMode"
+        // Building the parameters to the web service
+        if (wayPoints.trim().isNullOrEmpty())
+            parameters = "$str_origin&$str_dest&$mode"
+        else
+            "$str_origin&$str_dest&$wayPoints&$mode"
+
+        // Output format
+        val output = "json"
+        // Building the url to the web service
+        return "https://maps.googleapis.com/maps/api/directions/$output?$parameters&key=" + getString(
+            R.string.google_maps_key
+        )
+    }
+
+
 }

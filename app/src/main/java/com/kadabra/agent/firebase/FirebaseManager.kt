@@ -179,6 +179,18 @@ object FirebaseManager {
     }
 
 
+    fun endTask(task: Task, courierId: Int) {
+        updateCourierHaveTask(courierId, false)
+        dbCourierTaskHistory.child(task.TaskId).child("active")
+            .setValue(false)
+    }
+
+    fun updateCourierHaveTask(courierId: Int, value: Boolean) {
+        dbCourier.child(courierId.toString()).child(AppConstants.FIREBASE_HAVE_TASK)
+            .setValue(value)
+
+    }
+
     //endregion
 
 

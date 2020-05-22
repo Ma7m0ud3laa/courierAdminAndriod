@@ -86,7 +86,7 @@ object AppConstants {
     const val URL_GET_ALL_READED_NOTIFICATIONS = "UpdateAdminReadedNotification"
     const val URL_GET_CLIENT_NAME = "GetUserNameByMobile"
     const val URL_TAG_AGENT_IN_TICKET = "TagAgentInTicket"
-
+    const val URL_END_TAKS = "UpdateEndTask"
 
     //endregion
 
@@ -129,6 +129,8 @@ object AppConstants {
     var WAITING = "Waiting For Pickup"
     var CANCELLED = "Cancelled"
 
+
+    const val FIREBASE_HAVE_TASK = "haveTask"
 
     enum class TaskStatus(var status: String) {
         NEW("New"),

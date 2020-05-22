@@ -355,6 +355,7 @@ class TicketActivity : AppCompatActivity(), IBottomSheetCallback, ITaskCallback 
             }
             8 -> // open map view for choose location for stop
             {
+                courierFragment=CourierFragment()
                 courierFragment.searchMode = true
 
 //                if (fm.findFragmentByTag("newTaskFragment") != null) {

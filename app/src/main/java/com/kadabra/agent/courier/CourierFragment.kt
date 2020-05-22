@@ -52,17 +52,24 @@ import com.google.maps.model.DirectionsResult
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
+import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
 import com.kadabra.agent.firebase.FirebaseManager
+import com.kadabra.agent.googleDirection.Directions
 import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
 import kotlinx.android.synthetic.main.fragment_courier.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.IOException
 import java.lang.reflect.Field
 import java.util.*
+import kotlin.math.ceil
 
 
 class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback,
@@ -108,7 +115,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private var mNewPolyLinesData: ArrayList<NewPolylineData> = ArrayList()
     private val mTripMarkers = ArrayList<Marker>()
     private var mSelectedMarker: Marker? = null
-    private var totalKilometers: Float = 0F
+    private var totalKilometers = 0
     private var acceptedTaskslist = ArrayList<Task>()
     private lateinit var polyline: Polyline
     var isACcepted = false
@@ -124,7 +131,13 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     var firstStop = Stop()
     var lastStop = Stop()
     var waypoints: ArrayList<LatLng> = ArrayList()
-    var f: Field? = null
+    var meters = 0L
+    var tripData = TripData()
+    var totalDistance = 0L
+    var totalSeconds = 0L
+    var totalDistanceValue = ""
+    private var mPolyLinesDataNew: ArrayList<PolylineDataNew> = ArrayList()
+    var snippetData = ""
     //endregion
 
 
@@ -135,7 +148,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
         currentCountry = getUserCountry(context!!)!!
-        countrygeoCoder = Geocoder(activity?.applicationContext, Locale.forLanguageTag(currentCountry))
+        countrygeoCoder =
+            Geocoder(activity?.applicationContext, Locale.forLanguageTag(currentCountry))
         locale = Locale("", currentCountry)
 
     }
@@ -361,7 +375,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         })
 
 
-
         ///////////////////////////////////////////////////
 
 
@@ -464,13 +477,20 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         }
 
 
-        var adresses = countrygeoCoder?.getFromLocationName(locale.displayCountry, 1)
-        mMap.moveCamera(
-            CameraUpdateFactory.newLatLngZoom(
-                LatLng(adresses?.get(0)?.latitude!!, adresses?.get(0)?.longitude!!),
-                8f
+        try {
+            var adresses = countrygeoCoder?.getFromLocationName(locale.displayCountry, 1)
+            mMap.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(adresses?.get(0)?.latitude!!, adresses?.get(0)?.longitude!!),
+                    8f
+                )
             )
-        )
+        } catch (ex: IOException) {
+            if (ex.message == "grpc failed")
+            {
+                activity!!.runOnUiThread { Alert.showMessage("Please Try Again.") }
+            }
+        }
 
         if (searchMode) {
 
@@ -638,7 +658,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
             }
         } else {
-            Alert.showMessage(context!!, getString(R.string.no_internet))
+            activity!!.runOnUiThread {
+                Alert.showMessage(context!!, getString(R.string.no_internet))
+            }
         }
 
     }
@@ -810,8 +832,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     private fun getTAskDirection(task: Task) {
 //        directionMode = false
-        calculateDirections(task, false)
-
+//        calculateDirections(task, false)
+        calcDirection(task, false)
     }
 
     private fun getDirection(task: Task) {
@@ -866,6 +888,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
     }
+
 
     private fun calculateDirections(
         task: Task,
@@ -923,7 +946,15 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                             "LEG: distance: " + it.distance
                         );
                         Log.d("LEG DATA", it.toString())
+
+                        meters += it.distance.inMeters
+                        totalDistance += it.distance.inMeters
+                        totalSeconds += it.duration.inSeconds
                     }
+                    Log.d(TAG, "totalKilometers: $totalKilometers")
+                    Log.d(TAG, "METERS:  $meters")
+                    totalKilometers = conevrtMetersToKilometers(meters)
+                    meters = 0L
 
                     addPolylinesToMap(result!!)
 
@@ -935,17 +966,140 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                         TAG,
                         "calculateDirections: Failed to get directions: " + e.message
                     )
-
-                    Alert.showMessage(context!!, "Can't find a way there.")
-                    return
+                    activity!!.runOnUiThread {
+                        Alert.showMessage(context!!, "Can't find a way there.")
+                    }
                 }
             })
 
     }
 
-    private fun conevrtMetersToKilometers(meters: Long): Float {
-        var kilometers = 0F
-        kilometers = (meters * 0.001).toFloat()
+    private fun calcDirection(task: Task, showAlternatives: Boolean) {
+        var wayPoints = ""
+        var counter = 0
+
+        var firstStop = task.stopsmodel.find { it.StopTypeID == 1 }
+        var lastStop = task.stopsmodel.find { it.StopTypeID == 2 }
+
+        var pickUp = LatLng(
+            firstStop!!.Latitude!!,
+            firstStop!!.Longitude!!
+        )
+
+        var dropOff = LatLng(
+            lastStop!!.Latitude!!,
+            lastStop!!.Longitude!!
+        )
+
+        task.stopsmodel.forEach {
+
+            if (it.StopTypeID == 3) {
+                Log.d(TAG, "default Stop:" + it.StopName)
+                if (counter == 0)
+                    wayPoints += "via:" + it.Latitude + "," + it.Longitude
+                else
+                    wayPoints += "|via:" + it.Latitude + "," + it.Longitude
+                counter += 1
+            }
+
+        }
+        counter = 0
+
+        Log.d(TAG, "way points: " + wayPoints)
+
+        var baseUrl = "https://maps.googleapis.com/"
+        val str_origin = firstStop.Latitude.toString() + "," + firstStop.Longitude.toString()
+        val str_dest = lastStop.Latitude.toString() + "," + lastStop.Longitude.toString()
+
+
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(baseUrl, ApiServices::class.java)
+
+            var endPoint = request.getFullJson(
+                str_origin,
+                str_dest,
+                wayPoints,
+                getString(R.string.google_map_key)
+            )
+
+
+            endPoint?.enqueue(object : Callback<Directions?> {
+                override fun onFailure(call: Call<Directions?>, t: Throwable) {
+                    Log.e(
+                        TAG,
+                        "calculateTwoDirections: Failed to get directions: " + t.message
+                    )
+                    activity!!.runOnUiThread {
+                        Alert.showMessage(context!!, "Can't find a way there.")
+                        totalKilometers = 0
+                    }
+                }
+
+                override fun onResponse(
+                    call: Call<Directions?>,
+                    response: Response<Directions?>
+                ) {
+
+                    if (response.isSuccessful && response.body()?.status.equals("OK")) {
+                        Log.d(TAG, "onResponse:isSuccessful " + response.isSuccessful)
+//                        drawRouteOnMap(map, response.body()!!.directionPolylines)
+                        var dist = response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.text
+                        var dur = response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text
+
+                        var data = dist?.split(" km").toString()
+                        var value = dist?.split(" km").toString().trim()[0].toInt()
+                        totalKilometers =
+                            conevrtMetersToKilometers(response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.value!!.toLong())
+                        totalDistanceValue =
+                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text.toString()
+                        totalSeconds =
+                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.value!!.toLong()
+                        Log.d(TAG, "totalDistanceValue: " + totalDistanceValue)
+                        Log.d(TAG, "totalSeconds: " + totalSeconds)
+                        Log.d(TAG, "DIst: " + dist)
+                        Log.d(TAG, "value: " + value)
+                        Log.d(TAG, "dur: " + dur)
+                        Log.d(TAG, "totalKilometers: $totalKilometers")
+                        Log.d(TAG, "METERS:  $meters")
+                        meters = 0L
+
+                        addPolylinesToMapNew(response.body()!!, false)
+
+
+                    } else
+                        activity!!.runOnUiThread {
+                            //                            Alert.hideProgress()
+                            Alert.showMessage(context!!, "Can't find a way there.")
+                            totalKilometers = 0
+                            Log.e(
+                                TAG,
+                                "calculateDirections: Failed to get directions: " + response.errorBody().toString()
+                            )
+                        }
+                }
+            })
+
+
+        } else {
+            activity!!.runOnUiThread {
+                Alert.hideProgress()
+                Alert.showMessage(
+                    context!!,
+                    getString(R.string.no_internet)
+                )
+            }
+        }
+
+    }
+
+    private fun conevrtMetersToKilometers(meters: Long): Int {
+        var kilometers = 0
+        if (meters in 100..999) //grater than 100 meters and ess than 1000 meters consider as 1 kilometer
+            kilometers = 1
+        else
+            kilometers = ceil((meters * 0.001).toFloat()).toInt()
+
+        Log.d(TAG, "totalKilometers: RESULT $kilometers")
 
         return kilometers
     }
@@ -1000,11 +1154,80 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     val northeast = LatLng(route.bounds.northeast.lat, route.bounds.northeast.lng)
                     setCameraWithCoordinationBoundsWithLatLng(southwest!!, northeast)
 //                    zoomRoute(polyline.points)
+                    setTotalTripDirectionData()
 
                 }
 
             }
             setTripStopsMarker(AppConstants.CurrentSelectedTask)
+
+        }
+
+    }
+
+    private fun addPolylinesToMapNew(result: Directions, isStop: Boolean) {
+
+        Handler(Looper.getMainLooper()).post {
+            Log.d(
+                TAG,
+                "run: result routes: " + result.routes!!.size
+            )
+            if (mPolyLinesData.size > 0) {
+                for (polylineData in mPolyLinesData) {
+                    polylineData.polyline.remove()
+                }
+                mPolyLinesData.clear()
+                mPolyLinesData = java.util.ArrayList<PolylineData>()
+            }
+            var duration = 999999999.0
+
+            for (route in result.routes) {
+                val decodedPath =
+                    PolylineEncoding.decode(route.overview_polyline?.points)
+                val newDecodedPath: MutableList<LatLng> =
+                    java.util.ArrayList()
+                // This loops through all the LatLng coordinates of ONE polyline.
+                for (latLng in decodedPath) { //                        Log.d(TAG, "run: latlng: " + latLng.toString());
+                    newDecodedPath.add(
+                        LatLng(
+                            latLng.lat,
+                            latLng.lng
+                        )
+                    )
+                }
+
+
+                // highlight the fastest route and adjust camera
+                val tempDuration =
+                    route.legs!![0].duration!!.value.toDouble()
+
+                if (tempDuration < duration) {
+                    mMap.clear()
+                    mMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                    polyline =
+                        mMap.addPolyline(PolylineOptions().addAll(newDecodedPath)) // add marker
+                    polyline.color = ContextCompat.getColor(context!!, R.color.colorPrimary)
+                    polyline.isClickable = true
+                    mPolyLinesDataNew.add(
+                        PolylineDataNew(
+                            polyline,
+                            route.legs[0]
+                        )
+                    )
+
+                    duration = tempDuration
+
+                    val southwest =
+                        LatLng(route.bounds!!.southwest!!.lat, route.bounds.southwest!!.lng)
+                    val northeast = LatLng(route.bounds.northeast!!.lat, route.bounds.northeast.lng)
+                    setCameraWithCoordinationBoundsWithLatLng(southwest!!, northeast)
+//                    zoomRoute(polyline.points)
+                    setTotalTripDirectionData()
+                }
+
+            }
+            setTripStopsMarker(AppConstants.CurrentSelectedTask)
+
 
         }
 
@@ -1214,7 +1437,9 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 //            rlBottom.visibility = View.VISIBLE
 
         } else {
-            Alert.showMessage(context!!, direction.status)
+            activity!!.runOnUiThread {
+                Alert.showMessage(context!!, direction.status)
+            }
         }
     }
 
@@ -1374,17 +1599,23 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 //                    marker.showInfoWindow()
                 }
                 2 -> {
-                    var tripData = TripData()
-                    var snippetData =
-                        getString(R.string.distance) + " " + tripData.distance.toString() + " - " + (getString(
+//                     snippetData =
+//                        getString(R.string.distance) + " " + totalKilometers.toString() + " " + getString(
+//                            R.string.km
+//                        ) + " - " + (getString(
+//                            R.string.duration
+//                        ) + " " + tripData.toString())
+                    snippetData =
+                        getString(R.string.distance) + " " + totalKilometers.toString() + " " + getString(
+                            R.string.km
+                        ) + " - " + (getString(
                             R.string.duration
-                        ) + " " + tripData.toString())
-
-                    val speciaMarker = mMap.addMarker(
+                        ) + " " + totalDistanceValue) //
+                    speciaMarker = mMap.addMarker(
                         MarkerOptions()
                             .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_location))
                             .position(LatLng(it.Latitude!!, it.Longitude!!))
-                            .title(it.StopName)
+                            .title(snippetData)
                     )
                     mTripMarkers.add(speciaMarker!!)
                     speciaMarker?.tag = it
@@ -1392,17 +1623,6 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     speciaMarker?.showInfoWindow()
                 }
                 3 -> {
-//                    val marker: Marker = map.addMarker(
-//                        MarkerOptions()
-//                            .icon(bitmapDescriptorFromVector(this, R.drawable.ic_location_stops))
-//                            .position(LatLng(it.Latitude!!, it.Longitude!!))
-//                            .title(it.StopName)
-//                    )
-//                    mTripMarkers.add(marker)
-//                    marker.tag = it
-//                    Log.d("MARKER DATA",it.StopName)
-//                    marker.showInfoWindow()
-
                     val marker: Marker = mMap.addMarker(
                         MarkerOptions()
                             .icon(
@@ -1427,8 +1647,32 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             }
         }
 
-//        speciaMarker!!.showInfoWindow()
+//        mTripMarkers.add(speciaMarker!!)
+        speciaMarker?.showInfoWindow()
     }
+
+    fun prepareTripData(): TripData {
+        var durationData = TripData()
+        var days = totalSeconds / 86400
+        var hours = (totalSeconds - days * 86400) / 3600
+        var minutes = (totalSeconds - days * 86400 - hours * 3600) / 60
+        var seconds = totalSeconds - days * 86400 - hours * 3600 - minutes * 60
+        var distance = totalKilometers//calculateDistance(totalDistance)
+        durationData = TripData(days, hours, minutes, seconds, distance.toDouble())
+
+        Log.d(
+            "duration",
+            "$days days $hours hours $minutes mins$seconds seconds"
+        );
+
+        return durationData
+    }
+
+    private fun setTotalTripDirectionData() {
+        tripData = prepareTripData()
+
+    }
+
 
     //endregion
 }
