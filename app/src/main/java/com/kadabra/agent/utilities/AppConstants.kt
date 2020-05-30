@@ -45,6 +45,8 @@ object AppConstants {
     val IS_FIRST = "is_first"
     val IS_LOGIN = "login"
     val TICKET_SUB_DATA = "ticket_sub_data"
+    val COURIERS_DATA = "couriers_data"
+
     var isMoving = false
 
 
@@ -87,6 +89,7 @@ object AppConstants {
     const val URL_GET_CLIENT_NAME = "GetUserNameByMobile"
     const val URL_TAG_AGENT_IN_TICKET = "TagAgentInTicket"
     const val URL_END_TAKS = "UpdateEndTask"
+    const val URL_GET_COURIER_TRESAURY = "GetCourierTreasuryById"
 
     //endregion
 

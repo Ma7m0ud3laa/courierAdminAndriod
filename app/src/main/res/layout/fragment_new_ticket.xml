@@ -345,49 +345,49 @@
                         <!--                        android:imeOptions="actionDone"-->
                         <!--                        android:text="@string/need_courier" />-->
 
-                        <TextView
-                            android:id="@+id/tvServiceCost"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/llPaymentData"
-                            android:layout_marginStart="24dp"
-                            android:layout_marginTop="20dp"
-                            android:fontFamily="Poppins-Regular"
-                            android:text="@string/service_cost"
-                            android:textColor="@color/title_color"
-                            android:textSize="18sp" />
+<!--                        <TextView-->
+<!--                            android:id="@+id/tvServiceCost"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:layout_below="@id/llPaymentData"-->
+<!--                            android:layout_marginStart="24dp"-->
+<!--                            android:layout_marginTop="20dp"-->
+<!--                            android:fontFamily="Poppins-Regular"-->
+<!--                            android:text="@string/service_cost"-->
+<!--                            android:textColor="@color/title_color"-->
+<!--                            android:textSize="18sp" />-->
 
-                        <TextView
-                            android:id="@+id/tvAddServiceCost"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignBaseline="@+id/tvServiceCost"
-                            android:layout_alignParentEnd="true"
-                            android:layout_marginTop="20dp"
-                            android:layout_marginEnd="24dp"
-                            android:background="?android:attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:gravity="center"
-                            android:text="@string/add_new"
-                            android:textColor="@color/colorApp"
-                            android:textSize="18sp" />
+<!--                        <TextView-->
+<!--                            android:id="@+id/tvAddServiceCost"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:layout_alignBaseline="@+id/tvServiceCost"-->
+<!--                            android:layout_alignParentEnd="true"-->
+<!--                            android:layout_marginTop="20dp"-->
+<!--                            android:layout_marginEnd="24dp"-->
+<!--                            android:background="?android:attr/selectableItemBackgroundBorderless"-->
+<!--                            android:clickable="true"-->
+<!--                            android:gravity="center"-->
+<!--                            android:text="@string/add_new"-->
+<!--                            android:textColor="@color/colorApp"-->
+<!--                            android:textSize="18sp" />-->
 
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvServiceCost"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@+id/tvAddServiceCost"
-                            android:layout_centerHorizontal="true"
-                            android:layout_marginStart="24dp"
-                            android:layout_marginTop="15dp"
-                            android:layout_marginEnd="24dp"
-                            android:scrollbars="vertical" />
+<!--                        <androidx.recyclerview.widget.RecyclerView-->
+<!--                            android:id="@+id/rvServiceCost"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:layout_below="@+id/tvAddServiceCost"-->
+<!--                            android:layout_centerHorizontal="true"-->
+<!--                            android:layout_marginStart="24dp"-->
+<!--                            android:layout_marginTop="15dp"-->
+<!--                            android:layout_marginEnd="24dp"-->
+<!--                            android:scrollbars="vertical" />-->
 
                         <TextView
                             android:id="@+id/tvTasks"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/rvServiceCost"
+                            android:layout_below="@id/llPaymentData"
                             android:layout_marginStart="20dp"
                             android:layout_marginTop="20dp"
                             android:fontFamily="Poppins-Regular"
@@ -400,7 +400,7 @@
                             android:id="@+id/tvAddTask"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/rvServiceCost"
+                            android:layout_below="@id/llPaymentData"
                             android:layout_alignBaseline="@+id/tvTasks"
                             android:layout_alignParentEnd="true"
                             android:layout_marginTop="20dp"

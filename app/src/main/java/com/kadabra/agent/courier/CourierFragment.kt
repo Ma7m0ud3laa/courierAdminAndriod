@@ -62,12 +62,12 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
+import com.reach.plus.admin.util.UserSessionManager
 import kotlinx.android.synthetic.main.fragment_courier.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Field
 import java.util.*
 import kotlin.math.ceil
 
@@ -431,7 +431,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     )
 
                 setTripDirectionData(polylineData)
-                var pickUpStop = AppConstants.CurrentSelectedTask.stopsmodel.find { it.StopTypeID==1 }
+                var pickUpStop =
+                    AppConstants.CurrentSelectedTask.stopsmodel.find { it.StopTypeID == 1 }
                 val marker: Marker = mMap.addMarker(
                     MarkerOptions()
                         .icon(bitmapDescriptorFromVector(context!!, R.drawable.ic_location))
@@ -486,8 +487,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 )
             )
         } catch (ex: IOException) {
-            if (ex.message == "grpc failed")
-            {
+            if (ex.message == "grpc failed") {
                 activity!!.runOnUiThread { Alert.showMessage("Please Try Again.") }
             }
         }
@@ -547,6 +547,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
         if (directionMode)
             done = false
+
         return done
     }
 
@@ -710,12 +711,13 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
 
     private fun loadAllCouriersFromFB() {
+        var titleData = ""
         var iconFactory = IconGenerator(context!!)
 
-        var marker: Marker? = null
+        var marker: Marker?
         var markersList: ArrayList<Marker>? = ArrayList()
         var latLngList: ArrayList<LatLng>? = ArrayList()
-        var currentLatLng: LatLng? = null
+        var currentLatLng: LatLng?
         if (NetworkManager().isNetworkAvailable(context!!)) {
             FirebaseManager.getAllCouriers { success, data ->
                 if (success) {
@@ -1673,6 +1675,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
     }
 
+
+    private fun getMarkerFullData(courierId: Int): Courier? {
+        var courierList = UserSessionManager.getInstance(context!!).getAllCouriers()
+        return courierList.find { it.CourierId == courierId }
+    }
 
     //endregion
 }

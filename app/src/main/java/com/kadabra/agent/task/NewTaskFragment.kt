@@ -38,16 +38,17 @@ import com.kadabra.agent.R
 import com.kadabra.agent.adapter.CourierListAdapter
 import com.kadabra.agent.adapter.StopAdapter
 import com.kadabra.agent.adapter.TicketListAdapter
+import com.kadabra.agent.adapter.TicketServiceCostAdapter
 import com.kadabra.agent.api.ApiResponse
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.callback.ITaskCallback
-import com.kadabra.agent.direction.FetchURL
 import com.kadabra.agent.firebase.FirebaseManager
 import com.kadabra.agent.googleDirection.Directions
 import com.kadabra.agent.model.*
 import com.kadabra.agent.utilities.*
 import com.kadabra.agent.utilities.Alert.hideProgress
+import com.reach.plus.admin.util.UserSessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -145,6 +146,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var pickUpStops = ArrayList<Stop>()
     private var dropOffStops = ArrayList<Stop>()
     private var normalStops = ArrayList<Stop>()
+    private var serviceCostView: View? = null
+    private var tvAddServiceCost: TextView? = null
+    private var rvServiceCost: RecyclerView? = null
+    private var ivBackServiceCost: ImageView? = null
+    private var etServiceCost: EditText? = null
+    private var etCost: EditText? = null
+    private var btnSaveServiceCost: Button? = null
+    private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
     //endregion
 
     //region Events
@@ -343,8 +352,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
             R.id.btnAddStopLocation -> {
-                if (
-                    AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED &&
                     AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
                 ) {
                     context!!.getSystemService(Context.INPUT_METHOD_SERVICE)
@@ -538,6 +546,39 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     )
             }
 
+            R.id.tvAddServiceCost -> {// add task to the current ticket
+                if (NetworkManager().isNetworkAvailable(context!!))
+                    showServiceCostWindow()
+                else
+                    Alert.showMessage(getString(R.string.no_internet))
+            }
+
+            R.id.ivBackServiceCost -> {
+                //close dialouge
+                if (alertDialog != null)
+                    alertDialog!!.dismiss()
+            }
+
+            R.id.btnSaveServiceCost -> {
+                if (NetworkManager().isNetworkAvailable(context!!)) {
+                    if (alertDialog != null) {
+                        if (validateServiceCost()) {
+                            var serviceCost = TicketServiceCost(
+                                etServiceCost!!.text.toString(),
+                                etCost!!.text.toString().toDouble()
+                            )
+                            AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
+                            Log.d(TAG,AppConstants.TICKET_SERVICE_COST_LIST.size.toString())
+                            prepareTaskServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
+                            alertDialog!!.dismiss()
+
+                        }
+                    }
+                } else
+                    Alert.showMessage(getString(R.string.no_internet))
+
+            }
+
 
         }
     }
@@ -549,6 +590,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     //region Helper Functions
     private fun init() {
 
+        AppConstants.TICKET_SERVICE_COST_LIST.clear()
 
         scroll = currentView.findViewById(com.kadabra.agent.R.id.scroll)
         refresh = currentView!!.findViewById(com.kadabra.agent.R.id.refresh)
@@ -590,8 +632,15 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         etTotalCost = cancelTaskView!!.findViewById(R.id.etTotalCost)
         btnCancelConfirm = cancelTaskView!!.findViewById(R.id.btnCancelConfirm)
 
+        tvAddServiceCost = currentView!!.findViewById(R.id.tvAddServiceCost)
+        rvServiceCost = currentView!!.findViewById(R.id.rvServiceCost)
 
-//        mRipplePulseLayout.startRippleAnimation()
+        //service cost region
+        serviceCostView = View.inflate(context!!, R.layout.service_cost_add, null)
+        ivBackServiceCost = serviceCostView!!.findViewById<ImageView>(R.id.ivBackServiceCost)
+        etServiceCost = serviceCostView!!.findViewById<EditText>(R.id.etServiceCost)
+        etCost = serviceCostView!!.findViewById<EditText>(R.id.etCost)
+        btnSaveServiceCost = serviceCostView!!.findViewById<Button>(R.id.btnSaveServiceCost)
 
         ivBack!!.setOnClickListener(this)
         tvDeleteTask!!.setOnClickListener(this)
@@ -608,6 +657,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         btnCancel!!.setOnClickListener(this)
         ivBackConfirmCancel.setOnClickListener(this)
         btnCancelConfirm.setOnClickListener(this)
+
+        tvAddServiceCost!!.setOnClickListener(this)
+        btnSaveServiceCost!!.setOnClickListener(this)
+        ivBackServiceCost!!.setOnClickListener(this)
 
 
 
@@ -647,7 +700,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
     private fun loadTaskData(task: Task) {
 
-
+        AppConstants.TICKET_SERVICE_COST_LIST.clear()
         selectedTicket =
             AppConstants.GetALLTicket.find { it.TicketId == AppConstants.CurrentSelectedTicket.TicketId }!!
 
@@ -696,6 +749,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
         if (task.stopsmodel.count() > 0) {
 
+
             rlStops.visibility = View.VISIBLE
 
             stopsList = task.stopsmodel
@@ -703,6 +757,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             loadTaskStops(task.stopsmodel)
 
+        }
+
+        //ticket service cost
+        if (task.serviceCosts != null && task.serviceCosts.size > 0) {
+            rvServiceCost!!.visibility = View.VISIBLE
+            AppConstants.TICKET_SERVICE_COST_LIST = task.serviceCosts
+            prepareTaskServiceCost(task.serviceCosts)
         }
 
     }
@@ -721,19 +782,21 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
             taskModel.stopsmodels.clear()
             task.stopsmodel.forEach {
-
-
                 taskModel.stopsmodels!!.add(
                     Stopsmodel(
                         it.StopName,
                         it.Latitude!!,
                         it.Longitude!!,
                         task.AddedBy,
-                        it.StopTypeID
+                        it.StopTypeID,
+                        it.StopIndex
                     )
                 )
 //            }
             }
+            taskModel.serviceCosts =taskModel.serviceCosts//AppConstants.TICKET_SERVICE_COST_LIST
+            Log.d(TAG,"TICKET_SERVICE_COST_LIST:${AppConstants.TICKET_SERVICE_COST_LIST.size}")
+            Log.d(TAG,"taskModel.serviceCosts:${taskModel.serviceCosts.size}")
 
         } else {
 
@@ -753,18 +816,20 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             taskModelEdit.stopsmodels.clear()
             task.stopsmodel.forEach {
 
-
                 taskModelEdit.stopsmodels!!.add(
                     Stopsmodel(
                         it.StopName,
                         it.Latitude!!,
                         it.Longitude!!,
                         task.AddedBy,
-                        it.StopTypeID
+                        it.StopTypeID,
+                        it.StopIndex
                     )
                 )
 //            }
             }
+            taskModel.serviceCosts =taskModel.serviceCosts//AppConstants.TICKET_SERVICE_COST_LIST
+            Log.d(TAG,"taskModelEdit.serviceCosts:  ${taskModelEdit.serviceCosts.size}")
 
         }
 
@@ -896,6 +961,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
     private fun prepareTaskData() {
+        var stopIndex = 3
         var taskName = etTaskName.text.toString()
         var taskDescription = etTaskDescription.text.toString()
 
@@ -910,6 +976,22 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var ticketId = AppConstants.CurrentSelectedTicket.TicketId
         var taskId = AppConstants.CurrentSelectedTask.TaskId
         var courierId = selectedCourier.CourierId
+        stopsList.forEach {
+            Log.d(TAG, "Stop:" + it.StopName)
+            when (it.StopTypeID) {
+                1 -> {
+                    it.StopIndex = 1
+                }
+                2 -> {
+                    it.StopIndex = 2
+                }
+                3 -> {
+                    it.StopIndex = stopIndex
+                    stopIndex += 1
+                }
+            }
+        }
+
         print(stopsList)
 //        stopsList= prepareTaskStops(stopsList)
         print(stopsList)
@@ -922,8 +1004,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             ticketId!!,
             taskId,
             courierId!!,
-            stopsList
+            stopsList,
+            AppConstants.TICKET_SERVICE_COST_LIST
         )
+        Log.d(TAG,"AppConstants.TICKET_SERVICE_COST_LIST: ${AppConstants.TICKET_SERVICE_COST_LIST.size}")
         prepareTaskModelData(task)
 
     }
@@ -1067,7 +1151,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
                             Log.d(TAG, "response - " + response.toString())
                             Log.d(TAG, "response.Status - " + response.Status.toString())
-                            endTask(task)
+//                            endTask(task)
 
                         } else {
                             Alert.hideProgress()
@@ -1203,6 +1287,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             courierList = response.ResponseObj!!
                             AppConstants.ALL_COURIERS = courierList
                             prepareCourier(courierList)
+                            Log.d(TAG,"allCouriers: ${courierList.size}")
+                            UserSessionManager.getInstance(context!!).setAllCouriers(courierList)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
@@ -1386,13 +1472,13 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
     private fun loadTaskStops(stopList: ArrayList<Stop>) {
+
         stopList.forEach { it.status = 1/*1 == update*/ }
         var adapter = StopAdapter(context!!, stopList, this)
         rvStops.adapter = adapter
         rvStops.layoutManager =
             LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
         adapter.notifyDataSetChanged()
-
 
     }
 
@@ -2004,8 +2090,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
     private fun calcDirection(origin: LatLng, dest: LatLng, isStop: Boolean) {
+
         var wayPoints = ""
         var counter = 0
+
         if (!isStop) {
             stopsList.forEach {
 
@@ -2029,7 +2117,6 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
         if (NetworkManager().isNetworkAvailable(context!!)) {
-//            Alert.showProgress(context!!)
             var request = NetworkManager().create(baseUrl, ApiServices::class.java)
 
             var endPoint = request.getFullJson(
@@ -2060,36 +2147,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     if (response.isSuccessful && response.body()?.status.equals("OK")) {
                         Log.d(TAG, "onResponse:isSuccessful " + response.isSuccessful)
-//                        drawRouteOnMap(map, response.body()!!.directionPolylines)
                         var dist = response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.text
                         var dur = response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text
 
-//                        totalKilometers =
-//                            conevrtMetersToKilometers(response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.value!!.toLong())
-//                        totalDistanceValue =
-//                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text.toString()
-//                        totalSeconds =
-//                            response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.value!!.toLong()
-//                        Log.d(TAG, "totalDistanceValue: " + totalDistanceValue)
-//                        Log.d(TAG, "totalSeconds: " + totalSeconds)
-//                        Log.d(TAG, "DIst: " + dist)
-//                        Log.d(TAG, "dur: " + dur)
-//                        Log.d(TAG, "totalKilometers: $totalKilometers")
-//                        Log.d(TAG, "METERS:  $meters")
-//                        totalKilometers = conevrtMetersToKilometers(meters)
-//                        meters = 0L
                         var data =
                             "Total Kilometers: ( " + dist + "  )\n Time : $dur"
 
                         activity?.runOnUiThread {
-                            //                            Alert.hideProgress()
                             Alert.showAlertMessage(context!!, AppConstants.INFO, data)
                         }
 
 
                     } else
                         activity!!.runOnUiThread {
-                            //                            Alert.hideProgress()
                             Alert.showMessage(context!!, "Can't find a way there.")
                             totalKilometers = 0
                             Log.e(
@@ -2213,5 +2283,56 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         )
     }
 
+    private fun showServiceCostWindow() {
+        if (alertDialog == null) {
+            var alert = AlertDialog.Builder(context!!)
+            alertDialog = alert.create()
+
+            etServiceCost!!.text.clear()
+            etCost!!.text.clear()
+            etServiceCost!!.requestFocus()
+            alertDialog!!.setView(serviceCostView)
+
+            alertDialog!!.show()
+        } else {
+
+            etServiceCost!!.text.clear()
+            etCost!!.text.clear()
+            etServiceCost!!.requestFocus()
+            alertDialog!!.setView(serviceCostView)
+
+            alertDialog!!.show()
+        }
+
+
+    }
+
+    private fun validateServiceCost(): Boolean {
+
+        if (etServiceCost!!.text.trim().toString().isNullOrEmpty()) {
+            Alert.showMessage("Service cost Name is required.")
+            etServiceCost!!.requestFocus()
+            return false
+        }
+        if (etCost!!.text.trim().toString().isNullOrEmpty()) {
+            Alert.showMessage("cost is required.")
+            etCost!!.requestFocus()
+            return false
+        }
+        return true
+    }
+
+    private fun prepareTaskServiceCost(serviceCostList: ArrayList<TicketServiceCost>) {
+        if (ticketServiceCostAdapter != null) {
+            rvServiceCost!!.adapter = null
+        }
+        ticketServiceCostAdapter = TicketServiceCostAdapter(context!!, serviceCostList)
+        rvServiceCost!!.adapter = ticketServiceCostAdapter
+        rvServiceCost!!.layoutManager =
+            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
+        ticketServiceCostAdapter!!.notifyDataSetChanged()
+
+
+    }
 
 }

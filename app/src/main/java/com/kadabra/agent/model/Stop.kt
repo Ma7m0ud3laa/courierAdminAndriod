@@ -17,6 +17,7 @@ class Stop {
     var postalCode = ""
     var knownName = ""
     var status=0 //0 new 1 update 2 delete
+    var StopIndex = 0
 
 
     constructor()

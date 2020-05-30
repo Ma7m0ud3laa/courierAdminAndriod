@@ -14,6 +14,7 @@ class Courier {
     var TaskId = ""
     var PickupName = ""
     var DropoffName = ""
+    var TreasuryValue = 0.0
 
     constructor()
     constructor(id: Int?, name: String) {

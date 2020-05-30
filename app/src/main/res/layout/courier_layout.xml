@@ -26,6 +26,21 @@
         <!--            android:layout_marginBottom="10dp"-->
         <!--           android:src="@drawable/car" -->
         <!--            android:scaleType="centerCrop"/>-->
+        <TextView
+            android:id="@+id/tvWallet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/tvHaveTaskNow"
+            android:layout_alignStart="@+id/tvName"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="@string/le"
+            android:textColor="@color/colorPrimary"
+            android:textSize="12sp"
+            android:textStyle="bold|italic" />
+
         <ImageView
             android:id="@+id/ivCourierImage"
             android:layout_width="48dp"
@@ -84,7 +99,7 @@
             android:id="@+id/progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tvHaveTaskNow"
+            android:layout_below="@+id/tvWallet"
             android:layout_marginLeft="1dp"
             android:layout_marginTop="10dp"
             android:layout_marginRight="1dp"

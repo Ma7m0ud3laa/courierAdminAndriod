@@ -3,6 +3,7 @@ package com.reach.plus.admin.util
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.kadabra.agent.model.Admin
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.data
@@ -86,6 +87,23 @@ fun setTicketSubData(data: data?) {
         val json = sharedPreferences.getString(AppConstants.TICKET_SUB_DATA, "")
         var data: data? = gson.fromJson<Any>(json, data::class.java) as data?
         return data
+    }
+
+    fun setAllCouriers(notificationList: ArrayList<Courier>) {
+        val gson = Gson()
+        val json = gson.toJson(notificationList)
+        editor.putString(AppConstants.COURIERS_DATA, json)
+        editor.commit()
+    }
+
+    fun getAllCouriers(): ArrayList<Courier> {
+        val gson = Gson()
+        val json = sharedPreferences.getString(AppConstants.COURIERS_DATA, null)
+
+        val type = object : TypeToken<ArrayList<Courier>>() {
+        }.type
+
+        return gson.fromJson(json, type)
     }
 
     fun logout() {

@@ -16,7 +16,7 @@ import java.util.ArrayList
  * Created by Mokhtar on 6/25/2019.
  */
 
-class TicketCategoryAdapter(
+class   TicketCategoryAdapter(
     context: Context,
     resource: Int,
     private val values: ArrayList<TicketCategory>

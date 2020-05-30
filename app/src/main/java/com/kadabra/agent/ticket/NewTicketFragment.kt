@@ -49,13 +49,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var tvPrice: TextView? = null
     private var ivCheck: ImageView? = null
 
-    private var tvAddServiceCost: TextView? = null
+//        private var tvAddServiceCost: TextView? = null
     private var tvAddTask: TextView? = null
     private var tvTasks: TextView? = null
     private var rvTasks: RecyclerView? = null
-    private var rvServiceCost: RecyclerView? = null
+//    private var rvServiceCost: RecyclerView? = null
     private var currentView: View? = null
-    private var serviceCostView: View? = null
+//    private var serviceCostView: View? = null
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
@@ -84,13 +84,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var selectedPaymentMethod = TicketPaymentMethod(null, "")
     private var ticketCategoryAdapter: TicketCategoryAdapter? = null
     private var ticketPriorityAdapter: TicketPriorityAdapter? = null
-    private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
+//    private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
     private var ticketPaymentMethodAdapter: TicketPaymentMethodAdapter? = null
     private var ticketStatusAdapter: TicketStatusAdapter? = null
-    private var btnSaveServiceCost: Button? = null
-    private var ivBackServiceCost: ImageView? = null
-    private var etServiceCost: EditText? = null
-    private var etCost: EditText? = null
+//    private var btnSaveServiceCost: Button? = null
+//    private var ivBackServiceCost: ImageView? = null
+//    private var etServiceCost: EditText? = null
+//    private var etCost: EditText? = null
     private var alertDialog: AlertDialog? = null
     var editMode = false
     var taskInProgress = false
@@ -163,12 +163,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 }
 
             }
-            R.id.tvAddServiceCost -> {// add task to the current ticket
-                if (NetworkManager().isNetworkAvailable(context!!))
-                    showServiceCostWindow()
-                else
-                    Alert.showMessage(getString(R.string.no_internet))
-            }
+//            R.id.tvAddServiceCost -> {// add task to the current ticket
+//                if (NetworkManager().isNetworkAvailable(context!!))
+//                    showServiceCostWindow()
+//                else
+//                    Alert.showMessage(getString(R.string.no_internet))
+//            }
 
             R.id.tvAddTask -> {// add task to the current ticket
                 AppConstants.CurrentSelectedTask = Task()
@@ -182,31 +182,31 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                 listener!!.onBottomSheetSelectedItem(0)
             }
 
-            R.id.ivBackServiceCost -> {
-                //close dialouge
-                if (alertDialog != null)
-                    alertDialog!!.dismiss()
-            }
+//            R.id.ivBackServiceCost -> {
+//                //close dialouge
+//                if (alertDialog != null)
+//                    alertDialog!!.dismiss()
+//            }
 
-            R.id.btnSaveServiceCost -> {
-
-                if (NetworkManager().isNetworkAvailable(context!!)) {
-                    if (alertDialog != null) {
-                        if (validateServiceCost()) {
-                            var serviceCost = TicketServiceCost(
-                                etServiceCost!!.text.toString(),
-                                etCost!!.text.toString().toDouble()
-                            )
-                            AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
-                            prepareTicketServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
-                            alertDialog!!.dismiss()
-
-                        }
-                    }
-                } else
-                    Alert.showMessage(getString(R.string.no_internet))
-
-            }
+//            R.id.btnSaveServiceCost -> {
+//
+//                if (NetworkManager().isNetworkAvailable(context!!)) {
+//                    if (alertDialog != null) {
+//                        if (validateServiceCost()) {
+//                            var serviceCost = TicketServiceCost(
+//                                etServiceCost!!.text.toString(),
+//                                etCost!!.text.toString().toDouble()
+//                            )
+//                            AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
+//                            prepareTicketServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
+//                            alertDialog!!.dismiss()
+//
+//                        }
+//                    }
+//                } else
+//                    Alert.showMessage(getString(R.string.no_internet))
+//
+//            }
             R.id.btnSave -> {
 //                if (AppConstants.CurrentLoginAdmin.IsSuperAdmin) {
                 if (NetworkManager().isNetworkAvailable(context!!)) {
@@ -228,20 +228,20 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     }
 
-    private fun validateServiceCost(): Boolean {
-
-        if (etServiceCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage("Service cost Name is required.")
-            etServiceCost!!.requestFocus()
-            return false
-        }
-        if (etCost!!.text.trim().toString().isNullOrEmpty()) {
-            Alert.showMessage("cost is required.")
-            etCost!!.requestFocus()
-            return false
-        }
-        return true
-    }
+//    private fun validateServiceCost(): Boolean {
+//
+//        if (etServiceCost!!.text.trim().toString().isNullOrEmpty()) {
+//            Alert.showMessage("Service cost Name is required.")
+//            etServiceCost!!.requestFocus()
+//            return false
+//        }
+//        if (etCost!!.text.trim().toString().isNullOrEmpty()) {
+//            Alert.showMessage("cost is required.")
+//            etCost!!.requestFocus()
+//            return false
+//        }
+//        return true
+//    }
 
 
     private fun init() {
@@ -257,12 +257,12 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         ivCheck = currentView!!.findViewById(R.id.ivCheck)
         tvStatus = currentView!!.findViewById(R.id.tvStatus)
         tvPriority = currentView!!.findViewById(R.id.tvPriority)
-        tvAddServiceCost = currentView!!.findViewById(R.id.tvAddServiceCost)
+//        tvAddServiceCost = currentView!!.findViewById(R.id.tvAddServiceCost)
         tvAddTask = currentView!!.findViewById(R.id.tvAddTask)
         tvTasks = currentView!!.findViewById(R.id.tvTasks)
 
         ivBack = currentView!!.findViewById(R.id.ivBack)
-        rvServiceCost = currentView!!.findViewById(R.id.rvServiceCost)
+//        rvServiceCost = currentView!!.findViewById(R.id.rvServiceCost)
         rvTasks = currentView!!.findViewById(R.id.rvTasks)
         etTicketName = currentView!!.findViewById(R.id.etTicketName)
         etTicketDescription = currentView!!.findViewById(R.id.etTicketDescription)
@@ -277,21 +277,21 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
         btnSave = currentView!!.findViewById(R.id.btnSave)
 
         //service cost region
-        serviceCostView = View.inflate(context!!, R.layout.service_cost_add, null)
-        ivBackServiceCost = serviceCostView!!.findViewById<ImageView>(R.id.ivBackServiceCost)
-        etServiceCost = serviceCostView!!.findViewById<EditText>(R.id.etServiceCost)
-        etCost = serviceCostView!!.findViewById<EditText>(R.id.etCost)
-        btnSaveServiceCost = serviceCostView!!.findViewById<Button>(R.id.btnSaveServiceCost)
+//        serviceCostView = View.inflate(context!!, R.layout.service_cost_add, null)
+//        ivBackServiceCost = serviceCostView!!.findViewById<ImageView>(R.id.ivBackServiceCost)
+//        etServiceCost = serviceCostView!!.findViewById<EditText>(R.id.etServiceCost)
+//        etCost = serviceCostView!!.findViewById<EditText>(R.id.etCost)
+//        btnSaveServiceCost = serviceCostView!!.findViewById<Button>(R.id.btnSaveServiceCost)
         ////////////////////////////////////
 
 
-        tvAddServiceCost!!.setOnClickListener(this)
+//        tvAddServiceCost!!.setOnClickListener(this)
         tvAddTask!!.setOnClickListener(this)
 
         ivBack.setOnClickListener(this)
         btnSave.setOnClickListener(this)
-        btnSaveServiceCost!!.setOnClickListener(this)
-        ivBackServiceCost!!.setOnClickListener(this)
+//        btnSaveServiceCost!!.setOnClickListener(this)
+//        ivBackServiceCost!!.setOnClickListener(this)
         ivCheck!!.setOnClickListener(this)
 
 //        AnimateScroll.scrollToView(scroll, tvTicketName!!)
@@ -763,11 +763,11 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
 //        cbNeedCourier.isChecked = ticket.NeedCourier
         //ticket service cost
-        if (ticket.serviceCosts != null && ticket.serviceCosts.size > 0) {
-            rvServiceCost!!.visibility = View.VISIBLE
-            AppConstants.TICKET_SERVICE_COST_LIST = ticket.serviceCosts
-            prepareTicketServiceCost(ticket.serviceCosts)
-        }
+//        if (ticket.serviceCosts != null && ticket.serviceCosts.size > 0) {
+//            rvServiceCost!!.visibility = View.VISIBLE
+//            AppConstants.TICKET_SERVICE_COST_LIST = ticket.serviceCosts
+//            prepareTicketServiceCost(ticket.serviceCosts)
+//        }
         if (ticket.taskModel.size > 0)
             rvTasks!!.visibility = View.VISIBLE
         loadTicketTasks(ticket.taskModel)
@@ -1121,45 +1121,45 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 
     }
 
+//
+//    private fun prepareTicketServiceCost(serviceCostList: ArrayList<TicketServiceCost>) {
+//        if (ticketCategoryAdapter != null) {
+//            rvServiceCost!!.adapter = null
+////            rvServiceCost!!.adapter!!.notifyDataSetChanged()
+//        }
+//
+//        ticketServiceCostAdapter = TicketServiceCostAdapter(context!!, serviceCostList)
+//        rvServiceCost!!.adapter = ticketServiceCostAdapter
+//        rvServiceCost!!.layoutManager =
+//            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
+//        ticketServiceCostAdapter!!.notifyDataSetChanged()
+//
+//
+//    }
 
-    private fun prepareTicketServiceCost(serviceCostList: ArrayList<TicketServiceCost>) {
-        if (ticketCategoryAdapter != null) {
-            rvServiceCost!!.adapter = null
-//            rvServiceCost!!.adapter!!.notifyDataSetChanged()
-        }
-
-        ticketServiceCostAdapter = TicketServiceCostAdapter(context!!, serviceCostList)
-        rvServiceCost!!.adapter = ticketServiceCostAdapter
-        rvServiceCost!!.layoutManager =
-            LinearLayoutManager(AppController.getContext(), LinearLayoutManager.HORIZONTAL, false)
-        ticketServiceCostAdapter!!.notifyDataSetChanged()
-
-
-    }
-
-    private fun showServiceCostWindow() {
-        if (alertDialog == null) {
-            var alert = AlertDialog.Builder(context!!)
-            alertDialog = alert.create()
-
-            etServiceCost!!.text.clear()
-            etCost!!.text.clear()
-            etServiceCost!!.requestFocus()
-            alertDialog!!.setView(serviceCostView)
-
-            alertDialog!!.show()
-        } else {
-
-            etServiceCost!!.text.clear()
-            etCost!!.text.clear()
-            etServiceCost!!.requestFocus()
-            alertDialog!!.setView(serviceCostView)
-
-            alertDialog!!.show()
-        }
-
-
-    }
+//    private fun showServiceCostWindow() {
+//        if (alertDialog == null) {
+//            var alert = AlertDialog.Builder(context!!)
+//            alertDialog = alert.create()
+//
+//            etServiceCost!!.text.clear()
+//            etCost!!.text.clear()
+//            etServiceCost!!.requestFocus()
+//            alertDialog!!.setView(serviceCostView)
+//
+//            alertDialog!!.show()
+//        } else {
+//
+//            etServiceCost!!.text.clear()
+//            etCost!!.text.clear()
+//            etServiceCost!!.requestFocus()
+//            alertDialog!!.setView(serviceCostView)
+//
+//            alertDialog!!.show()
+//        }
+//
+//
+//    }
 
 
     fun hideKeyboard(view: View) {

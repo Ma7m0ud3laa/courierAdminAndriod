@@ -30,8 +30,8 @@ interface ApiServices {
             : Call<ApiResponse<ArrayList<Ticket>>>
 
     @GET(AppConstants.URL_GET_ALL_TICKETS_BY_PAGE_NO)
-    fun getAllTicketsByPage(@Query("numOfItem") numOfItem: Int, @Query("pageNo") pageNo: Int)
-            : Call<ApiResponse<ArrayList<Ticket>>>
+    fun getAllTicketsByPage(@Query("Adminid") adminId: String,@Query("numOfItems") numOfItem: Int, @Query("pageNo") pageNo: Int)
+            : Call<ApiResponse<TicketDataPerPage>>
 
     @GET(AppConstants.URL_GET_ALL_TICKETS_SIMPLE)
     fun getAllTicketsNormal(@Query("Adminid") adminId: String)

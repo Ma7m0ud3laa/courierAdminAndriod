@@ -33,6 +33,9 @@ class TaskModel {
     @SerializedName("stopsmodels")
     @Expose
     var stopsmodels= ArrayList<Stopsmodel>()
+    @SerializedName("serviceCosts")
+    @Expose
+    var serviceCosts=  ArrayList<TicketServiceCost>()
 
     constructor()
     constructor(
@@ -41,7 +44,8 @@ class TaskModel {
         addedBy: String,
         ticketId: String,
         courierId: Int,
-        stopList: ArrayList<Stopsmodel>
+        stopList: ArrayList<Stopsmodel>,
+        serviceCosts:ArrayList<TicketServiceCost>
     ) {
         this.taskName = taskName
         this.amount = amount

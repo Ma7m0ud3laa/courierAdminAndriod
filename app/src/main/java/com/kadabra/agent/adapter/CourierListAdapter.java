@@ -46,6 +46,7 @@ public class CourierListAdapter extends ArrayAdapter<Courier> {
             );
         }
 
+        TextView tvWallet = convertView.findViewById(R.id.tvWallet);
         ImageView imageViewFlag = convertView.findViewById(R.id.ivCourierImage);
         TextView tvName = convertView.findViewById(R.id.tvName);
         TextView tvMobile = convertView.findViewById(R.id.tvMobile);
@@ -56,6 +57,17 @@ public class CourierListAdapter extends ArrayAdapter<Courier> {
         Courier courier = getItem(position);
 
         if (courier != null) {
+         if(courier.getTreasuryValue()>0.0)
+         {
+             tvWallet.setText(String.valueOf(courier.getTreasuryValue()));
+             tvWallet.setVisibility(View.VISIBLE);
+         }
+         else
+         {
+             tvWallet.setText("0 LE");
+             tvWallet.setVisibility(View.VISIBLE);
+         }
+
             tvName.setText(courier.getCourierName());
             tvMobile.setText(courier.getCourierMobile());
             if (courier.getHasTasksNow()) {

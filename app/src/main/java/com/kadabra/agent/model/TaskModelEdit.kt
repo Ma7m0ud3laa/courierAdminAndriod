@@ -32,6 +32,9 @@ class TaskModelEdit {
     @SerializedName("stopsmodels")
     @Expose
     var stopsmodels= ArrayList<Stopsmodel>()
+    @SerializedName("serviceCosts")
+    @Expose
+    var serviceCosts=  ArrayList<TicketServiceCost>()
 
     constructor()
     constructor(

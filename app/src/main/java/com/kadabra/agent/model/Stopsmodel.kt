@@ -21,19 +21,24 @@ class Stopsmodel {
     @SerializedName("StopTypeID")
     @Expose
     var stopTypeID: Int? = null
+    @SerializedName("StopIndex")
+    @Expose
+    var stopIndex: Int = 0
 
     constructor(
         stopName: String,
         latitude: Double,
         longitude: Double,
         addedBy: String,
-        stopTypeID: Int
+        stopTypeID: Int,
+        stopIndex:Int
     ) {
         this.stopName = stopName
         this.latitude = latitude
         this.longitude = longitude
         this.addedBy = addedBy
         this.stopTypeID = stopTypeID
+        this.stopIndex=stopIndex
     }
 
 }

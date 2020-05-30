@@ -22,25 +22,19 @@ class Ticket {
     var Status: String? = null
     var CategoryId: String = ""
     var Category: String = ""
- var CreationDate=""
+    var CreationDate = ""
     var price: Double? = null
     var PriorityId: Int? = null
     var ComingTaskPickupTime = ""
     var ComingTaskCourierName = ""
-
     var Priority: String? = null
     var PaymentMethodId: Int? = null
     var PaymentMethod: String? = null
     var NeedCourier = false
-
     var taskModel = ArrayList<Task>()
-
     var title: String? = null
-
     var pickUpLocation: PickUpLocation = PickUpLocation()//need to be with AdminName
-
     var dropOffLocation: DropOffLocation = DropOffLocation()//need to be with AdminName
-
     var stopList: ArrayList<Stop>? = null//need to be added and with AdminName
     var ticketCategories: ArrayList<TicketCategory>? = null
     var ticketStatus: ArrayList<TicketStatus>? = null

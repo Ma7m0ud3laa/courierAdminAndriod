@@ -21,6 +21,7 @@ import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.model.Courier
 import com.kadabra.agent.model.Ticket
 import com.kadabra.agent.model.TicketData
+import com.kadabra.agent.model.TicketDataPerPage
 import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
@@ -30,7 +31,7 @@ import com.reach.plus.admin.util.UserSessionManager
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
     // TODO: Rename and change types of parameters
-    private var TAG=this.javaClass.simpleName
+    private var TAG = this.javaClass.simpleName
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var ticket: Ticket = Ticket()
@@ -53,7 +54,8 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
             mParam2 = arguments!!.getString(ARG_PARAM2)
         }
 
-        AppConstants.CurrentLoginAdmin=UserSessionManager.getInstance(AppController.getContext()).getUserData()!!
+        AppConstants.CurrentLoginAdmin =
+            UserSessionManager.getInstance(AppController.getContext()).getUserData()!!
     }
 
     override fun onCreateView(
@@ -121,9 +123,9 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
 
         sRefresh?.setOnRefreshListener {
-            Log.d(TAG,"  sRefresh?.setOnRefreshListener")
+            Log.d(TAG, "  sRefresh?.setOnRefreshListener")
             loadTickets(AppConstants.CurrentLoginAdmin.AdminId)
-
+//            loadTicketsPerPage(AppConstants.CurrentLoginAdmin.AdminId,30,1)
         }
 //
 //        if (AppConstants.GetALLTicket.count() > 0 && AppConstants.ALL_COURIERS.count() > 0) {
@@ -134,11 +136,14 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 //        }
 
         loadTickets(AppConstants.CurrentLoginAdmin.AdminId)
+//        loadTicketsPerPage(AppConstants.CurrentLoginAdmin.AdminId,30,1)
+
+        getAllCouriers()
     }
 
 
     private fun loadTickets(adminID: String) {
-        Log.d(TAG," loadTickets")
+        Log.d(TAG, " loadTickets")
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
             ivNoInternet!!.visibility = View.INVISIBLE
@@ -148,10 +153,10 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                 endPoint,
                 object : INetworkCallBack<ApiResponse<TicketData>> {
                     override fun onFailed(error: String) {
-                        Log.e(TAG,error)
+                        Log.e(TAG, error)
                         sRefresh!!.isRefreshing = false
                         Alert.hideProgress()
-                        Alert.showMessage( AppController.getContext().getString(R.string.error_login_server_error))
+                        Alert.showMessage(AppController.getContext().getString(R.string.error_login_server_error))
                     }
 
                     override fun onSuccess(response: ApiResponse<TicketData>) {
@@ -160,7 +165,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             ticketList = ticketsData.simpleTicketmodels
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
-                                Log.d(TAG,"ticketList size : ${ticketList.toString()}")
+                                Log.d(TAG, "ticketList size : ${ticketList.toString()}")
                                 prepareTicketData(ticketList)
                                 AppConstants.GetALLTicket = ticketList
 //                                getAllCouriers()
@@ -173,65 +178,10 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                                 Alert.hideProgress()
                             }
 
-                        }
-                        else if(response.Status == AppConstants.STATUS_FAILED&& response.Message == "No Ticket Found")
-                        {
+                        } else if (response.Status == AppConstants.STATUS_FAILED && response.Message == "No Ticket Found") {
                             sRefresh!!.isRefreshing = false
                             tvEmptyData!!.visibility = View.VISIBLE
                             Alert.hideProgress()
-                        }
-                        else {
-                            sRefresh!!.isRefreshing = false
-                            Alert.hideProgress()
-                            Alert.showMessage(
-                                getString(R.string.error_network)
-                            )
-                        }
-
-                    }
-                })
-
-        } else {
-            ivNoInternet!!.visibility = View.VISIBLE
-            sRefresh!!.isRefreshing = false
-            Alert.hideProgress()
-            Alert.showMessage(getString(R.string.no_internet))
-        }
-
-
-    }
-
-    private fun loadTicketsPerPge(noOfItems: Int, pageNo: Int) {
-        Alert.showProgress(context!!)
-        if (NetworkManager().isNetworkAvailable(context!!)) {
-            ivNoInternet!!.visibility = View.INVISIBLE
-            var request = NetworkManager().create(ApiServices::class.java)
-            var endPoint = request.getAllTicketsByPage(noOfItems, pageNo)
-            NetworkManager().request(
-                endPoint,
-                object : INetworkCallBack<ApiResponse<ArrayList<Ticket>>> {
-                    override fun onFailed(error: String) {
-                        sRefresh!!.isRefreshing = false
-                        Alert.hideProgress()
-                        Alert.showMessage( getString(R.string.error_login_server_error))
-                    }
-
-                    override fun onSuccess(response: ApiResponse<ArrayList<Ticket>>) {
-                        if (response.Status == AppConstants.STATUS_SUCCESS) {
-                            sRefresh!!.isRefreshing = false
-                            tvEmptyData!!.visibility = View.INVISIBLE
-                            ticketList = response.ResponseObj!!
-                            AppConstants.GetALLTicket = ticketList
-                            if (ticketList.size > 0) {
-                                prepareTicketData(ticketList)
-                                AppConstants.GetALLTicket = ticketList
-                                Alert.hideProgress()
-//                                getAllCouriers()
-                            } else {//no taskModel
-                                tvEmptyData!!.visibility = View.VISIBLE
-                                Alert.hideProgress()
-                            }
-
                         } else {
                             sRefresh!!.isRefreshing = false
                             Alert.hideProgress()
@@ -253,6 +203,68 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
     }
 
+    private fun loadTicketsPerPage(adminID: String, noOfItems: Int, pageNo: Int) {
+        Log.d(TAG, " loadTickets")
+        Alert.showProgress(context!!)
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            ivNoInternet!!.visibility = View.INVISIBLE
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getAllTicketsByPage(adminID, noOfItems, pageNo)
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<TicketDataPerPage>> {
+                    override fun onFailed(error: String) {
+                        Log.e(TAG, error)
+                        sRefresh!!.isRefreshing = false
+                        Alert.hideProgress()
+                        Alert.showMessage(AppController.getContext().getString(R.string.error_login_server_error))
+                    }
+
+                    override fun onSuccess(response: ApiResponse<TicketDataPerPage>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            var ticketsData = response.ResponseObj!!
+                            ticketList = ticketsData.ticketmodels
+                            AppConstants.GetALLTicket = ticketList
+                            if (ticketList.size > 0) {
+                                Log.d(TAG, "ticketList size : ${ticketList.toString()}")
+                                prepareTicketData(ticketList)
+                                AppConstants.GetALLTicket = ticketList
+//                                getAllCouriers()
+                                Alert.hideProgress()
+                                sRefresh!!.isRefreshing = false
+                                tvEmptyData!!.visibility = View.INVISIBLE
+                            } else {//no taskModel
+                                sRefresh!!.isRefreshing = false
+                                tvEmptyData!!.visibility = View.VISIBLE
+                                Alert.hideProgress()
+                            }
+
+                        } else if (response.Status == AppConstants.STATUS_FAILED && response.Message == "No Ticket Found") {
+                            sRefresh!!.isRefreshing = false
+                            tvEmptyData!!.visibility = View.VISIBLE
+                            Alert.hideProgress()
+                        } else {
+                            sRefresh!!.isRefreshing = false
+                            Alert.hideProgress()
+                            Alert.showMessage(
+                                getString(R.string.error_network)
+                            )
+                        }
+
+                    }
+                })
+
+        } else {
+            ivNoInternet!!.visibility = View.VISIBLE
+            sRefresh!!.isRefreshing = false
+            Alert.hideProgress()
+            Alert.showMessage(getString(R.string.no_internet))
+        }
+
+
+    }
+
+
     private fun prepareTicketData(ticketList: ArrayList<Ticket>) {
         var adapter = TicketAdapter(context!!, ticketList, listener!!)
         rvTickets!!.adapter = adapter
@@ -266,10 +278,37 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
     }
 
 
-
     override fun onDestroy() {
         super.onDestroy()
         Alert.hideProgress()
+    }
+
+    private fun getAllCouriers() {
+
+        if (NetworkManager().isNetworkAvailable(context!!)) {
+            var request = NetworkManager().create(ApiServices::class.java)
+            var endPoint = request.getAllCouriersWithStatus()
+            NetworkManager().request(
+                endPoint,
+                object : INetworkCallBack<ApiResponse<ArrayList<Courier>>> {
+                    override fun onFailed(error: String) {
+                    }
+
+                    override fun onSuccess(response: ApiResponse<ArrayList<Courier>>) {
+                        if (response.Status == AppConstants.STATUS_SUCCESS) {
+
+                            var courierList = response.ResponseObj!!
+                            AppConstants.ALL_COURIERS = courierList
+                            Log.d(TAG,"allCouriers: ${courierList.size}")
+                            UserSessionManager.getInstance(context!!).setAllCouriers(courierList)
+
+                        }
+                    }
+                })
+
+        } else {
+            Alert.showMessage(getString(R.string.no_internet))
+        }
     }
 
 }// Required empty public constructor

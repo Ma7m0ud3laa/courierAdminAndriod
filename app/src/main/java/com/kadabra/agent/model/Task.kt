@@ -5,19 +5,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class Task {
-    //    var TaskId: String = ""
-//    var TicketId: String = ""
-//    var TaskName: String = ""
-//    var TaskDescription: String = ""
-//    var CourierID: Int ? = null
-//    var PaymentMethod: String = ""
-//    var Amount = 0.0
-//    var title: String? = null
-//    var stopsmodel = ArrayList<Stop>()
-//    var stopPickUp = Stop()
-//    var stopDropOff = Stop()
-//    var defaultStops = ArrayList<Stop>()
-//    var AddedBy: String = ""
+
     @Exclude
     @set:Exclude
     @get:Exclude
@@ -77,6 +65,9 @@ class Task {
     @set:Exclude
     @get:Exclude
     var Status = ""
+    @set:Exclude
+    @get:Exclude
+    var serviceCosts = ArrayList<TicketServiceCost>()
 
 
     constructor() {}
@@ -90,7 +81,9 @@ class Task {
         ticketId: String,
         taskId: String,
         courierId: Int,
-        stopList: ArrayList<Stop>
+        stopList: ArrayList<Stop>,
+        serviceCostList: ArrayList<TicketServiceCost>
+
     ) {
         this.TaskName = taskName
         this.TaskDescription = taskDescription
@@ -101,6 +94,7 @@ class Task {
         this.TaskId = taskId
         this.CourierID = courierId
         this.stopsmodel = stopList
+        this.serviceCosts=serviceCostList
     }
 
 }
