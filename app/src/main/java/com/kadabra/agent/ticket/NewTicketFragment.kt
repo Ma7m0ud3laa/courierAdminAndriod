@@ -1008,11 +1008,15 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                                 response.Message
 //                                getString(R.string.error_login_server_error)
                             )
-                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                        }
+                        else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
-                            Alert.showMessage(
-                                getString(R.string.error_login_server_error)
-                            )
+                            response.Message
+                        }
+
+                        else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                            Alert.hideProgress()
+                            response.Message
                         }
 
                     }
@@ -1104,6 +1108,9 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 //                adminId
 //            )
 //        else
+
+
+
         ticketModel = TicketModel(
             ticketId,
             ticketName,

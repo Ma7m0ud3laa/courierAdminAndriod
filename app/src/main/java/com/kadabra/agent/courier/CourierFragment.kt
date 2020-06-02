@@ -3,7 +3,10 @@ package com.kadabra.agent.courier
 
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
@@ -13,9 +16,7 @@ import android.telephony.TelephonyManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -39,7 +40,6 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -52,6 +52,7 @@ import com.google.maps.model.DirectionsResult
 import com.kadabra.Networking.NetworkManager
 import com.kadabra.Utilities.Base.BaseFragment
 import com.kadabra.agent.R
+import com.kadabra.agent.adapter.CustomSuggestionsAdapter
 import com.kadabra.agent.api.ApiServices
 import com.kadabra.agent.callback.IBottomSheetCallback
 import com.kadabra.agent.direction.TaskLoadedCallback
@@ -152,6 +153,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             Geocoder(activity?.applicationContext, Locale.forLanguageTag(currentCountry))
         locale = Locale("", currentCountry)
 
+
     }
 
     override fun onCreateView(
@@ -206,11 +208,12 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
         materialSearchBar!!.setOnSearchActionListener(object :
             MaterialSearchBar.OnSearchActionListener {
             override fun onSearchStateChanged(enabled: Boolean) {
-
+                Log.d("onSearchStateChanged", enabled.toString())
             }
 
             override fun onSearchConfirmed(text: CharSequence) {
                 activity!!.startSearch(text.toString(), true, null, true)
+                Log.d("onSearchConfirmed", text.toString())
             }
 
             override fun onButtonClicked(buttonCode: Int) {
@@ -232,6 +235,7 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
             }
         })
 
+
         materialSearchBar!!.addTextChangeListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
 
@@ -241,7 +245,8 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                 // region for device for datetime
                 if (searchMode) {
                     val predictionsRequest = FindAutocompletePredictionsRequest.builder()
-                        .setTypeFilter(TypeFilter.ESTABLISHMENT)
+//                        .setTypeFilter(TypeFilter.ESTABLISHMENT)
+//                        .setTypeFilter(TypeFilter.GEOCODE)
                         .setCountry(currentCountry)
                         .setSessionToken(token)
                         .setQuery(s.toString())
@@ -267,17 +272,25 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                             }
                         }
                 } else if (searchOnCourier) { //direction search for courier
-//                    suggestionsList.clear()
+                    suggestionsList.clear()
                     suggestionsList = ArrayList()
                     if (couriersList.size > 0) {
-                        couriersList.forEach { suggestionsList.add(it.name) }
+                        couriersList.forEach {
+                            if (it.name.toLowerCase().contains(s)) {
+                                suggestionsList.add(it.name)
+                            }
+                        }
                         materialSearchBar!!.updateLastSuggestions(suggestionsList)
-
+//
                         if (!materialSearchBar!!.isSuggestionsVisible) {
                             materialSearchBar!!.showSuggestionsList()
                         }
                         print(couriersList)
+                        Log.d(TAG, "VALUE:" + s.toString())
+
+
                     }
+
                 }
             }
 
@@ -301,10 +314,11 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
 
                     Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
                     val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm?.hideSoftInputFromWindow(
-                        materialSearchBar!!.windowToken,
-                        InputMethodManager.HIDE_IMPLICIT_ONLY
-                    )
+                    if (imm != null)
+                        imm?.hideSoftInputFromWindow(
+                            materialSearchBar!!.windowToken,
+                            InputMethodManager.HIDE_IMPLICIT_ONLY
+                        )
                     val placeId = selectedPrediction.placeId
                     val placeFields = listOf(Place.Field.LAT_LNG)
 
@@ -335,33 +349,39 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                                 Log.i("mytag", "status code: $statusCode")
                             }
                         }
+
+
                 } else if (searchOnCourier) {
                     if (position >= couriersList!!.size) {
                         return
                     }
-                    val selectedCourier = couriersList!![position]
+//                    val selectedCourier = couriersList!![position]
                     val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
+                    var selectedCourier = Courier()
+                    couriersList.forEach {
+                        if (it.name.toLowerCase().contains(suggestion.toLowerCase()))
+                        {    selectedCourier = it
+                            Log.d(TAG,"selectedCourier: ${it.name}")}
+                    }
                     materialSearchBar!!.text = suggestion
-
                     Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
                     val imm = context!!.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm?.hideSoftInputFromWindow(
-                        materialSearchBar!!.windowToken,
-                        InputMethodManager.HIDE_IMPLICIT_ONLY
-                    )
-//                  var currentCourier=couriersList.find { it.name==selectedCourier.name }
-
-
-                    mMap.moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                selectedCourier!!.location.lat.toDouble(),
-                                selectedCourier!!.location.long.toDouble()
-                            )
-                            ,
-                            DEFAULT_ZOOM
+                    if (imm != null)
+                        imm?.hideSoftInputFromWindow(
+                            materialSearchBar!!.windowToken,
+                            InputMethodManager.HIDE_IMPLICIT_ONLY
                         )
-                    )
+                    if (selectedCourier.CourierId != null)
+                        mMap.moveCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    selectedCourier!!.location.lat.toDouble(),
+                                    selectedCourier!!.location.long.toDouble()
+                                )
+                                ,
+                                DEFAULT_ZOOM
+                            )
+                        )
                 }
             }
 
@@ -1679,6 +1699,52 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private fun getMarkerFullData(courierId: Int): Courier? {
         var courierList = UserSessionManager.getInstance(context!!).getAllCouriers()
         return courierList.find { it.CourierId == courierId }
+    }
+
+    private fun geoLocate(searchString: String) {
+        Log.d(
+            TAG,
+            "geoLocate: geolocating"
+        )
+//        val searchString: String ="مونجينى باسوس"// searchBar.text.toString()
+        val geocoder = Geocoder(context!!)
+        var list: List<Address> =
+            ArrayList()
+        try {
+            list = geocoder.getFromLocationName(searchString, 1)
+        } catch (e: IOException) {
+            Log.e(
+                TAG,
+                "geoLocate: IOException: " + e.message
+            )
+        }
+        if (list.size > 0) {
+            val address = list[0]
+//            list.forEach{
+//                Log.d(
+//                    TAG,
+//                    "geoLocate: found a location: $it"
+//                )
+//            }
+            Log.d(
+                TAG,
+                "geoLocate: found a location: $address"
+            )
+            //Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        activity!!.menuInflater.inflate(R.menu.menu, menu)
+        var searchView = menu.findItem(R.id.search).actionView as SearchView
+        searchView.setOnCloseListener {
+            if (!materialSearchBar?.text.toString().trim().isNullOrEmpty()) {
+                var searchData = materialSearchBar?.text
+                geoLocate(searchData!!)
+            }
+            true
+        }
+
     }
 
     //endregion

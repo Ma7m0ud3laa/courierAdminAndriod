@@ -261,12 +261,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         if (!hidden) {
             //todo set the selected stop data
             var stop = AppConstants.CurrentTempStop
-            if (!stop.Latitude.toString().isNullOrEmpty()) {
+            Log.d(TAG, "stop.Latitude:$stop.Latitude")
+            Log.d(TAG, "stop.Latitude:${stop.Longitude}")
+            if (stop.Latitude != null) {
                 etStopName.setText(stop.StopName)
-                sStopType.setSelection(0)
-                sStopType.setSelection(0)
-                etLatitude.setText(stop.Latitude.toString())
-                etLongitude.setText(stop.Longitude.toString())
+//                sStopType.setSelection(0)
+                if (stop.Latitude != null)
+                    etLatitude.setText(stop.Latitude.toString())
+                else
+                    etLatitude.text.clear()
+                if (stop.Longitude != null)
+                    etLongitude.setText(stop.Longitude.toString())
+                else
+                    etLongitude.text.clear()
             }
 
         } else {
@@ -568,7 +575,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                                 etCost!!.text.toString().toDouble()
                             )
                             AppConstants.TICKET_SERVICE_COST_LIST.add(serviceCost)
-                            Log.d(TAG,AppConstants.TICKET_SERVICE_COST_LIST.size.toString())
+                            Log.d(TAG, AppConstants.TICKET_SERVICE_COST_LIST.size.toString())
                             prepareTaskServiceCost(AppConstants.TICKET_SERVICE_COST_LIST)
                             alertDialog!!.dismiss()
 
@@ -794,9 +801,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 )
 //            }
             }
-            taskModel.serviceCosts =taskModel.serviceCosts//AppConstants.TICKET_SERVICE_COST_LIST
-            Log.d(TAG,"TICKET_SERVICE_COST_LIST:${AppConstants.TICKET_SERVICE_COST_LIST.size}")
-            Log.d(TAG,"taskModel.serviceCosts:${taskModel.serviceCosts.size}")
+            taskModel.serviceCosts = AppConstants.TICKET_SERVICE_COST_LIST
+            Log.d(TAG, "TICKET_SERVICE_COST_LIST:${AppConstants.TICKET_SERVICE_COST_LIST.size}")
+            Log.d(TAG, "taskModel.serviceCosts:${taskModel.serviceCosts.size}")
 
         } else {
 
@@ -828,8 +835,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 )
 //            }
             }
-            taskModel.serviceCosts =taskModel.serviceCosts//AppConstants.TICKET_SERVICE_COST_LIST
-            Log.d(TAG,"taskModelEdit.serviceCosts:  ${taskModelEdit.serviceCosts.size}")
+            taskModelEdit.serviceCosts = AppConstants.TICKET_SERVICE_COST_LIST
+            Log.d(TAG, "taskModelEdit.serviceCosts:  ${taskModelEdit.serviceCosts.size}")
 
         }
 
@@ -1007,7 +1014,10 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             stopsList,
             AppConstants.TICKET_SERVICE_COST_LIST
         )
-        Log.d(TAG,"AppConstants.TICKET_SERVICE_COST_LIST: ${AppConstants.TICKET_SERVICE_COST_LIST.size}")
+        Log.d(
+            TAG,
+            "AppConstants.TICKET_SERVICE_COST_LIST: ${AppConstants.TICKET_SERVICE_COST_LIST.size}"
+        )
         prepareTaskModelData(task)
 
     }
@@ -1287,7 +1297,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             courierList = response.ResponseObj!!
                             AppConstants.ALL_COURIERS = courierList
                             prepareCourier(courierList)
-                            Log.d(TAG,"allCouriers: ${courierList.size}")
+                            Log.d(TAG, "allCouriers: ${courierList.size}")
                             UserSessionManager.getInstance(context!!).setAllCouriers(courierList)
 
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
@@ -2147,16 +2157,30 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                     if (response.isSuccessful && response.body()?.status.equals("OK")) {
                         Log.d(TAG, "onResponse:isSuccessful " + response.isSuccessful)
-                        var dist = response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.text
+                        var data = ""
+                        var dist = response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.value
                         var dur = response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text
 
-                        var data =
-                            "Total Kilometers: ( " + dist + "  )\n Time : $dur"
+                        Log.d("dist", dist.toString())
+                        Log.d("dur", dur.toString())
 
-                        activity?.runOnUiThread {
-                            Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                        if (dist != null && dist > 0) {
+                            var totalKilometers = conevrtMetersToKilometers(dist.toLong())
+                            data = calculateTripApproximationCost(totalKilometers, dur!!)
+//                            "Total Kilometers: ( " + dist + "  )\n Time : $dur\n"
+
+                            activity?.runOnUiThread {
+                                Alert.showAlertMessage(context!!, AppConstants.INFO, data)
+                            }
+                        } else {
+                            activity?.runOnUiThread {
+                                Alert.showAlertMessage(
+                                    context!!,
+                                    AppConstants.INFO,
+                                    "No Data to be shown.please try again."
+                                )
+                            }
                         }
-
 
                     } else
                         activity!!.runOnUiThread {
@@ -2334,5 +2358,41 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
 
     }
+
+    private fun calculateTripApproximationCost(totalKilometers: Int, totalTime: String): String {
+        var data = ""
+        var carCost = 5
+        var bikeCost = 3
+        var minTotalCar = 0
+        var maxTotalCar = 0
+        var minTotalBike = 0
+        var maxTotalBike = 0
+
+
+        if (totalKilometers < 20) // kilometers < 100 Cost-5 as min Cost+20 as max
+        {
+            minTotalCar = totalKilometers * carCost - 5
+            maxTotalCar = totalKilometers * carCost + 20
+            minTotalBike = totalKilometers * bikeCost - 5
+            maxTotalBike = totalKilometers * bikeCost + 20
+
+        } else if (totalKilometers > 20) { // kilometers > 100 Cost-10 as min Cost+30 as max
+            minTotalCar = totalKilometers * carCost - 10
+            maxTotalCar = totalKilometers * carCost + 30
+            minTotalBike = totalKilometers * bikeCost - 10
+            maxTotalBike = totalKilometers * bikeCost + 30
+        }
+
+        data =
+            "Total Kilometers: (" + totalKilometers + " " + getString(R.string.km) + ").\nTime : $totalTime\n" +
+                    "Total Cost - Car: [ From: $minTotalCar ${getString(R.string.le)}   To: $maxTotalCar ${getString(
+                        R.string.le
+                    )} ].\n" +
+                    "Total Cost - Bike: [ From: $minTotalBike ${getString(R.string.le)}   To: $maxTotalBike ${getString(
+                        R.string.le
+                    )} ]."
+        return data
+    }
+
 
 }

@@ -55,7 +55,7 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
         }
 
         AppConstants.CurrentLoginAdmin =
-            UserSessionManager.getInstance(AppController.getContext()).getUserData()!!
+            UserSessionManager.getInstance(context!!).getUserData()!!
     }
 
     override fun onCreateView(
