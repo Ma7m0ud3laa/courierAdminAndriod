@@ -972,7 +972,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var taskName = etTaskName.text.toString()
         var taskDescription = etTaskDescription.text.toString()
 
-        var amount = 0.0//etAmount.text.toString().toDouble()
+        var amount = 0.0 //etAmount.text.toString().toDouble()
 
         if (dateValue.isNullOrEmpty())
             dateValue = AppConstants.CurrentSelectedTask.PickUpTime

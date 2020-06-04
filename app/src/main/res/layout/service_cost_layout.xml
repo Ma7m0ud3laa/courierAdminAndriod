@@ -75,7 +75,7 @@
             android:textColor="@color/red"
             android:textSize="13sp"
             android:textStyle="bold|italic"
-            android:visibility="gone"/>
+            android:visibility="visible"/>
     </RelativeLayout>
 
 

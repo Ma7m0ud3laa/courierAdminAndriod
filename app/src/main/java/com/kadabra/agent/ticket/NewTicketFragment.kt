@@ -49,13 +49,13 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var tvPrice: TextView? = null
     private var ivCheck: ImageView? = null
 
-//        private var tvAddServiceCost: TextView? = null
+    //        private var tvAddServiceCost: TextView? = null
     private var tvAddTask: TextView? = null
     private var tvTasks: TextView? = null
     private var rvTasks: RecyclerView? = null
-//    private var rvServiceCost: RecyclerView? = null
+    //    private var rvServiceCost: RecyclerView? = null
     private var currentView: View? = null
-//    private var serviceCostView: View? = null
+    //    private var serviceCostView: View? = null
     private lateinit var etTicketName: EditText
     private lateinit var etTicketDescription: EditText
     private lateinit var etMobile: EditText
@@ -84,10 +84,10 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     private var selectedPaymentMethod = TicketPaymentMethod(null, "")
     private var ticketCategoryAdapter: TicketCategoryAdapter? = null
     private var ticketPriorityAdapter: TicketPriorityAdapter? = null
-//    private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
+    //    private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
     private var ticketPaymentMethodAdapter: TicketPaymentMethodAdapter? = null
     private var ticketStatusAdapter: TicketStatusAdapter? = null
-//    private var btnSaveServiceCost: Button? = null
+    //    private var btnSaveServiceCost: Button? = null
 //    private var ivBackServiceCost: ImageView? = null
 //    private var etServiceCost: EditText? = null
 //    private var etCost: EditText? = null
@@ -611,7 +611,7 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
     override fun onTaskDelete(task: Task?) {
         Alert.showProgress(context!!)
         if (NetworkManager().isNetworkAvailable(context!!)) {
-            if (task?.Status == AppConstants.NEW||task?.Status == AppConstants.WAITING) {
+            if (task?.Status == AppConstants.NEW || task?.Status == AppConstants.WAITING) {
                 var request = NetworkManager().create(ApiServices::class.java)
                 var endPoint = request.getTaskDetails(task!!.TaskId)
                 NetworkManager().request(
@@ -1002,21 +1002,23 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 //
 //                            AppConstants.CurrentSelectedTicket = ticket
                             listener!!.onBottomSheetSelectedItem(0)
+                            Log.d(TAG, "onSuccess:" + response.Message)
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
                                 response.Message
-//                                getString(R.string.error_login_server_error)
                             )
-                        }
-                        else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
+                            Log.d(TAG, "STATUS_FAILED-1:" + response.Message)
+                        } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
-                            response.Message
-                        }
-
-                        else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                            Alert.showMessage(
+                                response.Message
+                            )
+                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
-                            response.Message
+                            Alert.showMessage(
+                                response.Message
+                            )
                         }
 
                     }
@@ -1108,7 +1110,6 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
 //                adminId
 //            )
 //        else
-
 
 
         ticketModel = TicketModel(

@@ -1,6 +1,7 @@
 package com.kadabra.agent.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kadabra.agent.R
 import com.kadabra.agent.model.TicketServiceCost
+import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 
 import java.util.ArrayList
@@ -40,7 +42,8 @@ class TicketServiceCostAdapter(
         serviceCost = serviceCostList[position]
 
         holder.tvTicketServiceCostName.text = serviceCost.serviceCostName
-        holder.tvTicketServiceCostType.text = serviceCost.cost.toString()+ " " + context.getString(R.string.le)
+        holder.tvTicketServiceCostType.text =
+            serviceCost.cost.toString() + " " + context.getString(R.string.le)
 
 
     }
@@ -76,8 +79,19 @@ class TicketServiceCostAdapter(
 
             tvDelete.setOnClickListener {
                 val pos = adapterPosition
-                AppConstants.TICKET_SERVICE_COST_LIST.removeAt(pos)
-             notifyDataSetChanged()
+                Log.d("AppConstant", AppConstants.CurrentSelectedTask.Status)
+                if (AppConstants.CurrentSelectedTask.Status != AppConstants.COMPLETED ||
+                    AppConstants.CurrentSelectedTask.Status != AppConstants.CANCELLED
+                ) {
+                    AppConstants.TICKET_SERVICE_COST_LIST.removeAt(pos)
+                    notifyDataSetChanged()
+                } else {
+                    Alert.showAlertMessage(
+                        context!!,
+                        AppConstants.WARNING,
+                        "Can't delete this service cost."
+                    )
+                }
             }
 
         }
