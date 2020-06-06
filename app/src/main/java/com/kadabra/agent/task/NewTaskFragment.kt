@@ -6,7 +6,10 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.net.Uri
@@ -54,6 +57,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.IOException
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -154,6 +158,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     private var etCost: EditText? = null
     private var btnSaveServiceCost: Button? = null
     private var ticketServiceCostAdapter: TicketServiceCostAdapter? = null
+    private var myClipboard: ClipboardManager? = null
+    private var myClip: ClipData? = null
     //endregion
 
     //region Events
@@ -597,6 +603,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     //region Helper Functions
     private fun init() {
 
+        myClipboard = activity!!.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager?
+
         AppConstants.TICKET_SERVICE_COST_LIST.clear()
 
         scroll = currentView.findViewById(com.kadabra.agent.R.id.scroll)
@@ -677,6 +685,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                 getTaskDetails(AppConstants.CurrentSelectedTask.TaskId)
             else
                 refresh.isRefreshing = false
+        }
+
+        etLatitude.setOnLongClickListener {
+            pasteText(it)
+            true
         }
 
     }
@@ -1580,6 +1593,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
     private fun validateStopData(): Boolean {
+      
         if (etStopName.text.toString().isNullOrEmpty()) {
             Alert.showMessage("Stop Name is required.")
             AnimateScroll.scrollToView(scroll, etStopName)
@@ -1596,6 +1610,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             etLongitude.requestFocus()
             return false
         }
+        else if(!isValidLatLng(etLatitude.text.toString().toDouble(),etLongitude.text.toString().toDouble()))
+        {
+            Alert.showMessage("Latitude Or Longitude Wrong Data.")
+            AnimateScroll.scrollToView(scroll, etLatitude)
+            etLatitude.requestFocus()
+            return false
+        }
+
 
         return true
     }
@@ -2394,5 +2416,49 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         return data
     }
 
+
+    // on click copy button
+//    fun copyText(view: View) {
+//        myClip = ClipData.newPlainText("text", et_copy_text.text);
+//        myClipboard?.setPrimaryClip(myClip!!);
+//
+////        Toast.makeText(this, "Text Copied", Toast.LENGTH_SHORT).show();
+//    }
+
+    // on click paste button
+    fun pasteText(view: View) {
+        if (view.id == R.id.etLatitude) {
+            try {
+                val abc = myClipboard?.primaryClip
+                if (abc != null) {
+
+
+                    val locationData = abc?.getItemAt(0)
+                    var data = locationData.text.split(",").toTypedArray()
+                    var lat = data[0]
+                    val long = data[1]
+                    if (isValidLatLng(lat.toDouble(), long.toDouble())) {
+                        etLatitude.setText(lat)
+                        etLongitude.setText(long)
+                        Log.d(TAG, "LAT:$lat")
+                        Log.d(TAG, "LON:$long")
+                    }
+
+                }
+            }
+
+            catch(ex:Exception)
+            {}
+        }
+    }
+
+    fun isValidLatLng(lat: Double, lng: Double): Boolean {
+        if (lat < -90 || lat > 90) {
+            return false;
+        } else if (lng < -180 || lng > 180) {
+            return false;
+        }
+        return true;
+    }
 
 }
