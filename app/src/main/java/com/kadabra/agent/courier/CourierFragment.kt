@@ -359,9 +359,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                     val suggestion = materialSearchBar!!.lastSuggestions[position].toString()
                     var selectedCourier = Courier()
                     couriersList.forEach {
-                        if (it.name.toLowerCase().contains(suggestion.toLowerCase()))
-                        {    selectedCourier = it
-                            Log.d(TAG,"selectedCourier: ${it.name}")}
+                        if (it.name.toLowerCase().contains(suggestion.toLowerCase())) {
+                            selectedCourier = it
+                            Log.d(TAG, "selectedCourier: ${it.name}")
+                        }
                     }
                     materialSearchBar!!.text = suggestion
                     Handler().postDelayed({ materialSearchBar!!.clearSuggestions() }, 1000)
@@ -821,29 +822,30 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
     private fun prepareGetAllCourierView(
         markersList: ArrayList<Marker>
     ) {
-
-
-        var builder = LatLngBounds.builder()
-        markersList.forEach { marker ->
-            builder.include(marker.position)
-            var courier = marker?.tag as Courier
+        try {
+            var builder = LatLngBounds.builder()
+            markersList.forEach { marker ->
+                builder.include(marker.position)
+                var courier = marker?.tag as Courier
 //            marker!!.title=courier.name
 //            marker.snippet=courier.name
 //            marker.showInfoWindow()
 
-        }
-        var bounds = builder.build()
-        // begin new code:
-        var width = resources.displayMetrics.widthPixels;
-        var height = resources.displayMetrics.heightPixels;
-        var padding = (width * 0.12).toInt()
+            }
+            var bounds = builder.build()
+            // begin new code:
+            var width = resources.displayMetrics.widthPixels;
+            var height = resources.displayMetrics.heightPixels;
+            var padding = (width * 0.12).toInt()
 //        var padding = 0 // offset from edges of the mMap in pixels
-        var cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding)
+            var cu = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding)
 
 //        mMap.setMaxZoomPreference(12.0F)
-        if (!AppConstants.isMoving)
-            mMap.animateCamera(cu)
-
+            if (!AppConstants.isMoving)
+                mMap.animateCamera(cu)
+        } catch (ex: java.lang.Exception) {
+            Log.d(TAG, ex.message)
+        }
 
     }
 
@@ -1072,6 +1074,10 @@ class CourierFragment : BaseFragment(), IBottomSheetCallback, OnMapReadyCallback
                         var value = dist?.split(" km").toString().trim()[0].toInt()
                         totalKilometers =
                             conevrtMetersToKilometers(response.body()?.routes?.get(0)?.legs?.get(0)?.distance?.value!!.toLong())
+                        // add 2 kilometers to total if it >6
+                        if (totalKilometers >6)
+                            totalKilometers += 2
+
                         totalDistanceValue =
                             response.body()?.routes?.get(0)?.legs?.get(0)?.duration?.text.toString()
                         totalSeconds =

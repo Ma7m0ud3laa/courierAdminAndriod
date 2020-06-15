@@ -1133,7 +1133,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                                 response.Message
                             )
-                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                        } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
                             Alert.showMessage(
                                 response.Message
@@ -1175,7 +1175,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                             Log.d(TAG, "response - " + response.toString())
                             Log.d(TAG, "response.Status - " + response.Status.toString())
 //                            endTask(task)
-
+                            FirebaseManager.endTask(task)
                         } else {
                             Alert.hideProgress()
                             Alert.showMessage(
@@ -1593,8 +1593,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
     }
 
     private fun validateStopData(): Boolean {
-      
-        if (etStopName.text.toString().isNullOrEmpty()) {
+
+        if (etStopName.text.trim().toString().isNullOrEmpty()) {
             Alert.showMessage("Stop Name is required.")
             AnimateScroll.scrollToView(scroll, etStopName)
             etStopName.requestFocus()
@@ -1609,9 +1609,11 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             AnimateScroll.scrollToView(scroll, etLongitude)
             etLongitude.requestFocus()
             return false
-        }
-        else if(!isValidLatLng(etLatitude.text.toString().toDouble(),etLongitude.text.toString().toDouble()))
-        {
+        } else if (!isValidLatLng(
+                etLatitude.text.toString().toDouble(),
+                etLongitude.text.toString().toDouble()
+            )
+        ) {
             Alert.showMessage("Latitude Or Longitude Wrong Data.")
             AnimateScroll.scrollToView(scroll, etLatitude)
             etLatitude.requestFocus()
@@ -1660,6 +1662,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 //                            var tasks = response.ResponseObj!!
 //                            AppConstants.CurrentSelectedTicket.taskModel = tasks
 //                            //  close and go to task details view
+                            FirebaseManager.endTask(task)
                             editMode = false
                             listener!!.onBottomSheetSelectedItem(3)
 
@@ -1669,7 +1672,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                                 response.Message
                                 // "Can't delete this task it's in progress."
                             )
-                        } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
+                        } else if (response.Status == AppConstants.STATUS_NOT_EXIST) {
                             Alert.hideProgress()
                             Alert.showMessage(
 
@@ -2188,6 +2191,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
 
                         if (dist != null && dist > 0) {
                             var totalKilometers = conevrtMetersToKilometers(dist.toLong())
+//                            data = calculateTripApproximationCost(totalKilometers+2, dur!!)
+                            if (totalKilometers >6)
+                                totalKilometers += 2
                             data = calculateTripApproximationCost(totalKilometers, dur!!)
 //                            "Total Kilometers: ( " + dist + "  )\n Time : $dur\n"
 
@@ -2271,8 +2277,7 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     if (response.Status == AppConstants.STATUS_SUCCESS) {
 
                         FirebaseManager.endTask(
-                            AppConstants.CurrentSelectedTask,
-                            task.CourierID!!.toInt()
+                            AppConstants.CurrentSelectedTask
                         )
                         Alert.hideProgress()
                         alertDialog!!.dismiss()
@@ -2387,9 +2392,14 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
         var bikeCost = 3
         var minTotalCar = 0
         var maxTotalCar = 0
+        var exactTotalCar = 0
         var minTotalBike = 0
         var maxTotalBike = 0
+        var exactTotalBike =0
 
+//
+        exactTotalCar=totalKilometers * carCost
+        exactTotalBike=totalKilometers * bikeCost
 
         if (totalKilometers < 20) // kilometers < 100 Cost-5 as min Cost+20 as max
         {
@@ -2405,6 +2415,9 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
             maxTotalBike = totalKilometers * bikeCost + 30
         }
 
+
+
+
         data =
             "Total Kilometers: (" + totalKilometers + " " + getString(R.string.km) + ").\nTime : $totalTime\n" +
                     "Total Cost - Car: [ From: $minTotalCar ${getString(R.string.le)}   To: $maxTotalCar ${getString(
@@ -2412,7 +2425,19 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     )} ].\n" +
                     "Total Cost - Bike: [ From: $minTotalBike ${getString(R.string.le)}   To: $maxTotalBike ${getString(
                         R.string.le
-                    )} ]."
+                    )} ].\n" +
+                    "-------------------------\n"+
+                    "Exactly Total Cost - Car: $exactTotalCar ${getString(R.string.le)} .\n" +
+                    "Exactly Total Cost - Bike: $exactTotalBike ${getString(R.string.le)} ."
+
+//        maxTotalCar = totalKilometers * carCost
+//        maxTotalBike = totalKilometers* bikeCost
+//
+//       data =
+//            "Total Kilometers: (" + totalKilometers + " " + getString(R.string.km) + ").\nTime : $totalTime\n" +
+//                    "Total Cost - Car: $maxTotalCar ${getString(R.string.le)} .\n" +
+//                    "Total Cost - Bike: $maxTotalBike ${getString(R.string.le)} ."
+
         return data
     }
 
@@ -2445,10 +2470,8 @@ class NewTaskFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback, Vie
                     }
 
                 }
+            } catch (ex: Exception) {
             }
-
-            catch(ex:Exception)
-            {}
         }
     }
 

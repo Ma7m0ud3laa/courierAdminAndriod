@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -62,6 +63,13 @@ class TicketAdapter(
         if (!ticket.TicketDescription.isNullOrEmpty())
             holder.tvTicketDescription.text = ticket.TicketDescription
 
+        if (ticket.IsTagged != null && ticket?.IsTagged!!) {
+            holder.ivTag.visibility = View.VISIBLE
+            holder.tvTaggedAgent.visibility=View.VISIBLE
+            holder.tvTaggedAgent.text = ticket.TaggingAgent
+
+        }
+
         holder.tvAgentName.text = ticket.AgentName
         holder.tvPriority.text = ticket.Priority
 
@@ -105,8 +113,7 @@ class TicketAdapter(
             var dateObj = sdf.parse(ticket.ComingTaskPickupTime)
             holder.tvComingTaskPickupTime.text =
                 tf.format(dateObj!!.time)
-        } else
-        {
+        } else {
             var myFormat = "EEE, MMM d, yyyy   hh:mm a" //
             var t = "yyyy-MM-dd'T'HH:mm:ss"
             var sdf = SimpleDateFormat(t, Locale.US)
@@ -165,6 +172,10 @@ class TicketAdapter(
         var tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
         var tvTotalTasks: TextView = itemView.findViewById(R.id.tvTotalTasks)
 
+        var tvTaggedAgent: TextView = itemView.findViewById(R.id.tvTaggedAgent)
+
+        var ivTag: ImageView = itemView.findViewById(R.id.ivTag)
+
 
         init {
 
@@ -174,7 +185,7 @@ class TicketAdapter(
                 ticket = ticketList[pos]
 //
 //                if (checkPermissions()&& LocationHelper.shared.isGPSEnabled()) {
-                Log.d("Ticket Adapter","open ticket details from adapter")
+                Log.d("Ticket Adapter", "open ticket details from adapter")
                 AppConstants.CurrentSelectedTicket = ticket
                 listener!!.onBottomSheetSelectedItem(3)
 //                }

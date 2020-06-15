@@ -26,6 +26,7 @@ import com.kadabra.agent.utilities.Alert
 import com.kadabra.agent.utilities.AppConstants
 import com.kadabra.agent.utilities.AppController
 import com.reach.plus.admin.util.UserSessionManager
+import java.lang.Exception
 
 
 class TicketFragment : BaseFragment(), IBottomSheetCallback {
@@ -165,13 +166,17 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             ticketList = ticketsData.simpleTicketmodels
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
-                                Log.d(TAG, "ticketList size : ${ticketList.toString()}")
-                                prepareTicketData(ticketList)
-                                AppConstants.GetALLTicket = ticketList
+                                try {
+                                    Log.d(TAG, "ticketList size : ${ticketList.toString()}")
+                                    prepareTicketData(ticketList)
+                                    AppConstants.GetALLTicket = ticketList
 //                                getAllCouriers()
-                                Alert.hideProgress()
-                                sRefresh!!.isRefreshing = false
-                                tvEmptyData!!.visibility = View.INVISIBLE
+                                    Alert.hideProgress()
+                                    sRefresh!!.isRefreshing = false
+                                    tvEmptyData!!.visibility = View.INVISIBLE
+                                } catch (ex: Exception) {
+                                    Log.d(TAG, ex.message)
+                                }
                             } else {//no taskModel
                                 sRefresh!!.isRefreshing = false
                                 tvEmptyData!!.visibility = View.VISIBLE
@@ -226,13 +231,17 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
                             ticketList = ticketsData.ticketmodels
                             AppConstants.GetALLTicket = ticketList
                             if (ticketList.size > 0) {
-                                Log.d(TAG, "ticketList size : ${ticketList.toString()}")
-                                prepareTicketData(ticketList)
-                                AppConstants.GetALLTicket = ticketList
+                                try {
+                                    Log.d(TAG, "ticketList size : ${ticketList.toString()}")
+                                    prepareTicketData(ticketList)
+                                    AppConstants.GetALLTicket = ticketList
 //                                getAllCouriers()
-                                Alert.hideProgress()
-                                sRefresh!!.isRefreshing = false
-                                tvEmptyData!!.visibility = View.INVISIBLE
+                                    Alert.hideProgress()
+                                    sRefresh!!.isRefreshing = false
+                                    tvEmptyData!!.visibility = View.INVISIBLE
+                                } catch (ex: Exception) {
+                                    Log.d(TAG, ex.message)
+                                }
                             } else {//no taskModel
                                 sRefresh!!.isRefreshing = false
                                 tvEmptyData!!.visibility = View.VISIBLE
@@ -296,11 +305,16 @@ class TicketFragment : BaseFragment(), IBottomSheetCallback {
 
                     override fun onSuccess(response: ApiResponse<ArrayList<Courier>>) {
                         if (response.Status == AppConstants.STATUS_SUCCESS) {
+                            try {
+                                var courierList = response.ResponseObj!!
+                                AppConstants.ALL_COURIERS = courierList
+                                Log.d(TAG, "allCouriers: ${courierList.size}")
+                                UserSessionManager.getInstance(context!!)
+                                    .setAllCouriers(courierList)
+                            } catch (ex: Exception) {
+                                Log.d(TAG, ex.message)
+                            }
 
-                            var courierList = response.ResponseObj!!
-                            AppConstants.ALL_COURIERS = courierList
-                            Log.d(TAG,"allCouriers: ${courierList.size}")
-                            UserSessionManager.getInstance(context!!).setAllCouriers(courierList)
 
                         }
                     }

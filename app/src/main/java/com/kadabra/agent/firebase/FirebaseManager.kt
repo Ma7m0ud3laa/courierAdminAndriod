@@ -179,8 +179,9 @@ object FirebaseManager {
     }
 
 
-    fun endTask(task: Task, courierId: Int) {
-        updateCourierHaveTask(courierId, false)
+    fun endTask(task: Task) {
+//        updateCourierHaveTask(courierId, false)
+        if(task.Status!=AppConstants.NEW)
         dbCourierTaskHistory.child(task.TaskId).child("active")
             .setValue(false)
     }

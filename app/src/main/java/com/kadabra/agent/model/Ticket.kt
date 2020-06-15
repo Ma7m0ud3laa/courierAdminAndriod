@@ -33,6 +33,8 @@ class Ticket {
     var NeedCourier = false
     var taskModel = ArrayList<Task>()
     var title: String? = null
+    var IsTagged: Boolean? = null
+    var TaggingAgent = ""
     var pickUpLocation: PickUpLocation = PickUpLocation()//need to be with AdminName
     var dropOffLocation: DropOffLocation = DropOffLocation()//need to be with AdminName
     var stopList: ArrayList<Stop>? = null//need to be added and with AdminName

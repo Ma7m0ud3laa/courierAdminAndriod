@@ -812,7 +812,8 @@ class NewTicketFragment : BaseFragment(), IBottomSheetCallback, ITaskCallback,
                         } else if (response.Status == AppConstants.STATUS_FAILED) {
                             Alert.hideProgress()
                             Alert.showMessage(
-                                "Can't delete this task it's in progress."
+//                                "Can't delete this task it's in progress."
+                            response.Message
                             )
                         } else if (response.Status == AppConstants.STATUS_INCORRECT_DATA) {
                             Alert.hideProgress()
